@@ -1,157 +1,112 @@
 // =============================================================================
-// DATOS DE LA RUTINA CARLOS GRAÑA · CGM PERFORMANCE
-// Sistema de Frecuencia 1,5 (4 semanas rotativas)
+// DATOS DE LA RUTINA CARLOS GRAÑA · CGM RENDIMIENTO
+// Sistema de 4 Días Rotativos (Frecuencia 1,5)
+// Sin días fijos de la semana: avanzas día a día a tu propio ritmo
 // =============================================================================
 
 (function() {
   'use strict';
 
-  var ROUTINE_INFO = {
-    title: "ENTRENO FRECUENCIA 1,5",
-    coach: "Carlos Graña",
-    brand: "CGM Performance",
-    subtitle: "Plan personalizado · Alta intensidad y frecuencia adaptada",
-    rules: {
-      description: "Entrenas lunes, martes, miércoles, viernes y sábado. El sábado repites el día con el que empezaste el lunes. El lunes siguiente arrancas con el día que toca a continuación, así cada grupo se entrena unas 1,5 veces por semana.",
-      topSet: "Top set: serie pesada al límite de reps objetivo con la máxima técnica.",
-      backOff: "Back off: 20% menos de peso que el Top set, buscando mismas reps o alguna más.",
-      descendente: "Descendente (Drop set): al terminar las repeticiones, bajar peso inmediatamente sin descanso y continuar al fallo.",
-      fallo: "Al fallo: tantas repeticiones técnicas como sea posible hasta no poder completar una más sin degradar la técnica."
+  var INFORMACION_RUTINA = {
+    titulo: "ENTRENAMIENTO FRECUENCIA 1,5",
+    entrenador: "Carlos Graña",
+    marca: "CGM Rendimiento",
+    subtitulo: "Plan personalizado de alta intensidad",
+    reglas: {
+      descripcion: "El plan consta de 4 días de entrenamiento en rotación continua. Entrenas a tu ritmo sin estar atado a días fijos de la semana: cuando termines un día, el siguiente entrenamiento pasas al siguiente en la lista.",
+      seriePesada: "Serie pesada (máximo peso): serie con el máximo peso posible para las repeticiones marcadas, manteniendo técnica estricta.",
+      serieDescarga: "Serie de descarga (-20%): un 20% menos de peso que en la serie pesada, buscando sacar las mismas repeticiones o alguna más.",
+      serieDescendente: "Serie descendente: al terminar las repeticiones, bajas peso inmediatamente sin descansar y sigues sacando repeticiones.",
+      serieAlFallo: "Al fallo: tantas repeticiones con buena técnica como seas capaz de hacer hasta no poder levantar una más."
     }
   };
 
-  var SCHEDULE_WEEKS = [
-    {
-      week: 1,
-      name: "Semana 1",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D1", workoutName: "D1 Espalda (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    },
-    {
-      week: 2,
-      name: "Semana 2",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D2", workoutName: "D2 Pecho-hombro (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    },
-    {
-      week: 3,
-      name: "Semana 3",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D3", workoutName: "D3 Pierna (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    },
-    {
-      week: 4,
-      name: "Semana 4",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D4", workoutName: "D4 Brazo (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    }
-  ];
-
-  var WORKOUT_DAYS = {
+  // Cuatro días de entrenamiento principales
+  var DIAS_ENTRENAMIENTO = {
     D1: {
       id: "D1",
-      title: "DÍA 1",
-      name: "Espalda y posterior",
-      category: "Espalda · Deltoides Posterior",
-      badge: "D1",
-      description: "Enfoque en densidad y amplitud dorsal, remos pesados y deltoides posterior.",
-      exercises: [
+      numero: 1,
+      titulo: "DÍA 1",
+      nombre: "Espalda y Deltoides Posterior",
+      categoria: "Espalda y parte trasera del hombro",
+      etiqueta: "DÍA 1",
+      descripcion: "Amplitud y grosor dorsal, remos pesados y deltoides posterior.",
+      ejercicios: [
         {
           id: "d1_e1",
           name: "Pull over en polea",
-          notes: "3 × 12 reps. Movimiento controlado, estiramiento completo en la fase excéntrica sin quebrar muñecas.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Pull over en polea",
+          indicaciones: "3 series de 12 repeticiones. Movimiento controlado, estiramiento completo arriba sin doblar muñecas.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d1_e2",
           name: "Dominadas",
-          notes: "1 serie con lastre a 8 reps + 1 serie sin peso al fallo.",
-          sets: [
-            { type: "lastre", label: "Serie 1 (Con Lastre)", targetReps: 8, badge: "LASTRE" },
-            { type: "fallo", label: "Serie 2 (Sin Peso)", targetReps: "Fallo", badge: "AL FALLO" }
+          nombre: "Dominadas",
+          indicaciones: "1 serie con peso añadido (lastre) a 8 repeticiones + 1 serie sin peso al fallo muscular.",
+          series: [
+            { tipo: "lastre", etiqueta: "Serie 1 (Con Lastre)", repeticionesObjetivo: 8, insignia: "CON LASTRE" },
+            { tipo: "fallo", etiqueta: "Serie 2 (Sin Peso)", repeticionesObjetivo: "Al fallo", insignia: "AL FALLO" }
           ]
         },
         {
           id: "d1_e3",
           name: "Remo con barra",
-          notes: "Top set + back off (−20 %) + 3.ª serie con el peso del back off y descendente.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" },
-            { type: "dropset", label: "Serie 3 (Back-off + Descendente)", targetReps: 8, badge: "DROP SET" }
+          nombre: "Remo con barra",
+          indicaciones: "Serie pesada + serie de descarga (−20 %) + 3.ª serie con el peso de la descarga y descendente.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", etiqueta: "Serie Pesada", repeticionesObjetivo: 6, insignia: "SERIE PESADA" },
+            { tipo: "descarga", etiqueta: "Descarga (-20%)", repeticionesObjetivo: 8, insignia: "DESCARGA -20%" },
+            { tipo: "descendente", etiqueta: "Serie 3 (Descarga + Descendente)", repeticionesObjetivo: 8, insignia: "DESCENDENTE" }
           ]
         },
         {
           id: "d1_e4",
           name: "Jalón agarre cerrado",
-          notes: "3 × 12. La última serie, descendente (drop set al terminar).",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "dropset", label: "Serie 3 (Descendente)", targetReps: 12, badge: "DESCENDENTE" }
+          nombre: "Jalón agarre cerrado",
+          indicaciones: "3 series de 12 repeticiones. En la última serie, baja de peso al terminar y continúa (descendente).",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "descendente", etiqueta: "Serie 3 (Descendente)", repeticionesObjetivo: 12, insignia: "DESCENDENTE" }
           ]
         },
         {
           id: "d1_e5",
           name: "Remo Dorian",
-          notes: "3 × 12 reps. Agarre supino, torso a 45º, tirando hacia la cadera baja.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Remo Dorian",
+          indicaciones: "3 series de 12 repeticiones. Agarre con palmas hacia arriba (supino), torso a 45 grados, tirando hacia la cadera.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d1_e6",
           name: "Posterior en máquina",
-          notes: "3 × 15 reps. Pájaros en máquina (peck deck inverso). Codos alineados con hombros.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Posterior en máquina",
+          indicaciones: "3 series de 15 repeticiones. Pájaros en máquina. Codos alineados con los hombros.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 15 }
           ]
         },
         {
           id: "d1_e7",
           name: "Remo al mentón en polea",
-          notes: "3 × 15 reps. Agarre medio/ancho en polea baja, enfatizando trapecio y deltoides lateral/posterior.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Remo al mentón en polea",
+          indicaciones: "3 series de 15 repeticiones. Agarre medio en polea baja, subiendo hacia el pecho/mentón.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 15 }
           ]
         }
       ]
@@ -159,78 +114,86 @@
 
     D2: {
       id: "D2",
-      title: "DÍA 2",
-      name: "Pecho y hombro",
-      category: "Pectoral · Deltoides Anterior y Lateral",
-      badge: "D2",
-      description: "Foco en presses pesados con Top set + Back off, aperturas y congestión de deltoides.",
-      exercises: [
+      numero: 2,
+      titulo: "DÍA 2",
+      nombre: "Pecho y Hombro",
+      categoria: "Pectoral y parte delantera/lateral del hombro",
+      etiqueta: "DÍA 2",
+      descripcion: "Empujes pesados con serie de descarga, aperturas y congestión de hombro.",
+      ejercicios: [
         {
           id: "d2_e1",
           name: "Press inclinado",
-          notes: "Top set + back off (−20 %). Banco a 30º-45º. Mantén retracción escapular.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" }
+          nombre: "Press inclinado",
+          indicaciones: "Serie pesada + serie de descarga (−20 %). Banco inclinado a 30-45 grados. Saca pecho y junta escápulas.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", etiqueta: "Serie Pesada", repeticionesObjetivo: 6, insignia: "SERIE PESADA" },
+            { tipo: "descarga", etiqueta: "Descarga (-20%)", repeticionesObjetivo: 8, insignia: "DESCARGA -20%" }
           ]
         },
         {
           id: "d2_e2",
           name: "Aperturas",
-          notes: "3 × 12 reps. Con mancuernas o polea. Máximo estiramiento del pectoral en la fase excéntrica.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Aperturas",
+          indicaciones: "3 series de 12 repeticiones. Con mancuernas o en polea. Siente el estiramiento en el pecho al bajar.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d2_e3",
           name: "Press declinado",
-          notes: "Top set + back off (−20 %). Excelente estímulo para la porción esternal e inferior.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" }
+          nombre: "Press declinado",
+          indicaciones: "Serie pesada + serie de descarga (−20 %). Gran trabajo para la zona baja y media del pectoral.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", etiqueta: "Serie Pesada", repeticionesObjetivo: 6, insignia: "SERIE PESADA" },
+            { tipo: "descarga", etiqueta: "Descarga (-20%)", repeticionesObjetivo: 8, insignia: "DESCARGA -20%" }
           ]
         },
         {
           id: "d2_e4",
           name: "Cruce de poleas",
-          notes: "2 × 12 reps. Aguantar 1 segundo en el pico de contracción.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 }
+          nombre: "Cruce de poleas",
+          indicaciones: "2 series de 12 repeticiones. Aguanta 1 segundo apretando fuerte en el centro.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d2_e5",
           name: "Elevaciones laterales",
-          notes: "4 × 12 reps. La última serie, descendente (drop set sin descanso).",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 },
-            { type: "dropset", label: "Serie 4 (Descendente)", targetReps: 12, badge: "DESCENDENTE" }
+          nombre: "Elevaciones laterales",
+          indicaciones: "4 series de 12 repeticiones. En la 4.ª serie, baja de peso inmediatamente al terminar y sigue sacando repeticiones.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 },
+            { tipo: "descendente", etiqueta: "Serie 4 (Descendente)", repeticionesObjetivo: 12, insignia: "DESCENDENTE" }
           ]
         },
         {
           id: "d2_e6",
           name: "Press militar",
-          notes: "2 × 8 reps. Con barra o mancuernas. Core firme y sin arquear en exceso la zona lumbar.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 8 },
-            { type: "normal", label: "Serie 2", targetReps: 8 }
+          nombre: "Press militar",
+          indicaciones: "2 series de 8 repeticiones. Con barra o mancuernas. Abdomen y glúteos firmes.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 8 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 8 }
           ]
         },
         {
           id: "d2_e7",
           name: "Elevaciones frontales",
-          notes: "2 × 12 reps. Con mancuernas o polea baja. Subida controlada hasta la altura de la vista.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 }
+          nombre: "Elevaciones frontales",
+          indicaciones: "2 series de 12 repeticiones. Con mancuernas o polea. Subida controlada hasta la altura de los ojos.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 }
           ]
         }
       ]
@@ -238,70 +201,77 @@
 
     D3: {
       id: "D3",
-      title: "DÍA 3",
-      name: "Pierna",
-      category: "Cuádriceps · Isquiosuriales · Aductores",
-      badge: "D3",
-      description: "Entrenamiento completo del tren inferior: isquios, cuádriceps pesados, prensa y aductor.",
-      exercises: [
+      numero: 3,
+      titulo: "DÍA 3",
+      nombre: "Pierna Completa",
+      categoria: "Cuádriceps, Isquiotibiales y Aductor",
+      etiqueta: "DÍA 3",
+      descripcion: "Trabajo completo de piernas: isquios, sentadilla, prensa pesada y aductor.",
+      ejercicios: [
         {
           id: "d3_e1",
           name: "Femoral tumbado",
-          notes: "3 × 12 reps. Pre-fatiga de isquiotibiales. Mantén la pelvis pegada al banco.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Femoral tumbado",
+          indicaciones: "3 series de 12 repeticiones. Mantén la cadera bien pegada al banco.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d3_e2",
           name: "Extensiones de cuádriceps",
-          notes: "3 × 15 reps. Pausa arriba de 1 segundo para aislar el recto femoral y vastos.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Extensiones de cuádriceps",
+          indicaciones: "3 series de 15 repeticiones. Haz una pausa de 1 segundo arriba para apretar el músculo.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 15 }
           ]
         },
         {
           id: "d3_e3",
           name: "Sentadilla pendular",
-          notes: "3 × 12 reps. Si tu gimnasio no tiene péndulo, puedes usar Hack squat o multipower.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Sentadilla pendular",
+          indicaciones: "3 series de 12 repeticiones. Si en tu gimnasio no hay péndulo, usa sentadilla Hack o Multipower.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d3_e4",
           name: "Prensa",
-          notes: "Top set + back off (−20 %). Profundidad óptima sin despegar la zona lumbar.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 8, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 10, badge: "BACK OFF" }
+          nombre: "Prensa",
+          indicaciones: "Serie pesada + serie de descarga (−20 %). Baja profundo sin redondear la zona lumbar.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", etiqueta: "Serie Pesada", repeticionesObjetivo: 8, insignia: "SERIE PESADA" },
+            { tipo: "descarga", etiqueta: "Descarga (-20%)", repeticionesObjetivo: 10, insignia: "DESCARGA -20%" }
           ]
         },
         {
           id: "d3_e5",
           name: "Aductor",
-          notes: "3 × 15 reps. En máquina específica de aductor para estabilidad de rodilla y masa interna.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Aductor",
+          indicaciones: "3 series de 15 repeticiones. En máquina de aductores, movimiento controlado.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 15 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 15 }
           ]
         },
         {
           id: "d3_e6",
           name: "Femoral sentado",
-          notes: "3 × 12 reps. Excelente estiramiento en cadera flexionada. Controla la bajada.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Femoral sentado",
+          indicaciones: "3 series de 12 repeticiones. Controla bien la subida y la bajada sin balanceos.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         }
       ]
@@ -309,79 +279,98 @@
 
     D4: {
       id: "D4",
-      title: "DÍA 4",
-      name: "Brazo",
-      category: "Bíceps · Tríceps",
-      badge: "D4",
-      description: "Día específico de hipertrofia de brazos: bíceps en diferentes ángulos y tríceps completo.",
-      exercises: [
+      numero: 4,
+      titulo: "DÍA 4",
+      nombre: "Brazos (Bíceps y Tríceps)",
+      categoria: "Bíceps y Tríceps",
+      etiqueta: "DÍA 4",
+      descripcion: "Entrenamiento enfocado en brazos: diferentes ángulos para bíceps y tríceps.",
+      ejercicios: [
         {
           id: "d4_e1",
           name: "Curl de bíceps con mancuernas",
-          notes: "3 × 12 reps. Supinación marcada en la parte alta del movimiento.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Curl de bíceps con mancuernas",
+          indicaciones: "3 series de 12 repeticiones. Gira la muñeca hacia afuera en la parte más alta.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d4_e2",
           name: "Tríceps en polea con cuerda",
-          notes: "3 × 12 reps. Abre la cuerda al final de la extensión para activar la cabeza lateral.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Tríceps en polea con cuerda",
+          indicaciones: "3 series de 12 repeticiones. Separa los extremos de la cuerda al final de la extensión.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 12 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d4_e3",
           name: "Curl de bíceps en banco Scott",
-          notes: "3 × 10 reps. Aislamiento total de la cabeza corta. No bloquees los codos abajo.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 },
-            { type: "normal", label: "Serie 3", targetReps: 10 }
+          nombre: "Curl de bíceps en banco Scott",
+          indicaciones: "3 series de 10 repeticiones. Brazos bien apoyados en la almohadilla.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 10 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 10 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d4_e4",
           name: "Tríceps tras nuca unilateral",
-          notes: "3 × 10 reps por brazo. En polea o mancuerna, enfatizando cabeza larga del tríceps.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 },
-            { type: "normal", label: "Serie 3", targetReps: 10 }
+          nombre: "Tríceps tras nuca unilateral",
+          indicaciones: "3 series de 10 repeticiones con cada brazo. En polea o con mancuerna por detrás de la cabeza.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 10 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 10 },
+            { tipo: "normal", etiqueta: "Serie 3", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d4_e5",
           name: "Curl martillo",
-          notes: "2 × 10 reps. Para braquial anterior y braquiorradial (grosor de brazo).",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 }
+          nombre: "Curl martillo",
+          indicaciones: "2 series de 10 repeticiones. Con las palmas mirándose entre sí para dar grosor al brazo.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 10 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d4_e6",
           name: "Fondos",
-          notes: "2 × 10 reps. En paralelas o entre bancos. Torso erguido para focalizar en tríceps.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 }
+          nombre: "Fondos",
+          indicaciones: "2 series de 10 repeticiones. En barras paralelas o entre dos bancos.",
+          series: [
+            { tipo: "normal", etiqueta: "Serie 1", repeticionesObjetivo: 10 },
+            { tipo: "normal", etiqueta: "Serie 2", repeticionesObjetivo: 10 }
           ]
         }
       ]
     }
   };
 
-  // Exportar al objeto global
-  window.CGM_DATA = {
-    ROUTINE_INFO: ROUTINE_INFO,
-    SCHEDULE_WEEKS: SCHEDULE_WEEKS,
-    WORKOUT_DAYS: WORKOUT_DAYS
+  // Secuencia rotativa ordenada (puedes seguirla o elegir el día que quieras)
+  var SECUENCIA_CICLO = [
+    { sesion: 1, idDia: "D1", nombre: "Día 1: Espalda y Posterior", esRepeticion: false },
+    { sesion: 2, idDia: "D2", nombre: "Día 2: Pecho y Hombro", esRepeticion: false },
+    { sesion: 3, idDia: "D3", nombre: "Día 3: Pierna Completa", esRepeticion: false },
+    { sesion: 4, idDia: "D4", nombre: "Día 4: Brazos", esRepeticion: false },
+    { sesion: 5, idDia: "D1", nombre: "Día 1: Espalda (Repetición)", esRepeticion: true },
+    { sesion: 6, idDia: "D2", nombre: "Día 2: Pecho y Hombro", esRepeticion: false },
+    { sesion: 7, idDia: "D3", nombre: "Día 3: Pierna", esRepeticion: false },
+    { sesion: 8, idDia: "D4", nombre: "Día 4: Brazos", esRepeticion: false },
+    { sesion: 9, idDia: "D2", nombre: "Día 2: Pecho (Repetición)", esRepeticion: true }
+  ];
+
+  window.CGM_DATOS = {
+    INFORMACION_RUTINA: INFORMACION_RUTINA,
+    DIAS_ENTRENAMIENTO: DIAS_ENTRENAMIENTO,
+    SECUENCIA_CICLO: SECUENCIA_CICLO
   };
 
 })();

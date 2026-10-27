@@ -734,19 +734,22 @@ body {
   color: var(--text-muted);
 }
 
-.set-tag.topset {
+.set-tag.topset,
+.set-tag.pesada {
   background: #b91c1c;
   color: #fff;
   border: 1px solid #ef4444;
 }
 
-.set-tag.backoff {
+.set-tag.backoff,
+.set-tag.descarga {
   background: #b45309;
   color: #fff;
   border: 1px solid #f59e0b;
 }
 
-.set-tag.dropset {
+.set-tag.dropset,
+.set-tag.descendente {
   background: #6d28d9;
   color: #fff;
   border: 1px solid #a855f7;

@@ -1,158 +1,90 @@
 // =============================================================================
-// CGM PERFORMANCE · APPLICATION CONTROLLER (v3.0)
-// Rutina Frecuencia 1,5 · Carlos Graña
+// CGM RENDIMIENTO · CONTROLADOR DE LA APLICACIÓN (v4.0)
+// Rutina de 4 Días Rotativos · Carlos Graña
+// 100% en castellano y sin atarse a días de la semana
 // =============================================================================
 
 (function() {
   'use strict';
 
-  // DATOS DE LA RUTINA EMBEBIDOS DIRECTAMENTE PARA EVITAR CUALQUIER FALLO DE CARGA
-  var ROUTINE_INFO = {
-    title: "ENTRENO FRECUENCIA 1,5",
-    coach: "Carlos Graña",
-    brand: "CGM Performance",
-    subtitle: "Plan personalizado · Alta intensidad y frecuencia adaptada",
-    rules: {
-      description: "Entrenas lunes, martes, miércoles, viernes y sábado. El sábado repites el día con el que empezaste el lunes. El lunes siguiente arrancas con el día que toca a continuación, así cada grupo se entrena unas 1,5 veces por semana.",
-      topSet: "Top set: serie pesada al límite de reps objetivo con la máxima técnica.",
-      backOff: "Back off: 20% menos de peso que el Top set, buscando mismas reps o alguna más.",
-      descendente: "Descendente (Drop set): al terminar las repeticiones, bajar peso inmediatamente sin descanso y continuar al fallo.",
-      fallo: "Al fallo: tantas repeticiones técnicas como sea posible hasta no poder completar una más sin degradar la técnica."
-    }
-  };
-
-  var SCHEDULE_WEEKS = [
-    {
-      week: 1,
-      name: "Semana 1",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D1", workoutName: "D1 Espalda (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    },
-    {
-      week: 2,
-      name: "Semana 2",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D2", workoutName: "D2 Pecho-hombro (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    },
-    {
-      week: 3,
-      name: "Semana 3",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D3", workoutName: "D3 Pierna (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    },
-    {
-      week: 4,
-      name: "Semana 4",
-      days: [
-        { day: "Lunes", dayIndex: 1, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
-        { day: "Martes", dayIndex: 2, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
-        { day: "Miércoles", dayIndex: 3, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
-        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
-        { day: "Viernes", dayIndex: 5, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
-        { day: "Sábado", dayIndex: 6, workoutId: "D4", workoutName: "D4 Brazo (Repetición)", isRest: false, isRepeated: true },
-        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
-      ]
-    }
-  ];
-
-  var WORKOUT_DAYS = {
+  // 1. DATOS DE LOS 4 DÍAS DE ENTRENAMIENTO
+  var DIAS_ENTRENAMIENTO = {
     D1: {
       id: "D1",
-      title: "DÍA 1",
-      name: "Espalda y posterior",
-      category: "Espalda · Deltoides Posterior",
-      badge: "D1",
-      description: "Enfoque en densidad y amplitud dorsal, remos pesados y deltoides posterior.",
-      exercises: [
+      numero: 1,
+      titulo: "DÍA 1",
+      nombre: "Espalda y Deltoides Posterior",
+      categoria: "Espalda y parte trasera del hombro",
+      descripcion: "Amplitud y grosor dorsal, remos pesados y deltoides posterior.",
+      ejercicios: [
         {
           id: "d1_e1",
-          name: "Pull over en polea",
-          notes: "3 × 12 reps. Movimiento controlado, estiramiento completo en la fase excéntrica sin quebrar muñecas.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Pull over en polea",
+          indicaciones: "3 series de 12 repeticiones. Movimiento controlado, estiramiento completo arriba sin doblar muñecas.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d1_e2",
-          name: "Dominadas",
-          notes: "1 serie con lastre a 8 reps + 1 serie sin peso al fallo.",
-          sets: [
-            { type: "lastre", label: "Serie 1 (Con Lastre)", targetReps: 8, badge: "LASTRE" },
-            { type: "fallo", label: "Serie 2 (Sin Peso)", targetReps: "Fallo", badge: "AL FALLO" }
+          nombre: "Dominadas",
+          indicaciones: "1 serie con peso añadido (lastre) a 8 repeticiones + 1 serie sin peso al fallo muscular.",
+          series: [
+            { tipo: "lastre", insignia: "CON LASTRE", repeticionesObjetivo: 8 },
+            { tipo: "fallo", insignia: "AL FALLO", repeticionesObjetivo: "Al fallo" }
           ]
         },
         {
           id: "d1_e3",
-          name: "Remo con barra",
-          notes: "Top set + back off (−20 %) + 3.ª serie con el peso del back off y descendente.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" },
-            { type: "dropset", label: "Serie 3 (Back-off + Descendente)", targetReps: 8, badge: "DROP SET" }
+          nombre: "Remo con barra",
+          indicaciones: "Serie pesada + serie de descarga (−20 %) + 3.ª serie con el peso de la descarga y descendente.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", insignia: "SERIE PESADA", repeticionesObjetivo: 6 },
+            { tipo: "descarga", insignia: "DESCARGA -20%", repeticionesObjetivo: 8 },
+            { tipo: "descendente", insignia: "DESCENDENTE", repeticionesObjetivo: 8 }
           ]
         },
         {
           id: "d1_e4",
-          name: "Jalón agarre cerrado",
-          notes: "3 × 12. La última serie, descendente (drop set al terminar).",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "dropset", label: "Serie 3 (Descendente)", targetReps: 12, badge: "DESCENDENTE" }
+          nombre: "Jalón agarre cerrado",
+          indicaciones: "3 series de 12 repeticiones. En la última serie, baja de peso al terminar y continúa (descendente).",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "descendente", insignia: "DESCENDENTE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d1_e5",
-          name: "Remo Dorian",
-          notes: "3 × 12 reps. Agarre supino, torso a 45º, tirando hacia la cadera baja.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Remo Dorian",
+          indicaciones: "3 series de 12 repeticiones. Agarre con palmas hacia arriba (supino), torso a 45 grados, tirando hacia la cadera.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d1_e6",
-          name: "Posterior en máquina",
-          notes: "3 × 15 reps. Pájaros en máquina (peck deck inverso). Codos alineados con hombros.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Posterior en máquina",
+          indicaciones: "3 series de 15 repeticiones. Pájaros en máquina. Codos alineados con los hombros.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 }
           ]
         },
         {
           id: "d1_e7",
-          name: "Remo al mentón en polea",
-          notes: "3 × 15 reps. Agarre medio/ancho en polea baja, enfatizando trapecio y deltoides lateral/posterior.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Remo al mentón en polea",
+          indicaciones: "3 series de 15 repeticiones. Agarre medio en polea baja, subiendo hacia el pecho/mentón.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 }
           ]
         }
       ]
@@ -160,78 +92,78 @@
 
     D2: {
       id: "D2",
-      title: "DÍA 2",
-      name: "Pecho y hombro",
-      category: "Pectoral · Deltoides Anterior y Lateral",
-      badge: "D2",
-      description: "Foco en presses pesados con Top set + Back off, aperturas y congestión de deltoides.",
-      exercises: [
+      numero: 2,
+      titulo: "DÍA 2",
+      nombre: "Pecho y Hombro",
+      categoria: "Pectoral y deltoides frontal/lateral",
+      descripcion: "Empujes pesados con serie de descarga, aperturas y bombeo de hombros.",
+      ejercicios: [
         {
           id: "d2_e1",
-          name: "Press inclinado",
-          notes: "Top set + back off (−20 %). Banco a 30º-45º. Mantén retracción escapular.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" }
+          nombre: "Press inclinado",
+          indicaciones: "Serie pesada + serie de descarga (−20 %). Banco a 30-45 grados. Escápulas retraídas.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", insignia: "SERIE PESADA", repeticionesObjetivo: 6 },
+            { tipo: "descarga", insignia: "DESCARGA -20%", repeticionesObjetivo: 8 }
           ]
         },
         {
           id: "d2_e2",
-          name: "Aperturas",
-          notes: "3 × 12 reps. Con mancuernas o polea. Máximo estiramiento del pectoral en la fase excéntrica.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Aperturas",
+          indicaciones: "3 series de 12 repeticiones. Con mancuernas o en polea. Siente el estiramiento al bajar.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d2_e3",
-          name: "Press declinado",
-          notes: "Top set + back off (−20 %). Excelente estímulo para la porción esternal e inferior.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" }
+          nombre: "Press declinado",
+          indicaciones: "Serie pesada + serie de descarga (−20 %). Gran estímulo para la parte media y baja del pectoral.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", insignia: "SERIE PESADA", repeticionesObjetivo: 6 },
+            { tipo: "descarga", insignia: "DESCARGA -20%", repeticionesObjetivo: 8 }
           ]
         },
         {
           id: "d2_e4",
-          name: "Cruce de poleas",
-          notes: "2 × 12 reps. Aguantar 1 segundo en el pico de contracción.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 }
+          nombre: "Cruce de poleas",
+          indicaciones: "2 series de 12 repeticiones. Aguanta 1 segundo apretando al frente.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d2_e5",
-          name: "Elevaciones laterales",
-          notes: "4 × 12 reps. La última serie, descendente (drop set sin descanso).",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 },
-            { type: "dropset", label: "Serie 4 (Descendente)", targetReps: 12, badge: "DESCENDENTE" }
+          nombre: "Elevaciones laterales",
+          indicaciones: "4 series de 12 repeticiones. En la 4.ª serie, baja peso inmediatamente y sigue al fallo.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "descendente", insignia: "DESCENDENTE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d2_e6",
-          name: "Press militar",
-          notes: "2 × 8 reps. Con barra o mancuernas. Core firme y sin arquear en exceso la zona lumbar.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 8 },
-            { type: "normal", label: "Serie 2", targetReps: 8 }
+          nombre: "Press militar",
+          indicaciones: "2 series de 8 repeticiones. Con barra o mancuernas. Core firme sin arquear la espalda.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 8 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 8 }
           ]
         },
         {
           id: "d2_e7",
-          name: "Elevaciones frontales",
-          notes: "2 × 12 reps. Con mancuernas o polea baja. Subida controlada hasta la altura de la vista.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 }
+          nombre: "Elevaciones frontales",
+          indicaciones: "2 series de 12 repeticiones. Con mancuernas o polea. Subida controlada hasta la vista.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         }
       ]
@@ -239,70 +171,70 @@
 
     D3: {
       id: "D3",
-      title: "DÍA 3",
-      name: "Pierna",
-      category: "Cuádriceps · Isquiosuriales · Aductores",
-      badge: "D3",
-      description: "Entrenamiento completo del tren inferior: isquios, cuádriceps pesados, prensa y aductor.",
-      exercises: [
+      numero: 3,
+      titulo: "DÍA 3",
+      nombre: "Pierna Completa",
+      categoria: "Cuádriceps, Isquiotibiales y Aductor",
+      descripcion: "Trabajo completo de piernas: isquios, prensa pesada, sentadilla y aductor.",
+      ejercicios: [
         {
           id: "d3_e1",
-          name: "Femoral tumbado",
-          notes: "3 × 12 reps. Pre-fatiga de isquiotibiales. Mantén la pelvis pegada al banco.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Femoral tumbado",
+          indicaciones: "3 series de 12 repeticiones. Mantén la cadera pegada al banco.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d3_e2",
-          name: "Extensiones de cuádriceps",
-          notes: "3 × 15 reps. Pausa arriba de 1 segundo para aislar el recto femoral y vastos.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Extensiones de cuádriceps",
+          indicaciones: "3 series de 15 repeticiones. Pausa de 1 segundo arriba para apretar el cuádriceps.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 }
           ]
         },
         {
           id: "d3_e3",
-          name: "Sentadilla pendular",
-          notes: "3 × 12 reps. Si tu gimnasio no tiene péndulo, puedes usar Hack squat o multipower.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Sentadilla pendular",
+          indicaciones: "3 series de 12 repeticiones. Si no tienes péndulo, usa sentadilla Hack o Multipower.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d3_e4",
-          name: "Prensa",
-          notes: "Top set + back off (−20 %). Profundidad óptima sin despegar la zona lumbar.",
-          hasBackOffCalculation: true,
-          sets: [
-            { type: "topset", label: "Top Set", targetReps: 8, badge: "TOP SET" },
-            { type: "backoff", label: "Back Off (-20%)", targetReps: 10, badge: "BACK OFF" }
+          nombre: "Prensa",
+          indicaciones: "Serie pesada + serie de descarga (−20 %). Baja profundo sin despegar los glúteos del asiento.",
+          tieneCalculoDescarga: true,
+          series: [
+            { tipo: "pesada", insignia: "SERIE PESADA", repeticionesObjetivo: 8 },
+            { tipo: "descarga", insignia: "DESCARGA -20%", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d3_e5",
-          name: "Aductor",
-          notes: "3 × 15 reps. En máquina específica de aductor para estabilidad de rodilla y masa interna.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 15 },
-            { type: "normal", label: "Serie 2", targetReps: 15 },
-            { type: "normal", label: "Serie 3", targetReps: 15 }
+          nombre: "Aductor",
+          indicaciones: "3 series de 15 repeticiones. En máquina de aductor, abriendo y cerrando con control.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 15 }
           ]
         },
         {
           id: "d3_e6",
-          name: "Femoral sentado",
-          notes: "3 × 12 reps. Excelente estiramiento en cadera flexionada. Controla la bajada.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Femoral sentado",
+          indicaciones: "3 series de 12 repeticiones. Gran estiramiento en la bajada, controla el peso.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         }
       ]
@@ -310,570 +242,535 @@
 
     D4: {
       id: "D4",
-      title: "DÍA 4",
-      name: "Brazo",
-      category: "Bíceps · Tríceps",
-      badge: "D4",
-      description: "Día específico de hipertrofia de brazos: bíceps en diferentes ángulos y tríceps completo.",
-      exercises: [
+      numero: 4,
+      titulo: "DÍA 4",
+      nombre: "Brazos (Bíceps y Tríceps)",
+      categoria: "Bíceps y Tríceps",
+      descripcion: "Entrenamiento enfocado en brazos: diferentes ángulos para bíceps y tríceps.",
+      ejercicios: [
         {
           id: "d4_e1",
-          name: "Curl de bíceps con mancuernas",
-          notes: "3 × 12 reps. Supinación marcada en la parte alta del movimiento.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Curl de bíceps con mancuernas",
+          indicaciones: "3 series de 12 repeticiones. Gira las muñecas hacia afuera arriba.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d4_e2",
-          name: "Tríceps en polea con cuerda",
-          notes: "3 × 12 reps. Abre la cuerda al final de la extensión para activar la cabeza lateral.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 12 },
-            { type: "normal", label: "Serie 2", targetReps: 12 },
-            { type: "normal", label: "Serie 3", targetReps: 12 }
+          nombre: "Tríceps en polea con cuerda",
+          indicaciones: "3 series de 12 repeticiones. Abre la cuerda abajo para activar la cabeza lateral.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 12 }
           ]
         },
         {
           id: "d4_e3",
-          name: "Curl de bíceps en banco Scott",
-          notes: "3 × 10 reps. Aislamiento total de la cabeza corta. No bloquees los codos abajo.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 },
-            { type: "normal", label: "Serie 3", targetReps: 10 }
+          nombre: "Curl de bíceps en banco Scott",
+          indicaciones: "3 series de 10 repeticiones. Brazos bien apoyados sin despegar los codos.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d4_e4",
-          name: "Tríceps tras nuca unilateral",
-          notes: "3 × 10 reps por brazo. En polea o mancuerna, enfatizando cabeza larga del tríceps.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 },
-            { type: "normal", label: "Serie 3", targetReps: 10 }
+          nombre: "Tríceps tras nuca unilateral",
+          indicaciones: "3 series de 10 repeticiones con cada brazo. En polea o con mancuerna tras nuca.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d4_e5",
-          name: "Curl martillo",
-          notes: "2 × 10 reps. Para braquial anterior y braquiorradial (grosor de brazo).",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 }
+          nombre: "Curl martillo",
+          indicaciones: "2 series de 10 repeticiones. Con palmas enfrentadas para dar grosor al brazo.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 }
           ]
         },
         {
           id: "d4_e6",
-          name: "Fondos",
-          notes: "2 × 10 reps. En paralelas o entre bancos. Torso erguido para focalizar en tríceps.",
-          sets: [
-            { type: "normal", label: "Serie 1", targetReps: 10 },
-            { type: "normal", label: "Serie 2", targetReps: 10 }
+          nombre: "Fondos",
+          indicaciones: "2 series de 10 repeticiones. En paralelas o entre bancos.",
+          series: [
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 },
+            { tipo: "normal", insignia: "SERIE", repeticionesObjetivo: 10 }
           ]
         }
       ]
     }
   };
 
-  // Exponer también en global por compatibilidad
-  window.CGM_DATA = {
-    ROUTINE_INFO: ROUTINE_INFO,
-    SCHEDULE_WEEKS: SCHEDULE_WEEKS,
-    WORKOUT_DAYS: WORKOUT_DAYS
-  };
+  // Secuencia rotativa ordenada de sesiones
+  var SECUENCIA_ROTATIVA = [
+    { id: "D1", nombre: "Día 1: Espalda y Posterior", esRepeticion: false },
+    { id: "D2", nombre: "Día 2: Pecho y Hombro", esRepeticion: false },
+    { id: "D3", nombre: "Día 3: Pierna Completa", esRepeticion: false },
+    { id: "D4", nombre: "Día 4: Brazos", esRepeticion: false },
+    { id: "D1", nombre: "Día 1: Espalda (Repetición)", esRepeticion: true },
+    { id: "D2", nombre: "Día 2: Pecho y Hombro", esRepeticion: false },
+    { id: "D3", nombre: "Día 3: Pierna Completa", esRepeticion: false },
+    { id: "D4", nombre: "Día 4: Brazos", esRepeticion: false },
+    { id: "D2", nombre: "Día 2: Pecho (Repetición)", esRepeticion: true }
+  ];
 
   // ===========================================================================
-  // ESTADO GLOBAL & PERSISTENCIA (LOCALSTORAGE)
+  // ALMACENAMIENTO Y ESTADO
   // ===========================================================================
-  var STORAGE_KEYS = {
-    ACTIVE_WORKOUT: 'cgm_active_workout_v3',
-    HISTORY: 'cgm_workout_history_v3',
-    PRS: 'cgm_personal_records_v3',
-    SETTINGS: 'cgm_user_settings_v3',
-    SELECTED_WEEK: 'cgm_selected_week_v3'
+  var CLAVES_ALMACENAMIENTO = {
+    ENTRENAMIENTO_ACTIVO: 'cgm_entrenamiento_activo_v4',
+    HISTORIAL: 'cgm_historial_v4',
+    RECORDS: 'cgm_records_v4',
+    AJUSTES: 'cgm_ajustes_v4',
+    INDICE_ROTACION: 'cgm_indice_rotacion_v4'
   };
 
-  var DEFAULT_SETTINGS = {
-    soundEnabled: true,
-    vibrateEnabled: true,
-    defaultRestSeconds: 90,
-    wakeLockEnabled: true
+  var AJUSTES_PREDETERMINADOS = {
+    sonidoActivado: true,
+    vibracionActivada: true,
+    segundosDescanso: 90,
+    pantallaEncendida: true
   };
 
-  var appState = {
-    currentWeek: 1,
-    activeWorkout: null,
-    history: [],
-    prs: {},
-    settings: Object.assign({}, DEFAULT_SETTINGS),
-    restTimer: {
-      duration: 90,
-      remaining: 90,
-      intervalId: null,
-      isRunning: false
+  var estado = {
+    indiceRotacion: 0,
+    entrenamientoActivo: null,
+    historial: [],
+    records: {},
+    ajustes: Object.assign({}, AJUSTES_PREDETERMINADOS),
+    cronometroDescanso: {
+      duracion: 90,
+      restante: 90,
+      intervaloId: null,
+      activo: false
     },
-    workoutTimerInterval: null,
-    wakeLockSentinel: null,
-    deferredPwaPrompt: null
+    intervaloEntrenamiento: null,
+    bloqueoPantalla: null,
+    peticionInstalacionPWA: null
   };
 
   function $(id) {
     return document.getElementById(id);
   }
 
-  function on(el, event, fn) {
-    if (el) el.addEventListener(event, fn);
+  function escuchar(el, evento, funcion) {
+    if (el) el.addEventListener(evento, funcion);
   }
 
   // ===========================================================================
-  // WEB AUDIO API
+  // SONIDOS EN EL GIMNASIO (100% SIN INTERNET)
   // ===========================================================================
-  var sounds = {
+  var audio = {
     ctx: null,
-    init: function() {
+    iniciar: function() {
       if (!this.ctx) {
         var AC = window.AudioContext || window.webkitAudioContext;
         if (AC) this.ctx = new AC();
       }
     },
-    playBeep: function(freq, type, duration) {
-      if (!appState.settings.soundEnabled) return;
+    sonar: function(frecuencia, tipo, duracion) {
+      if (!estado.ajustes.sonidoActivado) return;
       try {
-        this.init();
+        this.iniciar();
         if (!this.ctx) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
         var osc = this.ctx.createOscillator();
-        var gain = this.ctx.createGain();
-        osc.type = type || 'sine';
-        osc.frequency.setValueAtTime(freq || 880, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (duration || 0.15));
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        var ganancia = this.ctx.createGain();
+        osc.type = tipo || 'sine';
+        osc.frequency.setValueAtTime(frecuencia || 880, this.ctx.currentTime);
+        ganancia.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        ganancia.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (duracion || 0.15));
+        osc.connect(ganancia);
+        ganancia.connect(this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + (duration || 0.15));
-      } catch (e) { /* ignore */ }
+        osc.stop(this.ctx.currentTime + (duracion || 0.15));
+      } catch (e) { /* ignorar */ }
     },
-    playSetComplete: function() {
+    serieLista: function() {
       var self = this;
-      self.playBeep(523.25, 'triangle', 0.1);
-      setTimeout(function() { self.playBeep(659.25, 'triangle', 0.15); }, 100);
+      self.sonar(523.25, 'triangle', 0.1);
+      setTimeout(function() { self.sonar(659.25, 'triangle', 0.15); }, 100);
     },
-    playTimerFinish: function() {
+    descansoTerminado: function() {
       var self = this;
-      self.playBeep(880, 'sine', 0.15);
-      setTimeout(function() { self.playBeep(880, 'sine', 0.15); }, 180);
-      setTimeout(function() { self.playBeep(1174.66, 'sine', 0.35); }, 360);
+      self.sonar(880, 'sine', 0.15);
+      setTimeout(function() { self.sonar(880, 'sine', 0.15); }, 180);
+      setTimeout(function() { self.sonar(1174.66, 'sine', 0.35); }, 360);
     }
   };
 
-  function triggerHaptic(pattern) {
-    if (appState.settings.vibrateEnabled && 'vibrate' in navigator) {
-      try { navigator.vibrate(pattern || [60]); } catch (e) { /* ignore */ }
+  function vibrar(patron) {
+    if (estado.ajustes.vibracionActivada && 'vibrate' in navigator) {
+      try { navigator.vibrate(patron || [60]); } catch (e) { /* ignorar */ }
     }
   }
 
-  function toggleWakeLock(enable) {
+  function controlarPantalla(encender) {
     if (!('wakeLock' in navigator)) return;
     try {
-      if (enable && !appState.wakeLockSentinel) {
-        navigator.wakeLock.request('screen').then(function(sentinel) {
-          appState.wakeLockSentinel = sentinel;
+      if (encender && !estado.bloqueoPantalla) {
+        navigator.wakeLock.request('screen').then(function(sentinela) {
+          estado.bloqueoPantalla = sentinela;
           var btn = $('wakeLockBtn');
           if (btn) btn.classList.add('active');
-          sentinel.addEventListener('release', function() {
-            appState.wakeLockSentinel = null;
+          sentinela.addEventListener('release', function() {
+            estado.bloqueoPantalla = null;
             if (btn) btn.classList.remove('active');
           });
         }).catch(function() {});
-      } else if (!enable && appState.wakeLockSentinel) {
-        appState.wakeLockSentinel.release().catch(function() {});
-        appState.wakeLockSentinel = null;
+      } else if (!encender && estado.bloqueoPantalla) {
+        estado.bloqueoPantalla.release().catch(function() {});
+        estado.bloqueoPantalla = null;
         var btn = $('wakeLockBtn');
         if (btn) btn.classList.remove('active');
       }
-    } catch (err) { /* ignore */ }
+    } catch (err) { /* ignorar */ }
   }
 
   // ===========================================================================
-  // INICIALIZACIÓN ROBUSTA
+  // INICIALIZACIÓN
   // ===========================================================================
-  function init() {
-    try { loadStoredData(); } catch (e) { console.error('Error loadStoredData:', e); }
-    try { setupEventListeners(); } catch (e) { console.error('Error setupEventListeners:', e); }
-    try { setupPWA(); } catch (e) { console.warn('PWA setup:', e); }
-    try { determineTodaySchedule(); } catch (e) { console.error('Error determineTodaySchedule:', e); }
-    try { renderScheduleWeek(appState.currentWeek); } catch (e) { console.error('Error renderScheduleWeek:', e); }
-    try { renderHistory(); } catch (e) { console.error('Error renderHistory:', e); }
-    try { renderPRs(); } catch (e) { console.error('Error renderPRs:', e); }
-    try { updatePlateCalculator(); } catch (e) { console.error('Error updatePlateCalculator:', e); }
-    try { updateQuickBackOff(); } catch (e) { console.error('Error updateQuickBackOff:', e); }
+  function iniciarApp() {
+    try { cargarDatos(); } catch (e) { console.error('Error al cargar datos:', e); }
+    try { configurarEventos(); } catch (e) { console.error('Error en eventos:', e); }
+    try { configurarPWA(); } catch (e) { console.warn('PWA:', e); }
+    try { mostrarSiguienteEntrenamiento(); } catch (e) { console.error('Error en entrenamiento sugerido:', e); }
+    try { dibujarSecuenciaCiclo(); } catch (e) { console.error('Error en secuencia:', e); }
+    try { dibujarHistorial(); } catch (e) { console.error('Error en historial:', e); }
+    try { dibujarRecords(); } catch (e) { console.error('Error en records:', e); }
+    try { actualizarCalculadoraDiscos(); } catch (e) { console.error('Error en discos:', e); }
+    try { actualizarCalculadoraDescarga(); } catch (e) { console.error('Error en descarga:', e); }
 
-    if (appState.activeWorkout) {
-      try { resumeActiveWorkout(); } catch (e) {
-        console.error('Error resumeActiveWorkout, limpiando:', e);
-        appState.activeWorkout = null;
-        saveAppState();
+    if (estado.entrenamientoActivo) {
+      try { reanudarEntrenamiento(); } catch (e) {
+        console.error('Error al reanudar:', e);
+        estado.entrenamientoActivo = null;
+        guardarDatos();
       }
     }
   }
 
-  // Garantizar ejecución inmediata si el DOM ya está listo
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', iniciarApp);
   } else {
-    init();
+    iniciarApp();
   }
 
-  function loadStoredData() {
+  function cargarDatos() {
     try {
-      // Migración o carga limpia
-      var h = localStorage.getItem(STORAGE_KEYS.HISTORY) || localStorage.getItem('cgm_workout_history');
-      if (h) appState.history = JSON.parse(h);
+      var h = localStorage.getItem(CLAVES_ALMACENAMIENTO.HISTORIAL) || localStorage.getItem('cgm_workout_history');
+      if (h) estado.historial = JSON.parse(h);
 
-      var p = localStorage.getItem(STORAGE_KEYS.PRS) || localStorage.getItem('cgm_personal_records');
-      if (p) appState.prs = JSON.parse(p);
+      var r = localStorage.getItem(CLAVES_ALMACENAMIENTO.RECORDS) || localStorage.getItem('cgm_personal_records');
+      if (r) estado.records = JSON.parse(r);
 
-      var s = localStorage.getItem(STORAGE_KEYS.SETTINGS) || localStorage.getItem('cgm_user_settings');
-      if (s) appState.settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(s));
+      var a = localStorage.getItem(CLAVES_ALMACENAMIENTO.AJUSTES);
+      if (a) estado.ajustes = Object.assign({}, AJUSTES_PREDETERMINADOS, JSON.parse(a));
 
-      var w = localStorage.getItem(STORAGE_KEYS.SELECTED_WEEK) || localStorage.getItem('cgm_selected_week');
-      if (w) appState.currentWeek = parseInt(w, 10) || 1;
+      var idx = localStorage.getItem(CLAVES_ALMACENAMIENTO.INDICE_ROTACION);
+      if (idx !== null) estado.indiceRotacion = parseInt(idx, 10) || 0;
 
-      var a = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT) || localStorage.getItem('cgm_active_workout');
-      if (a) {
-        var parsedA = JSON.parse(a);
-        if (parsedA && parsedA.workoutId && Array.isArray(parsedA.exercises)) {
-          appState.activeWorkout = parsedA;
+      var act = localStorage.getItem(CLAVES_ALMACENAMIENTO.ENTRENAMIENTO_ACTIVO) || localStorage.getItem('cgm_active_workout');
+      if (act) {
+        var parsed = JSON.parse(act);
+        if (parsed && parsed.idDia && Array.isArray(parsed.ejercicios)) {
+          estado.entrenamientoActivo = parsed;
         }
       }
     } catch (e) {
-      console.warn('Error leyendo localStorage:', e);
+      console.warn('Lectura de almacenamiento:', e);
     }
 
-    var soundCheck = $('settingSound');
-    var vibrateCheck = $('settingVibrate');
-    var defaultRestSelect = $('settingDefaultRest');
-    var soundBtn = $('soundToggleBtn');
+    var checkSonido = $('settingSound');
+    var checkVibrar = $('settingVibrate');
+    var selectDescanso = $('settingDefaultRest');
+    var btnSonido = $('soundToggleBtn');
 
-    if (soundCheck) soundCheck.checked = appState.settings.soundEnabled;
-    if (vibrateCheck) vibrateCheck.checked = appState.settings.vibrateEnabled;
-    if (defaultRestSelect) defaultRestSelect.value = String(appState.settings.defaultRestSeconds);
-    if (soundBtn) {
-      soundBtn.classList.toggle('active', appState.settings.soundEnabled);
-      soundBtn.textContent = appState.settings.soundEnabled ? '🔔' : '🔕';
+    if (checkSonido) checkSonido.checked = estado.ajustes.sonidoActivado;
+    if (checkVibrar) checkVibrar.checked = estado.ajustes.vibracionActivada;
+    if (selectDescanso) selectDescanso.value = String(estado.ajustes.segundosDescanso);
+    if (btnSonido) {
+      btnSonido.classList.toggle('active', estado.ajustes.sonidoActivado);
+      btnSonido.textContent = estado.ajustes.sonidoActivado ? '🔔' : '🔕';
     }
   }
 
-  function saveAppState() {
+  function guardarDatos() {
     try {
-      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(appState.history));
-      localStorage.setItem(STORAGE_KEYS.PRS, JSON.stringify(appState.prs));
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(appState.settings));
-      localStorage.setItem(STORAGE_KEYS.SELECTED_WEEK, String(appState.currentWeek));
-      if (appState.activeWorkout) {
-        localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(appState.activeWorkout));
+      localStorage.setItem(CLAVES_ALMACENAMIENTO.HISTORIAL, JSON.stringify(estado.historial));
+      localStorage.setItem(CLAVES_ALMACENAMIENTO.RECORDS, JSON.stringify(estado.records));
+      localStorage.setItem(CLAVES_ALMACENAMIENTO.AJUSTES, JSON.stringify(estado.ajustes));
+      localStorage.setItem(CLAVES_ALMACENAMIENTO.INDICE_ROTACION, String(estado.indiceRotacion));
+      if (estado.entrenamientoActivo) {
+        localStorage.setItem(CLAVES_ALMACENAMIENTO.ENTRENAMIENTO_ACTIVO, JSON.stringify(estado.entrenamientoActivo));
       } else {
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+        localStorage.removeItem(CLAVES_ALMACENAMIENTO.ENTRENAMIENTO_ACTIVO);
       }
     } catch (e) {
-      console.error('Error guardando en localStorage:', e);
+      console.error('Guardado en almacenamiento:', e);
     }
   }
 
   // ===========================================================================
-  // NAVEGACIÓN ENTRE TABS
+  // NAVEGACIÓN ENTRE PESTAÑAS
   // ===========================================================================
-  function switchTab(tabId) {
-    var views = document.querySelectorAll('.tab-view');
-    for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+  function cambiarPestana(idPestana) {
+    var vistas = document.querySelectorAll('.tab-view');
+    for (var i = 0; i < vistas.length; i++) vistas[i].classList.remove('active');
 
-    var navs = document.querySelectorAll('.nav-item');
-    for (var i = 0; i < navs.length; i++) navs[i].classList.remove('active');
+    var botonesNav = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < botonesNav.length; i++) botonesNav[i].classList.remove('active');
 
-    var target = $(tabId);
-    if (target) target.classList.add('active');
+    var destino = $(idPestana);
+    if (destino) destino.classList.add('active');
 
-    var navItem = document.querySelector('.nav-item[data-tab="' + tabId + '"]');
-    if (navItem) navItem.classList.add('active');
+    var botonActivo = document.querySelector('.nav-item[data-tab="' + idPestana + '"]');
+    if (botonActivo) botonActivo.classList.add('active');
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ===========================================================================
-  // CALENDARIO FRECUENCIA 1,5 & PLAN DE HOY
+  // RUTINA Y ROTACIÓN DE DÍAS (SIN DÍAS DE LA SEMANA)
   // ===========================================================================
-  function determineTodaySchedule() {
-    var date = new Date();
-    var dayOfWeek = date.getDay(); // 0: Dom, 1: Lun, 2: Mar, 3: Mié, 4: Jue, 5: Vie, 6: Sáb
-    var options = { weekday: 'long', day: 'numeric', month: 'short' };
-    var dateStr = date.toLocaleDateString('es-ES', options);
+  function obtenerSiguienteDia() {
+    // Si la rotación supera la lista, volvemos a empezar
+    var paso = SECUENCIA_ROTATIVA[estado.indiceRotacion % SECUENCIA_ROTATIVA.length];
+    return DIAS_ENTRENAMIENTO[paso.id] || DIAS_ENTRENAMIENTO.D1;
+  }
 
-    var dateBadge = $('currentDateBadge');
-    if (dateBadge) dateBadge.textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-
-    var currentWeekData = null;
-    for (var i = 0; i < SCHEDULE_WEEKS.length; i++) {
-      if (SCHEDULE_WEEKS[i].week === appState.currentWeek) {
-        currentWeekData = SCHEDULE_WEEKS[i];
-        break;
-      }
-    }
-    if (!currentWeekData && SCHEDULE_WEEKS.length > 0) currentWeekData = SCHEDULE_WEEKS[0];
-    if (!currentWeekData) return;
-
-    var daySchedule = null;
-    for (var i = 0; i < currentWeekData.days.length; i++) {
-      if (currentWeekData.days[i].dayIndex === dayOfWeek) {
-        daySchedule = currentWeekData.days[i];
-        break;
-      }
-    }
-
-    var titleEl = $('todayWorkoutTitle');
+  function mostrarSiguienteEntrenamiento() {
+    var dia = obtenerSiguienteDia();
+    var tituloEl = $('todayWorkoutTitle');
     var descEl = $('todayWorkoutDesc');
-    var startBtn = $('startTodayWorkoutBtn');
+    var btnEmpezar = $('startTodayWorkoutBtn');
+    var badgeFecha = $('currentDateBadge');
 
-    if (daySchedule && !daySchedule.isRest && daySchedule.workoutId) {
-      var workout = WORKOUT_DAYS[daySchedule.workoutId];
-      if (titleEl) titleEl.textContent = daySchedule.workoutName + ' · ' + (workout ? workout.name : '');
-      if (descEl) descEl.textContent = workout ? workout.description : 'Sesión programada para hoy.';
-      if (startBtn) {
-        startBtn.dataset.workoutId = daySchedule.workoutId;
-        startBtn.disabled = false;
-        startBtn.innerHTML = '<span>▶</span> Empezar ' + daySchedule.workoutId + ' (' + (workout ? workout.name : '') + ')';
-      }
-    } else {
-      if (titleEl) titleEl.textContent = "Día de Descanso Programado";
-      if (descEl) descEl.textContent = "Recuperación muscular y recarga de glucógeno. También puedes adelantar o elegir otra sesión abajo.";
-      if (startBtn) {
-        startBtn.dataset.workoutId = "D1";
-        startBtn.innerHTML = '<span>▶</span> Elegir un entrenamiento';
-      }
+    if (badgeFecha) {
+      badgeFecha.textContent = 'DÍA ' + dia.numero;
+    }
+
+    if (tituloEl) {
+      tituloEl.textContent = dia.titulo + ': ' + dia.nombre;
+    }
+    if (descEl) {
+      descEl.textContent = dia.descripcion;
+    }
+    if (btnEmpezar) {
+      btnEmpezar.dataset.idDia = dia.id;
+      btnEmpezar.innerHTML = '<span>▶</span> Empezar ' + dia.titulo + ' (' + dia.nombre + ')';
     }
   }
 
-  function renderScheduleWeek(weekNumber) {
-    appState.currentWeek = weekNumber;
-    saveAppState();
+  function dibujarSecuenciaCiclo() {
+    var contenedor = $('cycleStepsList');
+    if (!contenedor) return;
 
-    var pills = document.querySelectorAll('.week-pill');
-    for (var i = 0; i < pills.length; i++) {
-      var w = parseInt(pills[i].dataset.week, 10);
-      pills[i].classList.toggle('active', w === weekNumber);
-    }
-
-    var weekData = null;
-    for (var i = 0; i < SCHEDULE_WEEKS.length; i++) {
-      if (SCHEDULE_WEEKS[i].week === weekNumber) {
-        weekData = SCHEDULE_WEEKS[i];
-        break;
-      }
-    }
-    if (!weekData) return;
-
-    var grid = $('scheduleGrid');
-    if (!grid) return;
-
-    var todayIndex = new Date().getDay();
+    var actualIdx = estado.indiceRotacion % SECUENCIA_ROTATIVA.length;
     var html = '';
 
-    for (var i = 0; i < weekData.days.length; i++) {
-      var d = weekData.days[i];
-      var isToday = d.dayIndex === todayIndex;
-      var isRest = d.isRest;
-      var cardClass = 'schedule-day-card' + (isToday ? ' today' : '') + (isRest ? ' rest' : '');
+    for (var i = 0; i < SECUENCIA_ROTATIVA.length; i++) {
+      var item = SECUENCIA_ROTATIVA[i];
+      var esSiguiente = (i === actualIdx);
+      var diaObj = DIAS_ENTRENAMIENTO[item.id];
 
-      html += '<div class="' + cardClass + '" data-workout-id="' + (d.workoutId || '') + '" data-is-rest="' + isRest + '">';
+      html += '<div class="schedule-day-card' + (esSiguiente ? ' today' : '') + '" data-id-dia="' + item.id + '" data-paso="' + i + '" style="cursor:pointer;">';
       html += '  <div class="schedule-day-left">';
-      html += '    <span class="day-tag">' + d.day.substring(0, 3) + '</span>';
-      html += '    <div class="day-routine-name">' + d.workoutName;
-      if (d.isRepeated) html += ' <span class="repeat-badge">REPETICIÓN</span>';
+      html += '    <span class="day-tag" style="width:auto;padding-right:8px;">' + (i + 1) + 'º</span>';
+      html += '    <div class="day-routine-name">' + item.nombre;
+      if (item.esRepeticion) html += ' <span class="repeat-badge">REPETICIÓN</span>';
       html += '    </div>';
       html += '  </div>';
       html += '  <div class="day-badge-action">';
-      html += isRest ? '<span>💤 Descanso</span>' : '<span>Entrenar ➔</span>';
+      html += esSiguiente ? '<span style="color:var(--gold-light);font-weight:800;">👉 TOCA AHORA</span>' : '<span>Entrenar ➔</span>';
       html += '  </div>';
       html += '</div>';
     }
-    grid.innerHTML = html;
 
-    var cards = grid.querySelectorAll('.schedule-day-card');
-    for (var i = 0; i < cards.length; i++) {
-      (function(card) {
-        card.addEventListener('click', function() {
-          var workoutId = card.dataset.workoutId;
-          var isRest = card.dataset.isRest === 'true';
-          if (!isRest && workoutId) startWorkout(workoutId);
+    contenedor.innerHTML = html;
+
+    var tarjetas = contenedor.querySelectorAll('.schedule-day-card');
+    for (var i = 0; i < tarjetas.length; i++) {
+      (function(tarjeta) {
+        tarjeta.addEventListener('click', function() {
+          var idDia = tarjeta.dataset.idDia;
+          var paso = parseInt(tarjeta.dataset.paso, 10);
+          if (!isNaN(paso)) {
+            estado.indiceRotacion = paso;
+            guardarDatos();
+          }
+          if (idDia) iniciarEntrenamiento(idDia);
         });
-      })(cards[i]);
+      })(tarjetas[i]);
     }
-
-    determineTodaySchedule();
   }
 
   // ===========================================================================
-  // MOTOR DE ENTRENO ACTIVO (GYM MODE)
+  // MODO ENTRENAMIENTO ACTIVO
   // ===========================================================================
-  function startWorkout(workoutId) {
-    var template = WORKOUT_DAYS[workoutId];
-    if (!template) return;
+  function iniciarEntrenamiento(idDia) {
+    var plantilla = DIAS_ENTRENAMIENTO[idDia];
+    if (!plantilla) return;
 
-    if (appState.activeWorkout && appState.activeWorkout.workoutId !== workoutId) {
-      if (!confirm('Tienes una sesión de ' + appState.activeWorkout.title + ' en curso. ¿Deseas descartarla e iniciar ' + template.title + '?')) return;
+    if (estado.entrenamientoActivo && estado.entrenamientoActivo.idDia !== idDia) {
+      if (!confirm('Tienes una sesión de ' + estado.entrenamientoActivo.titulo + ' en curso. ¿Deseas descartarla y empezar ' + plantilla.titulo + '?')) return;
     }
 
-    var previousSession = null;
-    for (var i = 0; i < appState.history.length; i++) {
-      if (appState.history[i].workoutId === workoutId) {
-        previousSession = appState.history[i];
+    // Buscar sesión anterior para autocompletar pesos previos
+    var sesionAnterior = null;
+    for (var i = 0; i < estado.historial.length; i++) {
+      if (estado.historial[i].idDia === idDia) {
+        sesionAnterior = estado.historial[i];
         break;
       }
     }
 
-    var exercises = [];
-    for (var ei = 0; ei < template.exercises.length; ei++) {
-      var ex = template.exercises[ei];
-      var prevEx = null;
-      if (previousSession && Array.isArray(previousSession.exercises)) {
-        for (var j = 0; j < previousSession.exercises.length; j++) {
-          if (previousSession.exercises[j].id === ex.id) {
-            prevEx = previousSession.exercises[j];
+    var ejercicios = [];
+    for (var ei = 0; ei < plantilla.ejercicios.length; ei++) {
+      var ej = plantilla.ejercicios[ei];
+      var ejAnterior = null;
+      if (sesionAnterior && Array.isArray(sesionAnterior.ejercicios)) {
+        for (var j = 0; j < sesionAnterior.ejercicios.length; j++) {
+          if (sesionAnterior.ejercicios[j].id === ej.id) {
+            ejAnterior = sesionAnterior.ejercicios[j];
             break;
           }
         }
       }
 
-      var sets = [];
-      for (var si = 0; si < ex.sets.length; si++) {
-        var s = ex.sets[si];
-        var prevSet = (prevEx && prevEx.sets && prevEx.sets[si]) ? prevEx.sets[si] : null;
-        sets.push({
-          index: si + 1,
-          type: s.type,
-          badge: s.badge || 'SERIE',
-          label: s.label,
-          helper: s.helper || '',
-          targetReps: s.targetReps,
-          weight: prevSet ? prevSet.weight : '',
-          reps: prevSet ? prevSet.reps : (typeof s.targetReps === 'number' ? s.targetReps : ''),
-          completed: false,
-          prevWeight: prevSet ? prevSet.weight : null,
-          prevReps: prevSet ? prevSet.reps : null
+      var series = [];
+      for (var si = 0; si < ej.series.length; si++) {
+        var s = ej.series[si];
+        var sAnterior = (ejAnterior && ejAnterior.series && ejAnterior.series[si]) ? ejAnterior.series[si] : null;
+
+        series.push({
+          numero: si + 1,
+          tipo: s.tipo,
+          insignia: s.insignia || 'SERIE',
+          repeticionesObjetivo: s.repeticionesObjetivo,
+          peso: sAnterior ? sAnterior.peso : '',
+          repeticiones: sAnterior ? sAnterior.repeticiones : (typeof s.repeticionesObjetivo === 'number' ? s.repeticionesObjetivo : ''),
+          completada: false,
+          pesoAnterior: sAnterior ? sAnterior.peso : null,
+          repeticionesAnteriores: sAnterior ? sAnterior.repeticiones : null
         });
       }
 
-      exercises.push({
-        id: ex.id,
-        name: ex.name,
-        notes: ex.notes,
-        hasBackOffCalculation: ex.hasBackOffCalculation || false,
-        sets: sets
+      ejercicios.push({
+        id: ej.id,
+        nombre: ej.nombre,
+        indicaciones: ej.indicaciones,
+        tieneCalculoDescarga: ej.tieneCalculoDescarga || false,
+        series: series
       });
     }
 
-    appState.activeWorkout = {
-      workoutId: template.id,
-      title: template.title + ': ' + template.name,
-      category: template.category,
-      startTime: Date.now(),
-      exercises: exercises
+    estado.entrenamientoActivo = {
+      idDia: plantilla.id,
+      titulo: plantilla.titulo + ': ' + plantilla.nombre,
+      categoria: plantilla.categoria,
+      inicio: Date.now(),
+      ejercicios: ejercicios
     };
 
-    saveAppState();
-    resumeActiveWorkout();
-    switchTab('tab-workout');
-    toggleWakeLock(true);
+    guardarDatos();
+    reanudarEntrenamiento();
+    cambiarPestana('tab-workout');
+    controlarPantalla(true);
   }
 
-  function resumeActiveWorkout() {
-    if (!appState.activeWorkout) return;
+  function reanudarEntrenamiento() {
+    if (!estado.entrenamientoActivo) return;
     $('noActiveWorkoutView').style.display = 'none';
     $('activeWorkoutContent').style.display = 'block';
-    $('activeWorkoutName').textContent = appState.activeWorkout.title;
-    $('activeWorkoutSubtitle').textContent = appState.activeWorkout.category + ' · CGM Performance';
-    renderActiveExercises();
-    startWorkoutElapsedTimer();
-    updateWorkoutProgress();
+    $('activeWorkoutName').textContent = estado.entrenamientoActivo.titulo;
+    $('activeWorkoutSubtitle').textContent = estado.entrenamientoActivo.categoria + ' · CGM Rendimiento';
+    dibujarEjerciciosActivos();
+    iniciarCronometroEntrenamiento();
+    actualizarProgresoEntrenamiento();
   }
 
-  function startWorkoutElapsedTimer() {
-    if (appState.workoutTimerInterval) clearInterval(appState.workoutTimerInterval);
+  function iniciarCronometroEntrenamiento() {
+    if (estado.intervaloEntrenamiento) clearInterval(estado.intervaloEntrenamiento);
     var timerEl = $('workoutElapsedTimer');
 
-    function updateElapsed() {
-      if (!appState.activeWorkout) return;
-      var elapsed = Math.floor((Date.now() - appState.activeWorkout.startTime) / 1000);
-      var mins = Math.floor(elapsed / 60);
-      var secs = elapsed % 60;
-      if (timerEl) timerEl.textContent = pad(mins) + ':' + pad(secs);
+    function actualizar() {
+      if (!estado.entrenamientoActivo) return;
+      var transcurrido = Math.floor((Date.now() - estado.entrenamientoActivo.inicio) / 1000);
+      var mins = Math.floor(transcurrido / 60);
+      var secs = transcurrido % 60;
+      if (timerEl) timerEl.textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
     }
-    updateElapsed();
-    appState.workoutTimerInterval = setInterval(updateElapsed, 1000);
+    actualizar();
+    estado.intervaloEntrenamiento = setInterval(actualizar, 1000);
   }
 
-  function pad(n) { return n < 10 ? '0' + n : '' + n; }
-
-  function renderActiveExercises() {
-    var container = $('exercisesContainer');
-    if (!container || !appState.activeWorkout || !Array.isArray(appState.activeWorkout.exercises)) return;
+  function dibujarEjerciciosActivos() {
+    var contenedor = $('exercisesContainer');
+    if (!contenedor || !estado.entrenamientoActivo || !Array.isArray(estado.entrenamientoActivo.ejercicios)) return;
 
     var html = '';
-    var exs = appState.activeWorkout.exercises;
+    var exs = estado.entrenamientoActivo.ejercicios;
 
     for (var exIdx = 0; exIdx < exs.length; exIdx++) {
       var ex = exs[exIdx];
-      var allDone = true;
-      for (var k = 0; k < ex.sets.length; k++) {
-        if (!ex.sets[k].completed) { allDone = false; break; }
+      var todosCompletos = true;
+      for (var k = 0; k < ex.series.length; k++) {
+        if (!ex.series[k].completada) { todosCompletos = false; break; }
       }
 
-      var backoffWeight = null;
-      if (ex.hasBackOffCalculation && ex.sets[0] && ex.sets[0].weight) {
-        var topW = parseFloat(ex.sets[0].weight);
-        if (!isNaN(topW) && topW > 0) {
-          var raw = topW * 0.8;
-          backoffWeight = '' + (Math.round(raw / 2.5) * 2.5);
+      var pesoDescarga = null;
+      if (ex.tieneCalculoDescarga && ex.series[0] && ex.series[0].peso) {
+        var pesoTop = parseFloat(ex.series[0].peso);
+        if (!isNaN(pesoTop) && pesoTop > 0) {
+          var calculo = pesoTop * 0.8;
+          pesoDescarga = '' + (Math.round(calculo / 2.5) * 2.5);
         }
       }
 
-      html += '<div class="exercise-card' + (allDone ? ' completed' : '') + '" data-ex-idx="' + exIdx + '">';
+      html += '<div class="exercise-card' + (todosCompletos ? ' completed' : '') + '" data-ex-idx="' + exIdx + '">';
       html += '  <div class="exercise-header">';
       html += '    <div class="exercise-title-group">';
       html += '      <span class="exercise-number">EJERCICIO ' + (exIdx + 1) + ' DE ' + exs.length + '</span>';
-      html += '      <h3 class="exercise-name">' + ex.name + '</h3>';
+      html += '      <h3 class="exercise-name">' + ex.nombre + '</h3>';
       html += '    </div>';
-      html += '    <button class="icon-btn plate-modal-trigger" data-ex-idx="' + exIdx + '" title="Calcular discos">⚖️</button>';
+      html += '    <button class="icon-btn plate-modal-trigger" data-ex-idx="' + exIdx + '" title="Calcular discos para este ejercicio">⚖️</button>';
       html += '  </div>';
 
-      if (ex.notes) {
-        html += '<div class="exercise-notes-banner"><span>💡</span><div>' + ex.notes + '</div></div>';
+      if (ex.indicaciones) {
+        html += '<div class="exercise-notes-banner"><span>💡</span><div>' + ex.indicaciones + '</div></div>';
       }
 
-      html += '<div class="backoff-helper-pill' + (backoffWeight ? ' visible' : '') + '" data-ex-idx="' + exIdx + '" data-weight="' + (backoffWeight || '') + '">';
-      html += '  <span>📉 Sugerencia Back-off (-20%): <strong>' + (backoffWeight ? backoffWeight + ' kg' : '') + '</strong></span>';
-      html += '  <button class="apply-btn">Aplicar a Serie 2</button>';
+      html += '<div class="backoff-helper-pill' + (pesoDescarga ? ' visible' : '') + '" data-ex-idx="' + exIdx + '" data-peso="' + (pesoDescarga || '') + '">';
+      html += '  <span>📉 Descarga recomendada (−20 %): <strong>' + (pesoDescarga ? pesoDescarga + ' kg' : '') + '</strong></span>';
+      html += '  <button class="apply-btn">Poner en Serie 2</button>';
       html += '</div>';
 
       html += '<div class="sets-table">';
-      html += '  <div class="set-row-header"><span>SET</span><span style="text-align:left">TIPO / ANTERIOR</span><span>KG</span><span>REPS</span><span>LISTO</span></div>';
+      html += '  <div class="set-row-header"><span>SERIE</span><span style="text-align:left">TIPO / ANTERIOR</span><span>KG</span><span>REPETICIONES</span><span>LISTO</span></div>';
 
-      for (var setIdx = 0; setIdx < ex.sets.length; setIdx++) {
-        var set = ex.sets[setIdx];
-        var prevText = (set.prevWeight !== null && set.prevReps !== null) ? set.prevWeight + 'kg × ' + set.prevReps : '—';
+      for (var sIdx = 0; sIdx < ex.series.length; sIdx++) {
+        var s = ex.series[sIdx];
+        var textoAnterior = (s.pesoAnterior !== null && s.repeticionesAnteriores !== null) ? s.pesoAnterior + 'kg × ' + s.repeticionesAnteriores : '—';
 
-        html += '<div class="set-row' + (set.completed ? ' done' : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '">';
-        html += '  <div class="set-index">' + set.index + '</div>';
+        html += '<div class="set-row' + (s.completada ? ' done' : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">';
+        html += '  <div class="set-index">' + s.numero + '</div>';
         html += '  <div class="set-badge-col">';
-        html += '    <span class="set-tag ' + set.type + '">' + set.badge + '</span>';
-        html += '    <span class="previous-hint">Ant: ' + prevText + '</span>';
+        html += '    <span class="set-tag ' + s.tipo + '">' + s.insignia + '</span>';
+        html += '    <span class="previous-hint">Ant: ' + textoAnterior + '</span>';
         html += '  </div>';
-        html += '  <div class="set-input-box"><input type="number" step="0.5" class="set-input weight-input" placeholder="' + (set.prevWeight || '0') + '" value="' + (set.weight !== undefined ? set.weight : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '"></div>';
-        html += '  <div class="set-input-box"><input type="number" step="1" class="set-input reps-input" placeholder="' + (set.targetReps || '12') + '" value="' + (set.reps !== undefined ? set.reps : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '"></div>';
-        html += '  <div style="display:flex;justify-content:center"><button class="check-btn toggle-set-btn" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '">' + (set.completed ? '✓' : '○') + '</button></div>';
+        html += '  <div class="set-input-box"><input type="number" step="0.5" class="set-input weight-input" placeholder="' + (s.pesoAnterior || '0') + '" value="' + (s.peso !== undefined ? s.peso : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
+        html += '  <div class="set-input-box"><input type="number" step="1" class="set-input reps-input" placeholder="' + (s.repeticionesObjetivo || '12') + '" value="' + (s.repeticiones !== undefined ? s.repeticiones : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
+        html += '  <div style="display:flex;justify-content:center"><button class="check-btn toggle-set-btn" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">' + (s.completada ? '✓' : '○') + '</button></div>';
         html += '</div>';
       }
       html += '</div>';
@@ -882,748 +779,736 @@
       html += '</div>';
     }
 
-    container.innerHTML = html;
-    attachExerciseEventHandlers();
+    contenedor.innerHTML = html;
+    asignarEventosEjercicios();
   }
 
-  function updateBackOffPill(exIdx, topWeightVal) {
-    var container = $('exercisesContainer');
-    if (!container) return;
-    var card = container.querySelector('.exercise-card[data-ex-idx="' + exIdx + '"]');
-    if (!card) return;
-    var pill = card.querySelector('.backoff-helper-pill');
-    var topW = parseFloat(topWeightVal);
-    if (!isNaN(topW) && topW > 0) {
-      var raw = topW * 0.8;
-      var backoffW = '' + (Math.round(raw / 2.5) * 2.5);
-      if (pill) {
-        pill.dataset.weight = backoffW;
-        var strong = pill.querySelector('strong');
-        if (strong) strong.textContent = backoffW + ' kg';
-        pill.classList.add('visible');
+  function actualizarCartelDescarga(exIdx, pesoValor) {
+    var contenedor = $('exercisesContainer');
+    if (!contenedor) return;
+    var tarjeta = contenedor.querySelector('.exercise-card[data-ex-idx="' + exIdx + '"]');
+    if (!tarjeta) return;
+    var cartel = tarjeta.querySelector('.backoff-helper-pill');
+    var pesoTop = parseFloat(pesoValor);
+    if (!isNaN(pesoTop) && pesoTop > 0) {
+      var calculo = pesoTop * 0.8;
+      var pesoFinal = '' + (Math.round(calculo / 2.5) * 2.5);
+      if (cartel) {
+        cartel.dataset.peso = pesoFinal;
+        var strong = cartel.querySelector('strong');
+        if (strong) strong.textContent = pesoFinal + ' kg';
+        cartel.classList.add('visible');
       }
-    } else if (pill) {
-      pill.classList.remove('visible');
+    } else if (cartel) {
+      cartel.classList.remove('visible');
     }
   }
 
-  function attachExerciseEventHandlers() {
-    var container = $('exercisesContainer');
-    if (!container) return;
+  function asignarEventosEjercicios() {
+    var contenedor = $('exercisesContainer');
+    if (!contenedor) return;
 
-    var weightInputs = container.querySelectorAll('.weight-input');
-    for (var i = 0; i < weightInputs.length; i++) {
+    var inputsPeso = contenedor.querySelectorAll('.weight-input');
+    for (var i = 0; i < inputsPeso.length; i++) {
       (function(input) {
         input.addEventListener('input', function() {
           var exIdx = parseInt(input.dataset.exIdx, 10);
-          var setIdx = parseInt(input.dataset.setIdx, 10);
-          if (appState.activeWorkout && appState.activeWorkout.exercises[exIdx] && appState.activeWorkout.exercises[exIdx].sets[setIdx]) {
-            appState.activeWorkout.exercises[exIdx].sets[setIdx].weight = input.value;
-            saveAppState();
-            // Actualización suave sin destruir el DOM ni perder el foco
-            if (setIdx === 0 && appState.activeWorkout.exercises[exIdx].hasBackOffCalculation) {
-              updateBackOffPill(exIdx, input.value);
+          var sIdx = parseInt(input.dataset.setIdx, 10);
+          if (estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios[exIdx] && estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) {
+            estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx].peso = input.value;
+            guardarDatos();
+            if (sIdx === 0 && estado.entrenamientoActivo.ejercicios[exIdx].tieneCalculoDescarga) {
+              actualizarCartelDescarga(exIdx, input.value);
             }
           }
         });
-      })(weightInputs[i]);
+      })(inputsPeso[i]);
     }
 
-    var repsInputs = container.querySelectorAll('.reps-input');
-    for (var i = 0; i < repsInputs.length; i++) {
+    var inputsReps = contenedor.querySelectorAll('.reps-input');
+    for (var i = 0; i < inputsReps.length; i++) {
       (function(input) {
         input.addEventListener('input', function() {
           var exIdx = parseInt(input.dataset.exIdx, 10);
-          var setIdx = parseInt(input.dataset.setIdx, 10);
-          if (appState.activeWorkout && appState.activeWorkout.exercises[exIdx] && appState.activeWorkout.exercises[exIdx].sets[setIdx]) {
-            appState.activeWorkout.exercises[exIdx].sets[setIdx].reps = input.value;
-            saveAppState();
+          var sIdx = parseInt(input.dataset.setIdx, 10);
+          if (estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios[exIdx] && estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) {
+            estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx].repeticiones = input.value;
+            guardarDatos();
           }
         });
-      })(repsInputs[i]);
+      })(inputsReps[i]);
     }
 
-    var checkBtns = container.querySelectorAll('.toggle-set-btn');
-    for (var i = 0; i < checkBtns.length; i++) {
+    var botonesCheck = contenedor.querySelectorAll('.toggle-set-btn');
+    for (var i = 0; i < botonesCheck.length; i++) {
       (function(btn) {
         btn.addEventListener('click', function() {
-          toggleSetCompleted(parseInt(btn.dataset.exIdx, 10), parseInt(btn.dataset.setIdx, 10));
+          alternarSerieCompletada(parseInt(btn.dataset.exIdx, 10), parseInt(btn.dataset.setIdx, 10));
         });
-      })(checkBtns[i]);
+      })(botonesCheck[i]);
     }
 
-    var addBtns = container.querySelectorAll('.add-set-btn');
-    for (var i = 0; i < addBtns.length; i++) {
+    var botonesAnadir = contenedor.querySelectorAll('.add-set-btn');
+    for (var i = 0; i < botonesAnadir.length; i++) {
       (function(btn) {
         btn.addEventListener('click', function() {
-          addExtraSet(parseInt(btn.dataset.exIdx, 10));
+          anadirSerieExtra(parseInt(btn.dataset.exIdx, 10));
         });
-      })(addBtns[i]);
+      })(botonesAnadir[i]);
     }
 
-    var backoffPills = container.querySelectorAll('.backoff-helper-pill');
-    for (var i = 0; i < backoffPills.length; i++) {
-      (function(pill) {
-        pill.addEventListener('click', function() {
-          var exIdx = parseInt(pill.dataset.exIdx, 10);
-          var weight = pill.dataset.weight;
-          if (appState.activeWorkout && appState.activeWorkout.exercises[exIdx] && appState.activeWorkout.exercises[exIdx].sets[1]) {
-            appState.activeWorkout.exercises[exIdx].sets[1].weight = weight;
-            saveAppState();
-            renderActiveExercises();
-            triggerHaptic([40]);
+    var cartelesDescarga = contenedor.querySelectorAll('.backoff-helper-pill');
+    for (var i = 0; i < cartelesDescarga.length; i++) {
+      (function(cartel) {
+        cartel.addEventListener('click', function() {
+          var exIdx = parseInt(cartel.dataset.exIdx, 10);
+          var peso = cartel.dataset.peso;
+          if (estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios[exIdx] && estado.entrenamientoActivo.ejercicios[exIdx].series[1]) {
+            estado.entrenamientoActivo.ejercicios[exIdx].series[1].peso = peso;
+            guardarDatos();
+            dibujarEjerciciosActivos();
+            vibrar([40]);
           }
         });
-      })(backoffPills[i]);
+      })(cartelesDescarga[i]);
     }
 
-    var plateBtns = container.querySelectorAll('.plate-modal-trigger');
-    for (var i = 0; i < plateBtns.length; i++) {
+    var botonesDiscos = contenedor.querySelectorAll('.plate-modal-trigger');
+    for (var i = 0; i < botonesDiscos.length; i++) {
       (function(btn) {
         btn.addEventListener('click', function() {
           var exIdx = parseInt(btn.dataset.exIdx, 10);
-          var ex = appState.activeWorkout.exercises[exIdx];
-          var w = (ex.sets[0] && ex.sets[0].weight) ? ex.sets[0].weight : 60;
-          $('calcTargetWeight').value = w;
-          updatePlateCalculator();
-          switchTab('tab-tools');
+          var ex = estado.entrenamientoActivo.ejercicios[exIdx];
+          var peso = (ex.series[0] && ex.series[0].peso) ? ex.series[0].peso : 60;
+          $('calcTargetWeight').value = peso;
+          actualizarCalculadoraDiscos();
+          cambiarPestana('tab-tools');
         });
-      })(plateBtns[i]);
+      })(botonesDiscos[i]);
     }
   }
 
-  function toggleSetCompleted(exIdx, setIdx) {
-    if (!appState.activeWorkout || !appState.activeWorkout.exercises[exIdx] || !appState.activeWorkout.exercises[exIdx].sets[setIdx]) return;
-    var set = appState.activeWorkout.exercises[exIdx].sets[setIdx];
-    set.completed = !set.completed;
+  function alternarSerieCompletada(exIdx, sIdx) {
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[exIdx] || !estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) return;
+    var s = estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx];
+    s.completada = !s.completada;
 
-    if (set.completed) {
-      if (!set.reps && set.targetReps && typeof set.targetReps === 'number') {
-        set.reps = set.targetReps;
+    if (s.completada) {
+      if (!s.repeticiones && s.repeticionesObjetivo && typeof s.repeticionesObjetivo === 'number') {
+        s.repeticiones = s.repeticionesObjetivo;
       }
-      sounds.playSetComplete();
-      triggerHaptic([60, 40, 80]);
-      startRestTimer(appState.settings.defaultRestSeconds);
+      audio.serieLista();
+      vibrar([60, 40, 80]);
+      iniciarCronometroDescanso(estado.ajustes.segundosDescanso);
     }
 
-    saveAppState();
-    renderActiveExercises();
-    updateWorkoutProgress();
+    guardarDatos();
+    dibujarEjerciciosActivos();
+    actualizarProgresoEntrenamiento();
   }
 
-  function addExtraSet(exIdx) {
-    if (!appState.activeWorkout || !appState.activeWorkout.exercises[exIdx]) return;
-    var ex = appState.activeWorkout.exercises[exIdx];
-    var last = ex.sets[ex.sets.length - 1];
-    ex.sets.push({
-      index: ex.sets.length + 1,
-      type: 'normal',
-      badge: 'EXTRA',
-      label: 'Serie ' + (ex.sets.length + 1),
-      helper: '',
-      targetReps: last ? last.targetReps : 12,
-      weight: last ? last.weight : '',
-      reps: last ? last.reps : '',
-      completed: false,
-      prevWeight: null,
-      prevReps: null
+  function anadirSerieExtra(exIdx) {
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[exIdx]) return;
+    var ex = estado.entrenamientoActivo.ejercicios[exIdx];
+    var ultima = ex.series[ex.series.length - 1];
+    ex.series.push({
+      numero: ex.series.length + 1,
+      tipo: 'normal',
+      insignia: 'EXTRA',
+      repeticionesObjetivo: ultima ? ultima.repeticionesObjetivo : 12,
+      peso: ultima ? ultima.peso : '',
+      repeticiones: ultima ? ultima.repeticiones : '',
+      completada: false,
+      pesoAnterior: null,
+      repeticionesAnteriores: null
     });
-    saveAppState();
-    renderActiveExercises();
+    guardarDatos();
+    dibujarEjerciciosActivos();
   }
 
-  function updateWorkoutProgress() {
-    if (!appState.activeWorkout || !Array.isArray(appState.activeWorkout.exercises)) return;
-    var total = 0, done = 0;
-    var exs = appState.activeWorkout.exercises;
+  function actualizarProgresoEntrenamiento() {
+    if (!estado.entrenamientoActivo || !Array.isArray(estado.entrenamientoActivo.ejercicios)) return;
+    var total = 0, hechas = 0;
+    var exs = estado.entrenamientoActivo.ejercicios;
     for (var i = 0; i < exs.length; i++) {
-      for (var j = 0; j < exs[i].sets.length; j++) {
+      for (var j = 0; j < exs[i].series.length; j++) {
         total++;
-        if (exs[i].sets[j].completed) done++;
+        if (exs[i].series[j].completada) hechas++;
       }
     }
-    var pct = total > 0 ? (done / total) * 100 : 0;
-    var bar = $('workoutProgressBar');
-    if (bar) bar.style.width = pct + '%';
+    var porcentaje = total > 0 ? (hechas / total) * 100 : 0;
+    var barra = $('workoutProgressBar');
+    if (barra) barra.style.width = porcentaje + '%';
   }
 
   // ===========================================================================
   // CRONÓMETRO DE DESCANSO
   // ===========================================================================
-  function startRestTimer(seconds) {
-    stopRestTimer();
-    appState.restTimer.duration = seconds;
-    appState.restTimer.remaining = seconds;
-    appState.restTimer.isRunning = true;
+  function iniciarCronometroDescanso(segundos) {
+    detenerCronometroDescanso();
+    estado.cronometroDescanso.duracion = segundos;
+    estado.cronometroDescanso.restante = segundos;
+    estado.cronometroDescanso.activo = true;
 
-    var bar = $('restTimerBar');
-    if (bar) bar.classList.add('visible');
-    updateTimerDisplay();
+    var barra = $('restTimerBar');
+    if (barra) barra.classList.add('visible');
+    actualizarPantallaDescanso();
 
-    var startTime = Date.now();
-    var targetMs = seconds * 1000;
+    var inicio = Date.now();
+    var objetivoMs = segundos * 1000;
 
-    appState.restTimer.intervalId = setInterval(function() {
-      var elapsed = Date.now() - startTime;
-      var remMs = targetMs - elapsed;
-      var remSecs = Math.ceil(remMs / 1000);
-      if (remSecs <= 0) {
-        stopRestTimer();
-        onTimerFinished();
+    estado.cronometroDescanso.intervaloId = setInterval(function() {
+      var transcurrido = Date.now() - inicio;
+      var restanteMs = objetivoMs - transcurrido;
+      var restanteSegs = Math.ceil(restanteMs / 1000);
+      if (restanteSegs <= 0) {
+        detenerCronometroDescanso();
+        alTerminarDescanso();
       } else {
-        appState.restTimer.remaining = remSecs;
-        updateTimerDisplay();
+        estado.cronometroDescanso.restante = restanteSegs;
+        actualizarPantallaDescanso();
       }
     }, 250);
   }
 
-  function stopRestTimer() {
-    if (appState.restTimer.intervalId) {
-      clearInterval(appState.restTimer.intervalId);
-      appState.restTimer.intervalId = null;
+  function detenerCronometroDescanso() {
+    if (estado.cronometroDescanso.intervaloId) {
+      clearInterval(estado.cronometroDescanso.intervaloId);
+      estado.cronometroDescanso.intervaloId = null;
     }
-    appState.restTimer.isRunning = false;
+    estado.cronometroDescanso.activo = false;
   }
 
-  function updateTimerDisplay() {
-    var mins = Math.floor(appState.restTimer.remaining / 60);
-    var secs = appState.restTimer.remaining % 60;
+  function actualizarPantallaDescanso() {
+    var mins = Math.floor(estado.cronometroDescanso.restante / 60);
+    var secs = estado.cronometroDescanso.restante % 60;
     var numEl = $('restTimerSeconds');
-    if (numEl) numEl.textContent = pad(mins) + ':' + pad(secs);
+    if (numEl) numEl.textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
 
-    var circle = $('timerProgressCircle');
-    if (circle) {
-      var circumference = 113.1;
-      var fraction = appState.restTimer.remaining / appState.restTimer.duration;
-      circle.style.strokeDashoffset = circumference * (1 - fraction);
+    var circulo = $('timerProgressCircle');
+    if (circulo) {
+      var circunferencia = 113.1;
+      var fraccion = estado.cronometroDescanso.restante / estado.cronometroDescanso.duracion;
+      circulo.style.strokeDashoffset = circunferencia * (1 - fraccion);
     }
   }
 
-  function onTimerFinished() {
+  function alTerminarDescanso() {
     var numEl = $('restTimerSeconds');
     if (numEl) numEl.textContent = '00:00';
-    sounds.playTimerFinish();
-    triggerHaptic([200, 100, 200, 100, 300]);
+    audio.descansoTerminado();
+    vibrar([200, 100, 200, 100, 300]);
     setTimeout(function() {
-      var bar = $('restTimerBar');
-      if (bar && !appState.restTimer.isRunning) bar.classList.remove('visible');
+      var barra = $('restTimerBar');
+      if (barra && !estado.cronometroDescanso.activo) barra.classList.remove('visible');
     }, 3500);
   }
 
   // ===========================================================================
   // FINALIZAR ENTRENAMIENTO
   // ===========================================================================
-  function finishWorkout() {
-    if (!appState.activeWorkout) return;
-    var durationSecs = Math.floor((Date.now() - appState.activeWorkout.startTime) / 1000);
-    var durationMins = Math.max(1, Math.round(durationSecs / 60));
+  function finalizarEntrenamiento() {
+    if (!estado.entrenamientoActivo) return;
+    var duracionSegs = Math.floor((Date.now() - estado.entrenamientoActivo.inicio) / 1000);
+    var duracionMins = Math.max(1, Math.round(duracionSegs / 60));
 
-    var totalVolume = 0, completedSets = 0;
-    var newPrs = [];
-    var exs = appState.activeWorkout.exercises;
+    var volumenTotal = 0, seriesHechas = 0;
+    var nuevosRecords = [];
+    var exs = estado.entrenamientoActivo.ejercicios;
 
     for (var i = 0; i < exs.length; i++) {
-      for (var j = 0; j < exs[i].sets.length; j++) {
-        var s = exs[i].sets[j];
-        if (s.completed && s.weight && s.reps) {
-          var w = parseFloat(s.weight);
-          var r = parseInt(s.reps, 10);
+      for (var j = 0; j < exs[i].series.length; j++) {
+        var s = exs[i].series[j];
+        if (s.completada && s.peso && s.repeticiones) {
+          var w = parseFloat(s.peso);
+          var r = parseInt(s.repeticiones, 10);
           if (!isNaN(w) && !isNaN(r)) {
-            totalVolume += w * r;
-            completedSets++;
-            var currentPr = appState.prs[exs[i].id] || 0;
-            if (w > currentPr) {
-              appState.prs[exs[i].id] = w;
-              newPrs.push({ exercise: exs[i].name, weight: w, reps: r });
+            volumenTotal += w * r;
+            seriesHechas++;
+            var recordActual = estado.records[exs[i].id] || 0;
+            if (w > recordActual) {
+              estado.records[exs[i].id] = w;
+              nuevosRecords.push({ ejercicio: exs[i].nombre, peso: w, repeticiones: r });
             }
           }
         }
       }
     }
 
-    var record = {
-      id: 'wo_' + Date.now(),
-      workoutId: appState.activeWorkout.workoutId,
-      title: appState.activeWorkout.title,
-      date: new Date().toISOString(),
-      durationMinutes: durationMins,
-      totalVolumeKg: Math.round(totalVolume),
-      setsCompleted: completedSets,
-      exercises: exs
+    var registro = {
+      id: 'sesion_' + Date.now(),
+      idDia: estado.entrenamientoActivo.idDia,
+      titulo: estado.entrenamientoActivo.titulo,
+      fecha: new Date().toISOString(),
+      duracionMinutos: duracionMins,
+      volumenKg: Math.round(volumenTotal),
+      seriesCompletadas: seriesHechas,
+      ejercicios: exs
     };
-    appState.history.unshift(record);
+    estado.historial.unshift(registro);
 
-    var finishedTitle = appState.activeWorkout.title;
-    appState.activeWorkout = null;
-    saveAppState();
+    // Avanzar la rotación al siguiente día automáticamente
+    estado.indiceRotacion = (estado.indiceRotacion + 1) % SECUENCIA_ROTATIVA.length;
 
-    if (appState.workoutTimerInterval) clearInterval(appState.workoutTimerInterval);
-    stopRestTimer();
-    toggleWakeLock(false);
-    triggerConfetti();
+    var tituloFinalizado = estado.entrenamientoActivo.titulo;
+    estado.entrenamientoActivo = null;
+    guardarDatos();
 
-    showSummaryModal({
-      title: finishedTitle,
-      duration: durationMins + ' min',
-      volume: Math.round(totalVolume).toLocaleString('es-ES') + ' kg',
-      sets: completedSets,
-      newPrs: newPrs
+    if (estado.intervaloEntrenamiento) clearInterval(estado.intervaloEntrenamiento);
+    detenerCronometroDescanso();
+    controlarPantalla(false);
+    dispararConfeti();
+
+    mostrarModalResumen({
+      titulo: tituloFinalizado,
+      duracion: duracionMins + ' min',
+      volumen: Math.round(volumenTotal).toLocaleString('es-ES') + ' kg',
+      series: seriesHechas,
+      records: nuevosRecords
     });
 
-    renderHistory();
-    renderPRs();
+    dibujarHistorial();
+    dibujarRecords();
+    mostrarSiguienteEntrenamiento();
+    dibujarSecuenciaCiclo();
+
     $('noActiveWorkoutView').style.display = 'block';
     $('activeWorkoutContent').style.display = 'none';
   }
 
-  function showSummaryModal(summary) {
-    $('summaryWorkoutName').textContent = summary.title;
-    $('summaryDuration').textContent = summary.duration;
-    $('summaryVolume').textContent = summary.volume;
-    $('summarySets').textContent = summary.sets;
+  function mostrarModalResumen(resumen) {
+    $('summaryWorkoutName').textContent = resumen.titulo;
+    $('summaryDuration').textContent = resumen.duracion;
+    $('summaryVolume').textContent = resumen.volumen;
+    $('summarySets').textContent = resumen.series;
 
-    var prsSection = $('summaryPrsSection');
-    var prsList = $('summaryPrsList');
-    if (summary.newPrs && summary.newPrs.length > 0) {
-      prsSection.style.display = 'block';
-      var prsHtml = '';
-      for (var i = 0; i < summary.newPrs.length; i++) {
-        var pr = summary.newPrs[i];
-        prsHtml += '<div style="font-size:12px;color:#fff;margin-bottom:2px">⭐ <strong>' + pr.exercise + ':</strong> ' + pr.weight + ' kg × ' + pr.reps + ' reps</div>';
+    var seccionRecords = $('summaryPrsSection');
+    var listaRecords = $('summaryPrsList');
+    if (resumen.records && resumen.records.length > 0) {
+      seccionRecords.style.display = 'block';
+      var html = '';
+      for (var i = 0; i < resumen.records.length; i++) {
+        var r = resumen.records[i];
+        html += '<div style="font-size:12px;color:#fff;margin-bottom:2px">⭐ <strong>' + r.ejercicio + ':</strong> ' + r.peso + ' kg × ' + r.repeticiones + ' repeticiones</div>';
       }
-      prsList.innerHTML = prsHtml;
+      listaRecords.innerHTML = html;
     } else {
-      prsSection.style.display = 'none';
+      seccionRecords.style.display = 'none';
     }
 
-    var shareBtn = $('shareWhatsAppBtn');
-    shareBtn.onclick = function() {
-      var text = encodeURIComponent(
-        '💪 *Entreno CGM Performance Completado*\n' +
-        '📅 *Sesión:* ' + summary.title + '\n' +
-        '⏱️ *Tiempo:* ' + summary.duration + '\n' +
-        '🏋️ *Volumen total:* ' + summary.volume + '\n' +
-        '✅ *Series realizadas:* ' + summary.sets + '\n' +
-        '\n_Plan personalizado Carlos Graña · Frecuencia 1,5_'
+    var btnCompartir = $('shareWhatsAppBtn');
+    btnCompartir.onclick = function() {
+      var texto = encodeURIComponent(
+        '💪 *Entrenamiento CGM Rendimiento Completado*\n' +
+        '📅 *Sesión:* ' + resumen.titulo + '\n' +
+        '⏱️ *Tiempo:* ' + resumen.duracion + '\n' +
+        '🏋️ *Volumen total:* ' + resumen.volumen + '\n' +
+        '✅ *Series hechas:* ' + resumen.series + '\n' +
+        (resumen.records.length > 0 ? '🔥 *Récords:* ' + resumen.records.map(function(rc) { return rc.ejercicio + ' (' + rc.peso + 'kg)'; }).join(', ') + '\n' : '') +
+        '\n_Carlos Graña · Frecuencia 1,5_'
       );
-      window.open('https://api.whatsapp.com/send?text=' + text, '_blank');
+      window.open('https://api.whatsapp.com/send?text=' + texto, '_blank');
     };
 
     $('summaryModal').classList.add('open');
   }
 
   // ===========================================================================
-  // HISTORIAL & PRs
+  // HISTORIAL Y RÉCORDS
   // ===========================================================================
-  function renderHistory() {
-    var container = $('historyList');
+  function dibujarHistorial() {
+    var contenedor = $('historyList');
     var badge = $('historyCountBadge');
-    if (!container) return;
-    if (badge) badge.textContent = appState.history.length + ' sesiones';
+    if (!contenedor) return;
+    if (badge) badge.textContent = estado.historial.length + ' sesiones';
 
-    if (appState.history.length === 0) {
-      container.innerHTML = '<div class="cgm-card text-center" style="padding:28px 16px"><p style="color:var(--text-dim);font-size:13px">No hay entrenamientos guardados todavía.</p></div>';
+    if (estado.historial.length === 0) {
+      contenedor.innerHTML = '<div class="cgm-card text-center" style="padding:28px 16px"><p style="color:var(--text-dim);font-size:13px">No hay entrenamientos guardados todavía.</p></div>';
       return;
     }
 
     var html = '';
-    for (var i = 0; i < appState.history.length; i++) {
-      var item = appState.history[i];
-      var dateObj = new Date(item.date);
-      var dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    for (var i = 0; i < estado.historial.length; i++) {
+      var item = estado.historial[i];
+      var fechaObj = new Date(item.fecha);
+      var fechaStr = fechaObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
       html += '<div class="history-item">';
       html += '  <div class="history-header"><div>';
-      html += '    <div class="history-title">' + item.title + '</div>';
-      html += '    <div class="history-date">' + dateStr + '</div>';
-      html += '  </div><span class="badge-gold">' + item.workoutId + '</span></div>';
+      html += '    <div class="history-title">' + item.titulo + '</div>';
+      html += '    <div class="history-date">' + fechaStr + '</div>';
+      html += '  </div><span class="badge-gold">' + item.idDia + '</span></div>';
       html += '  <div class="history-stats-row">';
-      html += '    <div class="history-stat">⏱ <strong>' + item.durationMinutes + ' min</strong></div>';
-      html += '    <div class="history-stat">⚖ <strong>' + item.totalVolumeKg.toLocaleString('es-ES') + ' kg</strong></div>';
-      html += '    <div class="history-stat">✓ <strong>' + item.setsCompleted + ' series</strong></div>';
+      html += '    <div class="history-stat">⏱ <strong>' + item.duracionMinutos + ' min</strong></div>';
+      html += '    <div class="history-stat">⚖ <strong>' + item.volumenKg.toLocaleString('es-ES') + ' kg</strong></div>';
+      html += '    <div class="history-stat">✓ <strong>' + item.seriesCompletadas + ' series</strong></div>';
       html += '  </div>';
       html += '</div>';
     }
-    container.innerHTML = html;
+    contenedor.innerHTML = html;
   }
 
-  function renderPRs() {
+  function dibujarRecords() {
     var grid = $('prsGrid');
     if (!grid) return;
-    var keys = Object.keys(appState.prs);
-    if (keys.length === 0) {
-      grid.innerHTML = '<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:10px">Se registrarán automáticamente al completar tus series pesadas.</div>';
+    var claves = Object.keys(estado.records);
+    if (claves.length === 0) {
+      grid.innerHTML = '<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:10px">Se registrarán automáticamente según vayas completando tus series pesadas.</div>';
       return;
     }
 
-    var idToName = {};
-    var dayKeys = Object.keys(WORKOUT_DAYS);
-    for (var d = 0; d < dayKeys.length; d++) {
-      var exs = WORKOUT_DAYS[dayKeys[d]].exercises;
+    var idANombre = {};
+    var diasClaves = Object.keys(DIAS_ENTRENAMIENTO);
+    for (var d = 0; d < diasClaves.length; d++) {
+      var exs = DIAS_ENTRENAMIENTO[diasClaves[d]].ejercicios;
       for (var e = 0; e < exs.length; e++) {
-        idToName[exs[e].id] = exs[e].name;
+        idANombre[exs[e].id] = exs[e].nombre;
       }
     }
 
     var html = '';
-    for (var i = 0; i < keys.length; i++) {
-      html += '<div class="pr-card"><span class="pr-name">' + (idToName[keys[i]] || keys[i]) + '</span><span class="pr-val">' + appState.prs[keys[i]] + ' kg</span></div>';
+    for (var i = 0; i < claves.length; i++) {
+      html += '<div class="pr-card"><span class="pr-name">' + (idANombre[claves[i]] || claves[i]) + '</span><span class="pr-val">' + estado.records[claves[i]] + ' kg</span></div>';
     }
     grid.innerHTML = html;
   }
 
   // ===========================================================================
-  // CALCULADORA DE DISCOS
+  // CALCULADORAS (DISCOS Y DESCARGA)
   // ===========================================================================
-  function updatePlateCalculator() {
-    var targetInput = $('calcTargetWeight');
-    var barSelect = $('calcBarWeight');
-    var sideLabel = $('weightPerSideLabel');
+  function actualizarCalculadoraDiscos() {
+    var inputObjetivo = $('calcTargetWeight');
+    var selectBarra = $('calcBarWeight');
+    var labelLado = $('weightPerSideLabel');
     var visual = $('platesVisual');
-    var textList = $('platesTextList');
-    if (!targetInput || !barSelect) return;
+    var listaTexto = $('platesTextList');
+    if (!inputObjetivo || !selectBarra) return;
 
-    var target = parseFloat(targetInput.value) || 0;
-    var bar = parseFloat(barSelect.value) || 0;
+    var objetivo = parseFloat(inputObjetivo.value) || 0;
+    var barra = parseFloat(selectBarra.value) || 0;
 
-    if (target < bar) {
-      if (sideLabel) sideLabel.textContent = '0 kg (peso menor a la barra)';
+    if (objetivo < barra) {
+      if (labelLado) labelLado.textContent = '0 kg (el peso es menor al peso de la barra)';
       if (visual) visual.innerHTML = '';
-      if (textList) textList.textContent = '';
+      if (listaTexto) listaTexto.textContent = '';
       return;
     }
 
-    var perSide = (target - bar) / 2;
-    if (sideLabel) sideLabel.textContent = perSide + ' kg por lado';
+    var porLado = (objetivo - barra) / 2;
+    if (labelLado) labelLado.textContent = porLado + ' kg en cada lado';
 
-    var plateTypes = [
-      { weight: 25, css: 'plate-25', label: '25' },
-      { weight: 20, css: 'plate-20', label: '20' },
-      { weight: 15, css: 'plate-15', label: '15' },
-      { weight: 10, css: 'plate-10', label: '10' },
-      { weight: 5,  css: 'plate-5',  label: '5' },
-      { weight: 2.5, css: 'plate-2_5', label: '2.5' },
-      { weight: 1.25, css: 'plate-1_25', label: '1.25' }
+    var tiposDiscos = [
+      { peso: 25, css: 'plate-25', etiqueta: '25' },
+      { peso: 20, css: 'plate-20', etiqueta: '20' },
+      { peso: 15, css: 'plate-15', etiqueta: '15' },
+      { peso: 10, css: 'plate-10', etiqueta: '10' },
+      { peso: 5,  css: 'plate-5',  etiqueta: '5' },
+      { peso: 2.5, css: 'plate-2_5', etiqueta: '2.5' },
+      { peso: 1.25, css: 'plate-1_25', etiqueta: '1.25' }
     ];
 
-    var remaining = perSide;
-    var platesUsed = [];
+    var restante = porLado;
+    var discosUsados = [];
 
-    for (var i = 0; i < plateTypes.length; i++) {
-      var plate = plateTypes[i];
-      while (remaining >= plate.weight - 0.001) {
-        platesUsed.push(plate);
-        remaining = Math.round((remaining - plate.weight) * 100) / 100;
+    for (var i = 0; i < tiposDiscos.length; i++) {
+      var d = tiposDiscos[i];
+      while (restante >= d.peso - 0.001) {
+        discosUsados.push(d);
+        restante = Math.round((restante - d.peso) * 100) / 100;
       }
     }
 
     if (visual) {
       var vhtml = '';
-      for (var i = 0; i < platesUsed.length; i++) {
-        vhtml += '<div class="plate-disc ' + platesUsed[i].css + '" title="' + platesUsed[i].weight + ' kg">' + platesUsed[i].label + '</div>';
+      for (var i = 0; i < discosUsados.length; i++) {
+        vhtml += '<div class="plate-disc ' + discosUsados[i].css + '" title="' + discosUsados[i].peso + ' kg">' + discosUsados[i].etiqueta + '</div>';
       }
       visual.innerHTML = vhtml;
     }
 
-    if (textList) {
-      if (platesUsed.length === 0) {
-        textList.textContent = 'Solo la barra vacía.';
+    if (listaTexto) {
+      if (discosUsados.length === 0) {
+        listaTexto.textContent = 'Solo la barra vacía.';
       } else {
-        var counts = {};
-        for (var i = 0; i < platesUsed.length; i++) {
-          var w = platesUsed[i].weight;
-          counts[w] = (counts[w] || 0) + 1;
+        var cuentas = {};
+        for (var i = 0; i < discosUsados.length; i++) {
+          var p = discosUsados[i].peso;
+          cuentas[p] = (cuentas[p] || 0) + 1;
         }
-        var parts = [];
-        var cKeys = Object.keys(counts);
-        for (var i = 0; i < cKeys.length; i++) {
-          parts.push(counts[cKeys[i]] + '×' + cKeys[i] + 'kg');
+        var partes = [];
+        var cClaves = Object.keys(cuentas);
+        for (var i = 0; i < cClaves.length; i++) {
+          partes.push(cuentas[cClaves[i]] + ' de ' + cClaves[i] + ' kg');
         }
-        textList.textContent = 'Discos por lado: ' + parts.join(', ');
+        listaTexto.textContent = 'Discos por lado: ' + partes.join(', ');
       }
     }
   }
 
-  function updateQuickBackOff() {
-    var topInput = $('topSetInput');
-    var resultDiv = $('backOffResult');
-    if (!topInput || !resultDiv) return;
-    var topWeight = parseFloat(topInput.value) || 0;
-    if (topWeight <= 0) {
-      resultDiv.textContent = '0 kg';
+  function actualizarCalculadoraDescarga() {
+    var inputTop = $('topSetInput');
+    var resultado = $('backOffResult');
+    if (!inputTop || !resultado) return;
+    var pesoTop = parseFloat(inputTop.value) || 0;
+    if (pesoTop <= 0) {
+      resultado.textContent = '0.0 kg';
       return;
     }
-    var raw = topWeight * 0.8;
-    var rounded = Math.round(raw / 2.5) * 2.5;
-    resultDiv.textContent = rounded + ' kg (−20%)';
+    var calculo = pesoTop * 0.8;
+    var redondeado = Math.round(calculo / 2.5) * 2.5;
+    resultado.textContent = redondeado + ' kg (−20 %)';
   }
 
   // ===========================================================================
-  // CONFETTI
+  // CONFETI
   // ===========================================================================
-  function triggerConfetti() {
+  function dispararConfeti() {
     var canvas = $('confettiCanvas');
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var particles = [];
-    var colors = ['#D4AF37', '#FDE68A', '#997819', '#ffffff', '#10B981', '#38BDF8'];
+    var particulas = [];
+    var colores = ['#D4AF37', '#FDE68A', '#997819', '#ffffff', '#10B981', '#38BDF8'];
     for (var i = 0; i < 90; i++) {
-      particles.push({
+      particulas.push({
         x: canvas.width / 2, y: canvas.height / 2,
         vx: (Math.random() - 0.5) * 16, vy: (Math.random() - 0.7) * 18,
         size: Math.random() * 8 + 4,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: 1, rotation: Math.random() * 360
+        color: colores[Math.floor(Math.random() * colores.length)],
+        alpha: 1, rotacion: Math.random() * 360
       });
     }
 
-    function animate() {
+    function animar() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      var alive = false;
-      for (var i = 0; i < particles.length; i++) {
-        var p = particles[i];
+      var vivas = false;
+      for (var i = 0; i < particulas.length; i++) {
+        var p = particulas[i];
         p.x += p.vx; p.y += p.vy; p.vy += 0.4; p.alpha -= 0.015;
         if (p.alpha > 0) {
-          alive = true;
+          vivas = true;
           ctx.save();
           ctx.globalAlpha = p.alpha;
           ctx.fillStyle = p.color;
           ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation * Math.PI / 180);
+          ctx.rotate(p.rotacion * Math.PI / 180);
           ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
           ctx.restore();
         }
       }
-      if (alive) requestAnimationFrame(animate);
+      if (vivas) requestAnimationFrame(animar);
       else ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    animate();
+    animar();
   }
 
   // ===========================================================================
-  // EVENT LISTENERS GLOBALES
+  // EVENTOS GLOBALES
   // ===========================================================================
-  function setupEventListeners() {
-    // Navegación Bottom Bar
-    var navItems = document.querySelectorAll('.nav-item');
-    for (var i = 0; i < navItems.length; i++) {
+  function configurarEventos() {
+    var navs = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < navs.length; i++) {
       (function(item) {
         item.addEventListener('click', function() {
-          if (item.dataset.tab) switchTab(item.dataset.tab);
+          if (item.dataset.tab) cambiarPestana(item.dataset.tab);
         });
-      })(navItems[i]);
+      })(navs[i]);
     }
 
-    // Selector de Semanas
-    var weekPills = document.querySelectorAll('.week-pill');
-    for (var i = 0; i < weekPills.length; i++) {
-      (function(pill) {
-        pill.addEventListener('click', function() {
-          renderScheduleWeek(parseInt(pill.dataset.week, 10));
-        });
-      })(weekPills[i]);
-    }
-
-    // Botón empezar hoy
-    on($('startTodayWorkoutBtn'), 'click', function() {
-      var wId = $('startTodayWorkoutBtn').dataset.workoutId || 'D1';
-      startWorkout(wId);
+    // Botón empezar sugerido
+    escuchar($('startTodayWorkoutBtn'), 'click', function() {
+      var id = $('startTodayWorkoutBtn').dataset.idDia || 'D1';
+      iniciarEntrenamiento(id);
     });
 
-    // Días directos (D1, D2, D3, D4)
-    var directCards = document.querySelectorAll('.direct-day-card');
-    for (var i = 0; i < directCards.length; i++) {
+    // 4 Días directos
+    var tarjetasDirectas = document.querySelectorAll('.direct-day-card');
+    for (var i = 0; i < tarjetasDirectas.length; i++) {
       (function(card) {
         card.addEventListener('click', function() {
-          if (card.dataset.day) startWorkout(card.dataset.day);
+          if (card.dataset.day) iniciarEntrenamiento(card.dataset.day);
         });
-      })(directCards[i]);
+      })(tarjetasDirectas[i]);
     }
 
-    // Botón ir a rutina
-    on($('goToRoutineBtn'), 'click', function() { switchTab('tab-routine'); });
+    escuchar($('goToRoutineBtn'), 'click', function() { cambiarPestana('tab-routine'); });
 
-    // Finalizar / Descartar
-    on($('finishWorkoutBtn'), 'click', function() {
-      if (confirm('¿Has completado tu entrenamiento y deseas guardar los resultados?')) finishWorkout();
+    escuchar($('finishWorkoutBtn'), 'click', function() {
+      if (confirm('¿Has completado el entrenamiento y deseas guardar los resultados?')) finalizarEntrenamiento();
     });
-    on($('discardWorkoutBtn'), 'click', function() {
-      if (confirm('¿Estás seguro de descartar esta sesión? Los datos no guardados se perderán.')) {
-        appState.activeWorkout = null;
-        saveAppState();
-        if (appState.workoutTimerInterval) clearInterval(appState.workoutTimerInterval);
-        stopRestTimer();
-        toggleWakeLock(false);
+
+    escuchar($('discardWorkoutBtn'), 'click', function() {
+      if (confirm('¿Seguro que deseas descartar esta sesión? Los datos no guardados se perderán.')) {
+        estado.entrenamientoActivo = null;
+        guardarDatos();
+        if (estado.intervaloEntrenamiento) clearInterval(estado.intervaloEntrenamiento);
+        detenerCronometroDescanso();
+        controlarPantalla(false);
         $('noActiveWorkoutView').style.display = 'block';
         $('activeWorkoutContent').style.display = 'none';
-        switchTab('tab-routine');
+        cambiarPestana('tab-routine');
       }
     });
 
-    // Rest Timer
-    on($('timerAdd15Btn'), 'click', function() {
-      appState.restTimer.remaining += 15;
-      appState.restTimer.duration += 15;
-      updateTimerDisplay();
+    // Controles de cronómetro
+    escuchar($('timerAdd15Btn'), 'click', function() {
+      estado.cronometroDescanso.restante += 15;
+      estado.cronometroDescanso.duracion += 15;
+      actualizarPantallaDescanso();
     });
-    on($('timerSub15Btn'), 'click', function() {
-      appState.restTimer.remaining = Math.max(0, appState.restTimer.remaining - 15);
-      updateTimerDisplay();
-      if (appState.restTimer.remaining === 0) onTimerFinished();
+    escuchar($('timerSub15Btn'), 'click', function() {
+      estado.cronometroDescanso.restante = Math.max(0, estado.cronometroDescanso.restante - 15);
+      actualizarPantallaDescanso();
+      if (estado.cronometroDescanso.restante === 0) alTerminarDescanso();
     });
-    on($('timerSkipBtn'), 'click', function() {
-      stopRestTimer();
-      var bar = $('restTimerBar');
-      if (bar) bar.classList.remove('visible');
+    escuchar($('timerSkipBtn'), 'click', function() {
+      detenerCronometroDescanso();
+      var barra = $('restTimerBar');
+      if (barra) barra.classList.remove('visible');
     });
-    on($('timerCloseBtn'), 'click', function() {
-      var bar = $('restTimerBar');
-      if (bar) bar.classList.remove('visible');
+    escuchar($('timerCloseBtn'), 'click', function() {
+      var barra = $('restTimerBar');
+      if (barra) barra.classList.remove('visible');
     });
 
-    // Header buttons
-    on($('soundToggleBtn'), 'click', function() {
-      appState.settings.soundEnabled = !appState.settings.soundEnabled;
-      saveAppState();
+    // Botones superiores
+    escuchar($('soundToggleBtn'), 'click', function() {
+      estado.ajustes.sonidoActivado = !estado.ajustes.sonidoActivado;
+      guardarDatos();
       var btn = $('soundToggleBtn');
       if (btn) {
-        btn.classList.toggle('active', appState.settings.soundEnabled);
-        btn.textContent = appState.settings.soundEnabled ? '🔔' : '🔕';
+        btn.classList.toggle('active', estado.ajustes.sonidoActivado);
+        btn.textContent = estado.ajustes.sonidoActivado ? '🔔' : '🔕';
       }
       var check = $('settingSound');
-      if (check) check.checked = appState.settings.soundEnabled;
+      if (check) check.checked = estado.ajustes.sonidoActivado;
     });
-    on($('wakeLockBtn'), 'click', function() {
-      toggleWakeLock(!appState.wakeLockSentinel);
-    });
-    on($('plateCalcQuickBtn'), 'click', function() { switchTab('tab-tools'); });
 
-    // Modal cerrar
-    on($('closeSummaryModalBtn'), 'click', function() {
+    escuchar($('wakeLockBtn'), 'click', function() {
+      controlarPantalla(!estado.bloqueoPantalla);
+    });
+
+    escuchar($('plateCalcQuickBtn'), 'click', function() { cambiarPestana('tab-tools'); });
+
+    escuchar($('closeSummaryModalBtn'), 'click', function() {
       var modal = $('summaryModal');
       if (modal) modal.classList.remove('open');
-      switchTab('tab-routine');
+      cambiarPestana('tab-routine');
     });
 
     // Calculadoras
-    on($('calcTargetWeight'), 'input', updatePlateCalculator);
-    on($('calcBarWeight'), 'change', updatePlateCalculator);
-    on($('topSetInput'), 'input', updateQuickBackOff);
+    escuchar($('calcTargetWeight'), 'input', actualizarCalculadoraDiscos);
+    escuchar($('calcBarWeight'), 'change', actualizarCalculadoraDiscos);
+    escuchar($('topSetInput'), 'input', actualizarCalculadoraDescarga);
 
-    // Settings
-    on($('settingSound'), 'change', function(e) {
-      appState.settings.soundEnabled = e.target.checked;
-      saveAppState();
+    // Ajustes
+    escuchar($('settingSound'), 'change', function(e) {
+      estado.ajustes.sonidoActivado = e.target.checked;
+      guardarDatos();
       var btn = $('soundToggleBtn');
       if (btn) {
-        btn.classList.toggle('active', appState.settings.soundEnabled);
-        btn.textContent = appState.settings.soundEnabled ? '🔔' : '🔕';
+        btn.classList.toggle('active', estado.ajustes.sonidoActivado);
+        btn.textContent = estado.ajustes.sonidoActivado ? '🔔' : '🔕';
       }
     });
-    on($('settingVibrate'), 'change', function(e) {
-      appState.settings.vibrateEnabled = e.target.checked;
-      saveAppState();
-    });
-    on($('settingDefaultRest'), 'change', function(e) {
-      appState.settings.defaultRestSeconds = parseInt(e.target.value, 10);
-      saveAppState();
+
+    escuchar($('settingVibrate'), 'change', function(e) {
+      estado.ajustes.vibracionActivada = e.target.checked;
+      guardarDatos();
     });
 
-    // Datos
-    on($('exportDataBtn'), 'click', exportUserData);
-    on($('importDataInput'), 'change', importUserData);
-    on($('resetDataBtn'), 'click', resetAllData);
+    escuchar($('settingDefaultRest'), 'change', function(e) {
+      estado.ajustes.segundosDescanso = parseInt(e.target.value, 10);
+      guardarDatos();
+    });
+
+    // Copia de seguridad
+    escuchar($('exportDataBtn'), 'click', descargarCopiaSeguridad);
+    escuchar($('importDataInput'), 'change', restaurarCopiaSeguridad);
+    escuchar($('resetDataBtn'), 'click', borrarTodo);
   }
 
-  // ===========================================================================
-  // GESTIÓN DE DATOS (EXPORTACIÓN & IMPORTACIÓN JSON)
-  // ===========================================================================
-  function exportUserData() {
-    var data = {
-      app: 'CGM Performance Workout',
-      version: '3.0',
-      exportDate: new Date().toISOString(),
-      history: appState.history,
-      prs: appState.prs,
-      settings: appState.settings,
-      currentWeek: appState.currentWeek
+  function descargarCopiaSeguridad() {
+    var datos = {
+      aplicacion: 'CGM Rendimiento Rutina',
+      version: '4.0',
+      fechaExportacion: new Date().toISOString(),
+      historial: estado.historial,
+      records: estado.records,
+      ajustes: estado.ajustes,
+      indiceRotacion: estado.indiceRotacion
     };
-    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'cgm-workout-backup-' + new Date().toISOString().split('T')[0] + '.json';
+    a.download = 'cgm-entreno-copia-' + new Date().toISOString().split('T')[0] + '.json';
     a.click();
     URL.revokeObjectURL(url);
   }
 
-  function importUserData(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(event) {
+  function restaurarCopiaSeguridad(e) {
+    var archivo = e.target.files[0];
+    if (!archivo) return;
+    var lector = new FileReader();
+    lector.onload = function(evento) {
       try {
-        var data = JSON.parse(event.target.result);
-        if (data.history) appState.history = data.history;
-        if (data.prs) appState.prs = data.prs;
-        if (data.settings) appState.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings);
-        if (data.currentWeek) appState.currentWeek = data.currentWeek;
-        saveAppState();
-        renderHistory();
-        renderPRs();
-        renderScheduleWeek(appState.currentWeek);
-        alert('¡Datos importados con éxito!');
+        var datos = JSON.parse(evento.target.result);
+        if (datos.historial) estado.historial = datos.historial;
+        if (datos.records) estado.records = datos.records;
+        if (datos.ajustes) estado.ajustes = Object.assign({}, AJUSTES_PREDETERMINADOS, datos.ajustes);
+        if (datos.indiceRotacion !== undefined) estado.indiceRotacion = datos.indiceRotacion;
+
+        guardarDatos();
+        dibujarHistorial();
+        dibujarRecords();
+        mostrarSiguienteEntrenamiento();
+        dibujarSecuenciaCiclo();
+        alert('¡Copia de seguridad restaurada con éxito!');
       } catch (err) {
-        alert('Error al leer el archivo JSON de respaldo.');
+        alert('El archivo seleccionado no es válido.');
       }
     };
-    reader.readAsText(file);
+    lector.readAsText(archivo);
   }
 
-  function resetAllData() {
-    if (confirm('ADVERTENCIA: ¿Seguro que deseas borrar todo el historial y récords? Esta acción no se puede deshacer.')) {
+  function borrarTodo() {
+    if (confirm('ADVERTENCIA: ¿Seguro que deseas borrar todo el historial y empezar de cero?')) {
       localStorage.clear();
       location.reload();
     }
   }
 
-  // ===========================================================================
-  // CONFIGURACIÓN PWA
-  // ===========================================================================
-  function setupPWA() {
+  function configurarPWA() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=3').then(function(reg) {
-        console.log('SW v3 registrado:', reg.scope);
-        // Si hay una actualización esperando, forzar que tome el control
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
+      navigator.serviceWorker.register('./sw.js?v=4').then(function(reg) {
+        console.log('SW registrado correctamente:', reg.scope);
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         reg.update();
       }).catch(function(err) {
-        console.warn('SW no disponible:', err);
+        console.warn('SW aviso:', err);
       });
     }
 
     window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
-      appState.deferredPwaPrompt = e;
+      estado.peticionInstalacionPWA = e;
       var banner = $('pwaBanner');
       if (banner) banner.classList.add('show');
     });
 
-    on($('pwaInstallBtn'), 'click', function() {
-      if (appState.deferredPwaPrompt) {
-        appState.deferredPwaPrompt.prompt();
-        appState.deferredPwaPrompt.userChoice.then(function() {
-          appState.deferredPwaPrompt = null;
+    escuchar($('pwaInstallBtn'), 'click', function() {
+      if (estado.peticionInstalacionPWA) {
+        estado.peticionInstalacionPWA.prompt();
+        estado.peticionInstalacionPWA.userChoice.then(function() {
+          estado.peticionInstalacionPWA = null;
           var banner = $('pwaBanner');
           if (banner) banner.classList.remove('show');
         });
       } else {
-        alert('Para instalar en iPhone: pulsa el botón Compartir de Safari y selecciona "Añadir a pantalla de inicio". En Android: pulsa los tres puntos y "Instalar aplicación".');
+        alert('En iPhone: toca el botón Compartir de Safari y selecciona "Añadir a pantalla de inicio". En Android: toca los tres puntos y "Instalar aplicación".');
       }
     });
   }

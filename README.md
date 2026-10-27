@@ -1,140 +1,69 @@
-# CGM PERFORMANCE · App de Entrenamiento Frecuencia 1,5
-### Plan Personalizado de Carlos Graña
+# CGM RENDIMIENTO · Aplicación de Entrenamiento Personalizada
+### Rutina de 4 Días Rotativos · Carlos Graña
 
-Aplicación web móvil progresiva (**PWA**) diseñada específicamente para registrar y progresar en tu rutina de entrenamiento de **Frecuencia 1,5**, inspirada en los mejores proyectos de tracking open-source de GitHub (*Hevy, Strong, Forge, openGym*), adaptada al 100% a la metodología, ejercicios, directrices y estética del PDF de **Carlos Graña / CGM Performance**.
+Aplicación web móvil progresiva (**PWA**) diseñada para registrar y progresar en tu rutina de entrenamiento de **4 Días Rotativos**, adaptada al 100% a la metodología, ejercicios, directrices y estética del entrenamiento de **Carlos Graña / CGM Rendimiento**.
+
+Enlace directo a la aplicación: **[https://abraveses-de-tera.github.io/cgm-workout-app/](https://abraveses-de-tera.github.io/cgm-workout-app/)**
 
 ---
 
 ## 📸 Características Principales
 
-1. **Diseño y Temática Oficial CGM Performance**:
-   - Paleta de colores idéntica al documento: **Negro Obsidiana (`#0a0c10`)** y **Oro Metálico (`#d4af37`)**.
-   - Logo oficial vectorizado en alta definición (emblema dorado con silueta culturista).
-   - Tipografía grande de alto contraste optimizada para las luces del gimnasio y uso con manos sudorosas.
+1. **Diseño y Temática Oficial CGM Rendimiento**:
+   - Paleta de colores oficial: **Negro Obsidiana (`#0a0c10`)** y **Oro Metálico (`#d4af37`)**.
+   - Emblema oficial en alta resolución como logo de la aplicación, icono de pestaña y acceso directo al instalarla en el móvil.
+   - Textos de alto contraste y botones táctiles grandes optimizados para su uso cómodo con manos sudorosas en el gimnasio.
 
-2. **Sistema Completo de Frecuencia 1,5 (4 Semanas Rotativas)**:
-   - **Semana 1 a 4**: Calendario interactivo con detección automática del día de hoy.
-   - Regla de repetición del sábado (en negro en la tabla del PDF) y rotación del lunes siguiente.
-   - Selector directo para días sueltos (**D1 Espalda**, **D2 Pecho-hombro**, **D3 Pierna**, **D4 Brazo**).
+2. **Sistema de 4 Días Continuos en Rotación**:
+   - **Sin días fijos de la semana**: Entrenas a tu propio ritmo. Si un día no puedes ir, tu ciclo no se descoloca.
+   - Secuencia continua: **Día 1** ➔ **Día 2** ➔ **Día 3** ➔ **Día 4** ➔ **Día 1 (Repetición)** ➔ etc.
+   - Acceso directo instantáneo: Puedes elegir en cualquier momento cualquiera de los 4 días (**Día 1: Espalda y Posterior**, **Día 2: Pecho y Hombro**, **Día 3: Pierna Completa**, **Día 4: Brazo y Abdomen**).
 
-3. **Modo Gym Activo (Live Workout Tracker)**:
-   - Prescripción técnica exacta de Carlos Graña para cada ejercicio.
-   - **Calculador automático de Back-off (-20%)**: Al introducir el peso de tu Top Set (ej. 100 kg), la app calcula al vuelo el 80% (80 kg) y te ofrece un botón de un toque para rellenar la serie de back-off.
-   - Etiquetas de serie: `TOP SET`, `BACK OFF`, `DESCENDENTE`, `LASTRE`, `AL FALLO`.
-   - Comparador de marcas: Muestra en gris tenue el peso y repeticiones que hiciste en la sesión anterior para aplicar **sobrecarga progresiva**.
-   - Botón de check con vibración táctil (**Haptic**) y sonido sintetizado mediante Web Audio API (100% offline).
+3. **100% en Castellano**:
+   - Sin términos en inglés confusos:
+     - `Serie Pesada`: máximo peso alcanzable en las repeticiones indicadas con técnica impecable.
+     - `Serie de Descarga (-20%)`: reducción automática del 20% del peso respecto a la serie pesada.
+     - `Serie Descendente`: bajada de peso inmediata sin descanso para continuar sacando repeticiones.
+     - `Con Lastre`: peso añadido en dominadas o fondos.
+     - `Al Fallo`: hasta no poder completar una repetición más.
 
-4. **Cronómetro de Descanso Inteligente**:
-   - Barra flotante con indicador circular de progreso.
-   - Botones rápidos de `+15s`, `-15s` y `Saltar`.
-   - Alarma sonora y doble vibración en tu móvil al terminar el descanso.
+4. **Modo Gimnasio Activo**:
+   - Calculadora automática de la serie de descarga (-20%): al escribir el peso de la serie pesada, la aplicación calcula de inmediato el 80% y te ofrece un botón para rellenarlo con un solo toque.
+   - Indicador de marcas anteriores: visualiza en gris tenue el peso y repeticiones que hiciste en la sesión previa para garantizar la sobrecarga progresiva.
+   - Casillas de verificación con sonido de confirmación y respuesta táctil (vibración en el móvil).
 
-5. **Calculadora de Discos (Plate Calculator)**:
-   - Introduce el peso total objetivo y el tipo de barra (20 kg, 15 kg, 10 kg).
-   - Visualiza gráficamente los discos exactos que debes cargar a cada lado de la barra (25, 20, 15, 10, 5, 2.5, 1.25 kg).
+5. **Cronómetro de Descanso**:
+   - Barra flotante con indicador circular regresivo.
+   - Botones rápidos de `+15 s`, `-15 s` y `Saltar descanso`.
+   - Señal acústica y doble vibración en tu dispositivo al finalizar el tiempo.
 
-6. **Resumen y Envío a WhatsApp**:
-   - Confeti al terminar la sesión.
-   - Cálculo de volumen total levantado en kg, tiempo total y nuevos récords (PRs).
-   - Botón *"Compartir Resumen por WhatsApp"* que genera el mensaje listo para mandárselo a Carlos Graña o a tus compañeros.
+6. **Calculadora de Discos de Barra**:
+   - Indica el peso total a levantar y el tipo de barra (20 kg, 15 kg, 10 kg).
+   - Muestra gráficamente los discos exactos que debes poner a cada lado de la barra.
 
-7. **100% Privado y Offline (PWA)**:
-   - Tus datos se guardan en tu propio móvil (`localStorage`).
-   - Sin registros ni suscripciones.
-   - Exportación e importación en formato JSON para que nunca pierdas tu historial.
+7. **Resumen y Envío por WhatsApp**:
+   - Animación de celebración al terminar el entreno.
+   - Muestra el volumen total levantado en kilogramos, tiempo transcurrido y nuevos récords personales logrados.
+   - Botón *"Compartir Resumen por WhatsApp"* que genera el mensaje listo para enviárselo a tu entrenador o compañeros.
 
----
-
-## 📱 Cómo Usar la App en tu Móvil
-
-Tienes dos formas muy sencillas de tenerla en tu móvil:
-
-### Opción 1: En tu red Wi-Fi local (En 1 minuto)
-1. En tu ordenador, haz doble clic en el archivo `start_mobile_server.bat` (o ejecuta `server.ps1`).
-2. La consola te mostrará una dirección similar a:
-   ```
-   http://192.168.1.XX:8080
-   ```
-3. Conecta tu teléfono a la **misma red Wi-Fi** y abre esa dirección en el navegador (**Safari** en iPhone, **Chrome** en Android).
-4. **Instálala como App Nativa**:
-   - **En iPhone (Safari)**: Pulsa el botón **Compartir** (icono de cuadrado con flecha hacia arriba) y selecciona **"Añadir a pantalla de inicio"** (*Add to Home Screen*).
-   - **En Android (Chrome)**: Pulsa los **tres puntos** arriba a la derecha y selecciona **"Instalar aplicación"** o **"Añadir a pantalla de inicio"**.
-5. ¡Listo! Ya tendrás el icono de **CGM Entreno** en la pantalla de tu móvil, funcionando a pantalla completa sin barras de navegador.
+8. **100% Privado y Funcional Sin Internet (PWA)**:
+   - Tus datos se guardan directamente en la memoria de tu móvil (`localStorage`).
+   - Funciona sin conexión a internet una vez abierta.
+   - Copia de seguridad y restauración en archivo para no perder nunca tus registros.
 
 ---
 
-### Opción 2: Subirla a GitHub Pages (Recomendado para ir al gym 24/7)
-Al ser una aplicación 100% estática (HTML, CSS y JavaScript puro):
-1. Sube esta carpeta a un repositorio público o privado en tu cuenta de GitHub (ejemplo: `rutina-cgm`).
-2. En GitHub entra en **Settings** > **Pages**.
-3. En *Branch*, elige `main` y guarda.
-4. En 30 segundos tendrás un enlace HTTPS gratuito tipo `https://tu-usuario.github.io/rutina-cgm/`.
-5. Ábrelo desde el móvil y dale a *"Añadir a pantalla de inicio"*. Funcionará siempre, con o sin cobertura en el sótano del gimnasio.
+## 📱 Cómo Instalar la Aplicación en tu Teléfono
 
----
+Abre en tu navegador la dirección:
+👉 **[https://abraveses-de-tera.github.io/cgm-workout-app/](https://abraveses-de-tera.github.io/cgm-workout-app/)**
 
-## 📋 Estructura de la Rutina Carlos Graña (Frecuencia 1,5)
+### En iPhone (Safari)
+1. Pulsa el botón central de **Compartir** (icono del recuadro con flecha hacia arriba).
+2. Desplázate hacia abajo y selecciona **"Añadir a pantalla de inicio"**.
+3. Se creará el icono oficial de CGM en tu pantalla como una aplicación nativa independiente.
 
-### 🗓️ Cuadrícula de 4 Semanas
-| Semana | Lunes | Martes | Miércoles | Jueves | Viernes | Sábado (Repetición) | Domingo |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Semana 1** | D1 Espalda | D2 Pecho-hombro | D3 Pierna | Descanso | D4 Brazo | **D1 Espalda** | Descanso |
-| **Semana 2** | D2 Pecho-hombro | D3 Pierna | D4 Brazo | Descanso | D1 Espalda | **D2 Pecho-hombro** | Descanso |
-| **Semana 3** | D3 Pierna | D4 Brazo | D1 Espalda | Descanso | D2 Pecho-hombro | **D3 Pierna** | Descanso |
-| **Semana 4** | D4 Brazo | D1 Espalda | D2 Pecho-hombro | Descanso | D3 Pierna | **D4 Brazo** | Descanso |
-
----
-
-### 🏋️ Detalle de los Días
-
-#### **DÍA 1: Espalda y posterior**
-1. **Pull over en polea** — 3 × 12 reps
-2. **Dominadas** — 2 series:
-   - 1 serie con lastre a 8 reps
-   - 1 serie sin peso al fallo
-3. **Remo con barra** — 3 series:
-   - Top set (pesada al límite)
-   - Back off (−20 %)
-   - 3.ª serie con el peso del back off y descendente
-4. **Jalón agarre cerrado** — 3 × 12 reps (la última serie descendente)
-5. **Remo Dorian** — 3 × 12 reps
-6. **Posterior en máquina** — 3 × 15 reps
-7. **Remo al mentón en polea** — 3 × 15 reps
-
-#### **DÍA 2: Pecho y hombro**
-1. **Press inclinado** — 2 series (Top set + back off −20 %)
-2. **Aperturas** — 3 × 12 reps
-3. **Press declinado** — 2 series (Top set + back off −20 %)
-4. **Cruce de poleas** — 2 × 12 reps
-5. **Elevaciones laterales** — 4 × 12 reps (la última serie descendente)
-6. **Press militar** — 2 × 8 reps
-7. **Elevaciones frontales** — 2 × 12 reps
-
-#### **DÍA 3: Pierna**
-1. **Femoral tumbado** — 3 × 12 reps
-2. **Extensiones de cuádriceps** — 3 × 15 reps
-3. **Sentadilla pendular** — 3 × 12 reps
-4. **Prensa** — 2 series (Top set + back off −20 %)
-5. **Aductor** — 3 × 15 reps
-6. **Femoral sentado** — 3 × 12 reps
-
-#### **DÍA 4: Brazo**
-1. **Curl de bíceps con mancuernas** — 3 × 12 reps
-2. **Tríceps en polea con cuerda** — 3 × 12 reps
-3. **Curl de bíceps en banco Scott** — 3 × 10 reps
-4. **Tríceps tras nuca unilateral** — 3 × 10 reps
-5. **Curl martillo** — 2 × 10 reps
-6. **Fondos** — 2 × 10 reps
-
----
-
-## 💾 Archivos del Proyecto
-
-- `index.html`: Estructura principal y componentes de la PWA.
-- `styles.css`: Estilos visuales con estética CGM Performance (negro y dorado, safe areas móviles).
-- `routine-data.js`: Base de datos de ejercicios, series, notas y esquema de 4 semanas.
-- `app.js`: Lógica de la app, temporizadores, haptics, sonidos, cálculo de discos y almacenamiento.
-- `sw.js`: Service worker para funcionamiento 100% offline.
-- `manifest.webmanifest`: Manifiesto para instalación como aplicación móvil nativa.
-- `icon.svg`: Emblema vectorial dorado de CGM Performance.
-- `server.ps1` & `start_mobile_server.bat`: Servidor local para acceso móvil en red Wi-Fi doméstica.
+### En Android (Chrome)
+1. Toca en el botón de banner amarillo **"📱 Instalar la aplicación en tu móvil"** o en el menú de los 3 puntos de Chrome.
+2. Selecciona **"Instalar aplicación"** o **"Añadir a la pantalla de inicio"**.
+3. Se abrirá a pantalla completa sin barra de navegación del explorador.

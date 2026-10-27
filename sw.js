@@ -1,36 +1,35 @@
-// Service Worker for CGM Performance PWA
-// Versión 3: Network-First con fallback a Cache y auto-limpieza
-const CACHE_NAME = 'cgm-performance-v3';
-const ASSETS_TO_CACHE = [
+// Service Worker para CGM Rendimiento (v4)
+// Estrategia: Red primero con respaldo sin conexión y limpieza de versiones viejas
+const NOMBRE_CACHE = 'cgm-rendimiento-v4';
+const ARCHIVOS_A_GUARDAR = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './routine-data.js',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.png',
+  './icon.jpg'
 ];
 
-// Instalación: pre-cachear archivos esenciales
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (evento) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+  evento.waitUntil(
+    caches.open(NOMBRE_CACHE).then((cache) => {
+      return cache.addAll(ARCHIVOS_A_GUARDAR);
     }).catch((err) => {
-      console.warn('Pre-cache warning:', err);
+      console.warn('Aviso de caché:', err);
     })
   );
 });
 
-// Activación: ELIMINAR todas las cachés viejas (v1, v2, etc.) inmediatamente
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
+self.addEventListener('activate', (evento) => {
+  evento.waitUntil(
+    caches.keys().then((nombresCache) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('Borrando caché obsoleta:', cache);
+        nombresCache.map((cache) => {
+          if (cache !== NOMBRE_CACHE) {
+            console.log('Borrando caché antigua:', cache);
             return caches.delete(cache);
           }
         })
@@ -39,32 +38,33 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Estrategia Network-First:
-// 1. Intenta red primero (para que las actualizaciones de código se vean al instante).
-// 2. Si hay red, actualiza la caché con la respuesta fresca.
-// 3. Si no hay red (offline en el gym), sirve de la caché.
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+self.addEventListener('fetch', (evento) => {
+  if (evento.request.method !== 'GET') return;
 
-  event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+  evento.respondWith(
+    fetch(evento.request)
+      .then((respuestaRed) => {
+        if (respuestaRed && respuestaRed.status === 200) {
+          const copia = respuestaRed.clone();
+          caches.open(NOMBRE_CACHE).then((cache) => {
+            cache.put(evento.request, copia);
           });
         }
-        return networkResponse;
+        return respuestaRed;
       })
       .catch(() => {
-        // Fallback offline a la caché
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) return cachedResponse;
-          if (event.request.headers.get('accept')?.includes('text/html')) {
+        return caches.match(evento.request).then((respuestaCache) => {
+          if (respuestaCache) return respuestaCache;
+          if (evento.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('./index.html');
           }
         });
       })
   );
+});
+
+self.addEventListener('message', (evento) => {
+  if (evento.data && evento.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

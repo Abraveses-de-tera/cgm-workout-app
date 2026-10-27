@@ -15,7 +15,7 @@
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -453,8 +453,19 @@
     </div>
   </div>
 
-  <!-- Scripts (Carga directa compatible con file:// y servidores web) -->
-  <script src="routine-data.js"></script>
-  <script src="app.js"></script>
+  <!-- Limpieza de cachés obsoletas y carga de scripts con control de versión -->
+  <script>
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var i = 0; i < names.length; i++) {
+          if (names[i] !== 'cgm-performance-v3') {
+            caches.delete(names[i]);
+          }
+        }
+      });
+    }
+  </script>
+  <script src="routine-data.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

@@ -50,11 +50,10 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
 }
 
-input, textarea {
-  user-select: auto;
+button, input, select, textarea, a, .schedule-day-card, .direct-day-card, .nav-item, .week-pill {
+  touch-action: manipulation;
 }
 
 body {
@@ -1241,6 +1240,8 @@ body {
   padding: 4px 0;
   cursor: pointer;
   transition: all 0.15s ease;
+  position: relative;
+  touch-action: manipulation;
 }
 
 .nav-item .nav-icon {

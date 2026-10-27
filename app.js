@@ -1,25 +1,399 @@
-// CGM PERFORMANCE · APPLICATION CONTROLLER
+// =============================================================================
+// CGM PERFORMANCE · APPLICATION CONTROLLER (v3.0)
 // Rutina Frecuencia 1,5 · Carlos Graña
-// Wrapped in IIFE to avoid scope collisions with routine-data.js
+// =============================================================================
 
 (function() {
   'use strict';
 
-  // Leer datos de rutina desde el global que routine-data.js expone
-  var _data = window.CGM_DATA || {};
-  var ROUTINE_INFO = _data.ROUTINE_INFO;
-  var SCHEDULE_WEEKS = _data.SCHEDULE_WEEKS || [];
-  var WORKOUT_DAYS = _data.WORKOUT_DAYS || {};
+  // DATOS DE LA RUTINA EMBEBIDOS DIRECTAMENTE PARA EVITAR CUALQUIER FALLO DE CARGA
+  var ROUTINE_INFO = {
+    title: "ENTRENO FRECUENCIA 1,5",
+    coach: "Carlos Graña",
+    brand: "CGM Performance",
+    subtitle: "Plan personalizado · Alta intensidad y frecuencia adaptada",
+    rules: {
+      description: "Entrenas lunes, martes, miércoles, viernes y sábado. El sábado repites el día con el que empezaste el lunes. El lunes siguiente arrancas con el día que toca a continuación, así cada grupo se entrena unas 1,5 veces por semana.",
+      topSet: "Top set: serie pesada al límite de reps objetivo con la máxima técnica.",
+      backOff: "Back off: 20% menos de peso que el Top set, buscando mismas reps o alguna más.",
+      descendente: "Descendente (Drop set): al terminar las repeticiones, bajar peso inmediatamente sin descanso y continuar al fallo.",
+      fallo: "Al fallo: tantas repeticiones técnicas como sea posible hasta no poder completar una más sin degradar la técnica."
+    }
+  };
+
+  var SCHEDULE_WEEKS = [
+    {
+      week: 1,
+      name: "Semana 1",
+      days: [
+        { day: "Lunes", dayIndex: 1, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
+        { day: "Martes", dayIndex: 2, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
+        { day: "Miércoles", dayIndex: 3, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
+        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
+        { day: "Viernes", dayIndex: 5, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
+        { day: "Sábado", dayIndex: 6, workoutId: "D1", workoutName: "D1 Espalda (Repetición)", isRest: false, isRepeated: true },
+        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
+      ]
+    },
+    {
+      week: 2,
+      name: "Semana 2",
+      days: [
+        { day: "Lunes", dayIndex: 1, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
+        { day: "Martes", dayIndex: 2, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
+        { day: "Miércoles", dayIndex: 3, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
+        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
+        { day: "Viernes", dayIndex: 5, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
+        { day: "Sábado", dayIndex: 6, workoutId: "D2", workoutName: "D2 Pecho-hombro (Repetición)", isRest: false, isRepeated: true },
+        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
+      ]
+    },
+    {
+      week: 3,
+      name: "Semana 3",
+      days: [
+        { day: "Lunes", dayIndex: 1, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
+        { day: "Martes", dayIndex: 2, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
+        { day: "Miércoles", dayIndex: 3, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
+        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
+        { day: "Viernes", dayIndex: 5, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
+        { day: "Sábado", dayIndex: 6, workoutId: "D3", workoutName: "D3 Pierna (Repetición)", isRest: false, isRepeated: true },
+        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
+      ]
+    },
+    {
+      week: 4,
+      name: "Semana 4",
+      days: [
+        { day: "Lunes", dayIndex: 1, workoutId: "D4", workoutName: "D4 Brazo", isRest: false },
+        { day: "Martes", dayIndex: 2, workoutId: "D1", workoutName: "D1 Espalda", isRest: false },
+        { day: "Miércoles", dayIndex: 3, workoutId: "D2", workoutName: "D2 Pecho-hombro", isRest: false },
+        { day: "Jueves", dayIndex: 4, workoutId: null, workoutName: "Descanso", isRest: true },
+        { day: "Viernes", dayIndex: 5, workoutId: "D3", workoutName: "D3 Pierna", isRest: false },
+        { day: "Sábado", dayIndex: 6, workoutId: "D4", workoutName: "D4 Brazo (Repetición)", isRest: false, isRepeated: true },
+        { day: "Domingo", dayIndex: 0, workoutId: null, workoutName: "Descanso", isRest: true }
+      ]
+    }
+  ];
+
+  var WORKOUT_DAYS = {
+    D1: {
+      id: "D1",
+      title: "DÍA 1",
+      name: "Espalda y posterior",
+      category: "Espalda · Deltoides Posterior",
+      badge: "D1",
+      description: "Enfoque en densidad y amplitud dorsal, remos pesados y deltoides posterior.",
+      exercises: [
+        {
+          id: "d1_e1",
+          name: "Pull over en polea",
+          notes: "3 × 12 reps. Movimiento controlado, estiramiento completo en la fase excéntrica sin quebrar muñecas.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d1_e2",
+          name: "Dominadas",
+          notes: "1 serie con lastre a 8 reps + 1 serie sin peso al fallo.",
+          sets: [
+            { type: "lastre", label: "Serie 1 (Con Lastre)", targetReps: 8, badge: "LASTRE" },
+            { type: "fallo", label: "Serie 2 (Sin Peso)", targetReps: "Fallo", badge: "AL FALLO" }
+          ]
+        },
+        {
+          id: "d1_e3",
+          name: "Remo con barra",
+          notes: "Top set + back off (−20 %) + 3.ª serie con el peso del back off y descendente.",
+          hasBackOffCalculation: true,
+          sets: [
+            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
+            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" },
+            { type: "dropset", label: "Serie 3 (Back-off + Descendente)", targetReps: 8, badge: "DROP SET" }
+          ]
+        },
+        {
+          id: "d1_e4",
+          name: "Jalón agarre cerrado",
+          notes: "3 × 12. La última serie, descendente (drop set al terminar).",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "dropset", label: "Serie 3 (Descendente)", targetReps: 12, badge: "DESCENDENTE" }
+          ]
+        },
+        {
+          id: "d1_e5",
+          name: "Remo Dorian",
+          notes: "3 × 12 reps. Agarre supino, torso a 45º, tirando hacia la cadera baja.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d1_e6",
+          name: "Posterior en máquina",
+          notes: "3 × 15 reps. Pájaros en máquina (peck deck inverso). Codos alineados con hombros.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 15 },
+            { type: "normal", label: "Serie 2", targetReps: 15 },
+            { type: "normal", label: "Serie 3", targetReps: 15 }
+          ]
+        },
+        {
+          id: "d1_e7",
+          name: "Remo al mentón en polea",
+          notes: "3 × 15 reps. Agarre medio/ancho en polea baja, enfatizando trapecio y deltoides lateral/posterior.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 15 },
+            { type: "normal", label: "Serie 2", targetReps: 15 },
+            { type: "normal", label: "Serie 3", targetReps: 15 }
+          ]
+        }
+      ]
+    },
+
+    D2: {
+      id: "D2",
+      title: "DÍA 2",
+      name: "Pecho y hombro",
+      category: "Pectoral · Deltoides Anterior y Lateral",
+      badge: "D2",
+      description: "Foco en presses pesados con Top set + Back off, aperturas y congestión de deltoides.",
+      exercises: [
+        {
+          id: "d2_e1",
+          name: "Press inclinado",
+          notes: "Top set + back off (−20 %). Banco a 30º-45º. Mantén retracción escapular.",
+          hasBackOffCalculation: true,
+          sets: [
+            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
+            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" }
+          ]
+        },
+        {
+          id: "d2_e2",
+          name: "Aperturas",
+          notes: "3 × 12 reps. Con mancuernas o polea. Máximo estiramiento del pectoral en la fase excéntrica.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d2_e3",
+          name: "Press declinado",
+          notes: "Top set + back off (−20 %). Excelente estímulo para la porción esternal e inferior.",
+          hasBackOffCalculation: true,
+          sets: [
+            { type: "topset", label: "Top Set", targetReps: 6, badge: "TOP SET" },
+            { type: "backoff", label: "Back Off (-20%)", targetReps: 8, badge: "BACK OFF" }
+          ]
+        },
+        {
+          id: "d2_e4",
+          name: "Cruce de poleas",
+          notes: "2 × 12 reps. Aguantar 1 segundo en el pico de contracción.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d2_e5",
+          name: "Elevaciones laterales",
+          notes: "4 × 12 reps. La última serie, descendente (drop set sin descanso).",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 },
+            { type: "dropset", label: "Serie 4 (Descendente)", targetReps: 12, badge: "DESCENDENTE" }
+          ]
+        },
+        {
+          id: "d2_e6",
+          name: "Press militar",
+          notes: "2 × 8 reps. Con barra o mancuernas. Core firme y sin arquear en exceso la zona lumbar.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 8 },
+            { type: "normal", label: "Serie 2", targetReps: 8 }
+          ]
+        },
+        {
+          id: "d2_e7",
+          name: "Elevaciones frontales",
+          notes: "2 × 12 reps. Con mancuernas o polea baja. Subida controlada hasta la altura de la vista.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 }
+          ]
+        }
+      ]
+    },
+
+    D3: {
+      id: "D3",
+      title: "DÍA 3",
+      name: "Pierna",
+      category: "Cuádriceps · Isquiosuriales · Aductores",
+      badge: "D3",
+      description: "Entrenamiento completo del tren inferior: isquios, cuádriceps pesados, prensa y aductor.",
+      exercises: [
+        {
+          id: "d3_e1",
+          name: "Femoral tumbado",
+          notes: "3 × 12 reps. Pre-fatiga de isquiotibiales. Mantén la pelvis pegada al banco.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d3_e2",
+          name: "Extensiones de cuádriceps",
+          notes: "3 × 15 reps. Pausa arriba de 1 segundo para aislar el recto femoral y vastos.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 15 },
+            { type: "normal", label: "Serie 2", targetReps: 15 },
+            { type: "normal", label: "Serie 3", targetReps: 15 }
+          ]
+        },
+        {
+          id: "d3_e3",
+          name: "Sentadilla pendular",
+          notes: "3 × 12 reps. Si tu gimnasio no tiene péndulo, puedes usar Hack squat o multipower.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d3_e4",
+          name: "Prensa",
+          notes: "Top set + back off (−20 %). Profundidad óptima sin despegar la zona lumbar.",
+          hasBackOffCalculation: true,
+          sets: [
+            { type: "topset", label: "Top Set", targetReps: 8, badge: "TOP SET" },
+            { type: "backoff", label: "Back Off (-20%)", targetReps: 10, badge: "BACK OFF" }
+          ]
+        },
+        {
+          id: "d3_e5",
+          name: "Aductor",
+          notes: "3 × 15 reps. En máquina específica de aductor para estabilidad de rodilla y masa interna.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 15 },
+            { type: "normal", label: "Serie 2", targetReps: 15 },
+            { type: "normal", label: "Serie 3", targetReps: 15 }
+          ]
+        },
+        {
+          id: "d3_e6",
+          name: "Femoral sentado",
+          notes: "3 × 12 reps. Excelente estiramiento en cadera flexionada. Controla la bajada.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        }
+      ]
+    },
+
+    D4: {
+      id: "D4",
+      title: "DÍA 4",
+      name: "Brazo",
+      category: "Bíceps · Tríceps",
+      badge: "D4",
+      description: "Día específico de hipertrofia de brazos: bíceps en diferentes ángulos y tríceps completo.",
+      exercises: [
+        {
+          id: "d4_e1",
+          name: "Curl de bíceps con mancuernas",
+          notes: "3 × 12 reps. Supinación marcada en la parte alta del movimiento.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d4_e2",
+          name: "Tríceps en polea con cuerda",
+          notes: "3 × 12 reps. Abre la cuerda al final de la extensión para activar la cabeza lateral.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 12 },
+            { type: "normal", label: "Serie 2", targetReps: 12 },
+            { type: "normal", label: "Serie 3", targetReps: 12 }
+          ]
+        },
+        {
+          id: "d4_e3",
+          name: "Curl de bíceps en banco Scott",
+          notes: "3 × 10 reps. Aislamiento total de la cabeza corta. No bloquees los codos abajo.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 10 },
+            { type: "normal", label: "Serie 2", targetReps: 10 },
+            { type: "normal", label: "Serie 3", targetReps: 10 }
+          ]
+        },
+        {
+          id: "d4_e4",
+          name: "Tríceps tras nuca unilateral",
+          notes: "3 × 10 reps por brazo. En polea o mancuerna, enfatizando cabeza larga del tríceps.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 10 },
+            { type: "normal", label: "Serie 2", targetReps: 10 },
+            { type: "normal", label: "Serie 3", targetReps: 10 }
+          ]
+        },
+        {
+          id: "d4_e5",
+          name: "Curl martillo",
+          notes: "2 × 10 reps. Para braquial anterior y braquiorradial (grosor de brazo).",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 10 },
+            { type: "normal", label: "Serie 2", targetReps: 10 }
+          ]
+        },
+        {
+          id: "d4_e6",
+          name: "Fondos",
+          notes: "2 × 10 reps. En paralelas o entre bancos. Torso erguido para focalizar en tríceps.",
+          sets: [
+            { type: "normal", label: "Serie 1", targetReps: 10 },
+            { type: "normal", label: "Serie 2", targetReps: 10 }
+          ]
+        }
+      ]
+    }
+  };
+
+  // Exponer también en global por compatibilidad
+  window.CGM_DATA = {
+    ROUTINE_INFO: ROUTINE_INFO,
+    SCHEDULE_WEEKS: SCHEDULE_WEEKS,
+    WORKOUT_DAYS: WORKOUT_DAYS
+  };
 
   // ===========================================================================
   // ESTADO GLOBAL & PERSISTENCIA (LOCALSTORAGE)
   // ===========================================================================
   var STORAGE_KEYS = {
-    ACTIVE_WORKOUT: 'cgm_active_workout',
-    HISTORY: 'cgm_workout_history',
-    PRS: 'cgm_personal_records',
-    SETTINGS: 'cgm_user_settings',
-    SELECTED_WEEK: 'cgm_selected_week'
+    ACTIVE_WORKOUT: 'cgm_active_workout_v3',
+    HISTORY: 'cgm_workout_history_v3',
+    PRS: 'cgm_personal_records_v3',
+    SETTINGS: 'cgm_user_settings_v3',
+    SELECTED_WEEK: 'cgm_selected_week_v3'
   };
 
   var DEFAULT_SETTINGS = {
@@ -34,7 +408,7 @@
     activeWorkout: null,
     history: [],
     prs: {},
-    settings: assign({}, DEFAULT_SETTINGS),
+    settings: Object.assign({}, DEFAULT_SETTINGS),
     restTimer: {
       duration: 90,
       remaining: 90,
@@ -46,31 +420,16 @@
     deferredPwaPrompt: null
   };
 
-  // Simple polyfill for Object.assign
-  function assign(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var src = arguments[i];
-      if (src) {
-        for (var key in src) {
-          if (src.hasOwnProperty(key)) target[key] = src[key];
-        }
-      }
-    }
-    return target;
-  }
-
-  // Safe getElementById helper
   function $(id) {
     return document.getElementById(id);
   }
 
-  // Safe addEventListener helper
   function on(el, event, fn) {
     if (el) el.addEventListener(event, fn);
   }
 
   // ===========================================================================
-  // WEB AUDIO API (SONIDOS OFFLINE)
+  // WEB AUDIO API
   // ===========================================================================
   var sounds = {
     ctx: null,
@@ -82,23 +441,20 @@
     },
     playBeep: function(freq, type, duration) {
       if (!appState.settings.soundEnabled) return;
-      freq = freq || 880;
-      type = type || 'sine';
-      duration = duration || 0.15;
       try {
         this.init();
         if (!this.ctx) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
         var osc = this.ctx.createOscillator();
         var gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq || 880, this.ctx.currentTime);
         gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (duration || 0.15));
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + duration);
+        osc.stop(this.ctx.currentTime + (duration || 0.15));
       } catch (e) { /* ignore */ }
     },
     playSetComplete: function() {
@@ -114,19 +470,12 @@
     }
   };
 
-  // ===========================================================================
-  // HAPTICS
-  // ===========================================================================
   function triggerHaptic(pattern) {
-    pattern = pattern || [60];
     if (appState.settings.vibrateEnabled && 'vibrate' in navigator) {
-      try { navigator.vibrate(pattern); } catch (e) { /* ignore */ }
+      try { navigator.vibrate(pattern || [60]); } catch (e) { /* ignore */ }
     }
   }
 
-  // ===========================================================================
-  // WAKE LOCK
-  // ===========================================================================
   function toggleWakeLock(enable) {
     if (!('wakeLock' in navigator)) return;
     try {
@@ -150,38 +499,59 @@
   }
 
   // ===========================================================================
-  // INICIALIZACIÓN
+  // INICIALIZACIÓN ROBUSTA
   // ===========================================================================
-  document.addEventListener('DOMContentLoaded', function() {
-    loadStoredData();
-    setupEventListeners();
-    setupPWA();
-    determineTodaySchedule();
-    renderScheduleWeek(appState.currentWeek);
-    renderHistory();
-    renderPRs();
-    updatePlateCalculator();
-    updateQuickBackOff();
+  function init() {
+    try { loadStoredData(); } catch (e) { console.error('Error loadStoredData:', e); }
+    try { setupEventListeners(); } catch (e) { console.error('Error setupEventListeners:', e); }
+    try { setupPWA(); } catch (e) { console.warn('PWA setup:', e); }
+    try { determineTodaySchedule(); } catch (e) { console.error('Error determineTodaySchedule:', e); }
+    try { renderScheduleWeek(appState.currentWeek); } catch (e) { console.error('Error renderScheduleWeek:', e); }
+    try { renderHistory(); } catch (e) { console.error('Error renderHistory:', e); }
+    try { renderPRs(); } catch (e) { console.error('Error renderPRs:', e); }
+    try { updatePlateCalculator(); } catch (e) { console.error('Error updatePlateCalculator:', e); }
+    try { updateQuickBackOff(); } catch (e) { console.error('Error updateQuickBackOff:', e); }
 
     if (appState.activeWorkout) {
-      resumeActiveWorkout();
+      try { resumeActiveWorkout(); } catch (e) {
+        console.error('Error resumeActiveWorkout, limpiando:', e);
+        appState.activeWorkout = null;
+        saveAppState();
+      }
     }
-  });
+  }
+
+  // Garantizar ejecución inmediata si el DOM ya está listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   function loadStoredData() {
     try {
-      var h = localStorage.getItem(STORAGE_KEYS.HISTORY);
+      // Migración o carga limpia
+      var h = localStorage.getItem(STORAGE_KEYS.HISTORY) || localStorage.getItem('cgm_workout_history');
       if (h) appState.history = JSON.parse(h);
-      var p = localStorage.getItem(STORAGE_KEYS.PRS);
+
+      var p = localStorage.getItem(STORAGE_KEYS.PRS) || localStorage.getItem('cgm_personal_records');
       if (p) appState.prs = JSON.parse(p);
-      var s = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (s) appState.settings = assign({}, DEFAULT_SETTINGS, JSON.parse(s));
-      var a = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
-      if (a) appState.activeWorkout = JSON.parse(a);
-      var w = localStorage.getItem(STORAGE_KEYS.SELECTED_WEEK);
-      if (w) appState.currentWeek = parseInt(w, 10);
+
+      var s = localStorage.getItem(STORAGE_KEYS.SETTINGS) || localStorage.getItem('cgm_user_settings');
+      if (s) appState.settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(s));
+
+      var w = localStorage.getItem(STORAGE_KEYS.SELECTED_WEEK) || localStorage.getItem('cgm_selected_week');
+      if (w) appState.currentWeek = parseInt(w, 10) || 1;
+
+      var a = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT) || localStorage.getItem('cgm_active_workout');
+      if (a) {
+        var parsedA = JSON.parse(a);
+        if (parsedA && parsedA.workoutId && Array.isArray(parsedA.exercises)) {
+          appState.activeWorkout = parsedA;
+        }
+      }
     } catch (e) {
-      console.error('Error cargando datos:', e);
+      console.warn('Error leyendo localStorage:', e);
     }
 
     var soundCheck = $('settingSound');
@@ -210,23 +580,26 @@
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
       }
     } catch (e) {
-      console.error('Error guardando datos:', e);
+      console.error('Error guardando en localStorage:', e);
     }
   }
 
   // ===========================================================================
-  // NAVEGACIÓN TABS
+  // NAVEGACIÓN ENTRE TABS
   // ===========================================================================
   function switchTab(tabId) {
     var views = document.querySelectorAll('.tab-view');
     for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+
     var navs = document.querySelectorAll('.nav-item');
     for (var i = 0; i < navs.length; i++) navs[i].classList.remove('active');
 
     var target = $(tabId);
     if (target) target.classList.add('active');
+
     var navItem = document.querySelector('.nav-item[data-tab="' + tabId + '"]');
     if (navItem) navItem.classList.add('active');
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -235,7 +608,7 @@
   // ===========================================================================
   function determineTodaySchedule() {
     var date = new Date();
-    var dayOfWeek = date.getDay();
+    var dayOfWeek = date.getDay(); // 0: Dom, 1: Lun, 2: Mar, 3: Mié, 4: Jue, 5: Vie, 6: Sáb
     var options = { weekday: 'long', day: 'numeric', month: 'short' };
     var dateStr = date.toLocaleDateString('es-ES', options);
 
@@ -249,7 +622,8 @@
         break;
       }
     }
-    if (!currentWeekData) currentWeekData = SCHEDULE_WEEKS[0];
+    if (!currentWeekData && SCHEDULE_WEEKS.length > 0) currentWeekData = SCHEDULE_WEEKS[0];
+    if (!currentWeekData) return;
 
     var daySchedule = null;
     for (var i = 0; i < currentWeekData.days.length; i++) {
@@ -342,7 +716,7 @@
   }
 
   // ===========================================================================
-  // MOTOR DE ENTRENO ACTIVO
+  // MOTOR DE ENTRENO ACTIVO (GYM MODE)
   // ===========================================================================
   function startWorkout(workoutId) {
     var template = WORKOUT_DAYS[workoutId];
@@ -364,7 +738,7 @@
     for (var ei = 0; ei < template.exercises.length; ei++) {
       var ex = template.exercises[ei];
       var prevEx = null;
-      if (previousSession) {
+      if (previousSession && Array.isArray(previousSession.exercises)) {
         for (var j = 0; j < previousSession.exercises.length; j++) {
           if (previousSession.exercises[j].id === ex.id) {
             prevEx = previousSession.exercises[j];
@@ -445,7 +819,7 @@
 
   function renderActiveExercises() {
     var container = $('exercisesContainer');
-    if (!container || !appState.activeWorkout) return;
+    if (!container || !appState.activeWorkout || !Array.isArray(appState.activeWorkout.exercises)) return;
 
     var html = '';
     var exs = appState.activeWorkout.exercises;
@@ -479,12 +853,10 @@
         html += '<div class="exercise-notes-banner"><span>💡</span><div>' + ex.notes + '</div></div>';
       }
 
-      if (backoffWeight) {
-        html += '<div class="backoff-helper-pill visible" data-ex-idx="' + exIdx + '" data-weight="' + backoffWeight + '">';
-        html += '  <span>📉 Sugerencia Back-off (-20%): <strong>' + backoffWeight + ' kg</strong></span>';
-        html += '  <button class="apply-btn">Aplicar a Serie 2</button>';
-        html += '</div>';
-      }
+      html += '<div class="backoff-helper-pill' + (backoffWeight ? ' visible' : '') + '" data-ex-idx="' + exIdx + '" data-weight="' + (backoffWeight || '') + '">';
+      html += '  <span>📉 Sugerencia Back-off (-20%): <strong>' + (backoffWeight ? backoffWeight + ' kg' : '') + '</strong></span>';
+      html += '  <button class="apply-btn">Aplicar a Serie 2</button>';
+      html += '</div>';
 
       html += '<div class="sets-table">';
       html += '  <div class="set-row-header"><span>SET</span><span style="text-align:left">TIPO / ANTERIOR</span><span>KG</span><span>REPS</span><span>LISTO</span></div>';
@@ -499,8 +871,8 @@
         html += '    <span class="set-tag ' + set.type + '">' + set.badge + '</span>';
         html += '    <span class="previous-hint">Ant: ' + prevText + '</span>';
         html += '  </div>';
-        html += '  <div class="set-input-box"><input type="number" step="0.5" class="set-input weight-input" placeholder="' + (set.prevWeight || '0') + '" value="' + set.weight + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '"></div>';
-        html += '  <div class="set-input-box"><input type="number" step="1" class="set-input reps-input" placeholder="' + (set.targetReps || '12') + '" value="' + set.reps + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '"></div>';
+        html += '  <div class="set-input-box"><input type="number" step="0.5" class="set-input weight-input" placeholder="' + (set.prevWeight || '0') + '" value="' + (set.weight !== undefined ? set.weight : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '"></div>';
+        html += '  <div class="set-input-box"><input type="number" step="1" class="set-input reps-input" placeholder="' + (set.targetReps || '12') + '" value="' + (set.reps !== undefined ? set.reps : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '"></div>';
         html += '  <div style="display:flex;justify-content:center"><button class="check-btn toggle-set-btn" data-ex-idx="' + exIdx + '" data-set-idx="' + setIdx + '">' + (set.completed ? '✓' : '○') + '</button></div>';
         html += '</div>';
       }
@@ -514,6 +886,27 @@
     attachExerciseEventHandlers();
   }
 
+  function updateBackOffPill(exIdx, topWeightVal) {
+    var container = $('exercisesContainer');
+    if (!container) return;
+    var card = container.querySelector('.exercise-card[data-ex-idx="' + exIdx + '"]');
+    if (!card) return;
+    var pill = card.querySelector('.backoff-helper-pill');
+    var topW = parseFloat(topWeightVal);
+    if (!isNaN(topW) && topW > 0) {
+      var raw = topW * 0.8;
+      var backoffW = '' + (Math.round(raw / 2.5) * 2.5);
+      if (pill) {
+        pill.dataset.weight = backoffW;
+        var strong = pill.querySelector('strong');
+        if (strong) strong.textContent = backoffW + ' kg';
+        pill.classList.add('visible');
+      }
+    } else if (pill) {
+      pill.classList.remove('visible');
+    }
+  }
+
   function attachExerciseEventHandlers() {
     var container = $('exercisesContainer');
     if (!container) return;
@@ -524,10 +917,13 @@
         input.addEventListener('input', function() {
           var exIdx = parseInt(input.dataset.exIdx, 10);
           var setIdx = parseInt(input.dataset.setIdx, 10);
-          appState.activeWorkout.exercises[exIdx].sets[setIdx].weight = input.value;
-          saveAppState();
-          if (setIdx === 0 && appState.activeWorkout.exercises[exIdx].hasBackOffCalculation) {
-            renderActiveExercises();
+          if (appState.activeWorkout && appState.activeWorkout.exercises[exIdx] && appState.activeWorkout.exercises[exIdx].sets[setIdx]) {
+            appState.activeWorkout.exercises[exIdx].sets[setIdx].weight = input.value;
+            saveAppState();
+            // Actualización suave sin destruir el DOM ni perder el foco
+            if (setIdx === 0 && appState.activeWorkout.exercises[exIdx].hasBackOffCalculation) {
+              updateBackOffPill(exIdx, input.value);
+            }
           }
         });
       })(weightInputs[i]);
@@ -539,8 +935,10 @@
         input.addEventListener('input', function() {
           var exIdx = parseInt(input.dataset.exIdx, 10);
           var setIdx = parseInt(input.dataset.setIdx, 10);
-          appState.activeWorkout.exercises[exIdx].sets[setIdx].reps = input.value;
-          saveAppState();
+          if (appState.activeWorkout && appState.activeWorkout.exercises[exIdx] && appState.activeWorkout.exercises[exIdx].sets[setIdx]) {
+            appState.activeWorkout.exercises[exIdx].sets[setIdx].reps = input.value;
+            saveAppState();
+          }
         });
       })(repsInputs[i]);
     }
@@ -569,7 +967,7 @@
         pill.addEventListener('click', function() {
           var exIdx = parseInt(pill.dataset.exIdx, 10);
           var weight = pill.dataset.weight;
-          if (appState.activeWorkout.exercises[exIdx].sets[1]) {
+          if (appState.activeWorkout && appState.activeWorkout.exercises[exIdx] && appState.activeWorkout.exercises[exIdx].sets[1]) {
             appState.activeWorkout.exercises[exIdx].sets[1].weight = weight;
             saveAppState();
             renderActiveExercises();
@@ -595,6 +993,7 @@
   }
 
   function toggleSetCompleted(exIdx, setIdx) {
+    if (!appState.activeWorkout || !appState.activeWorkout.exercises[exIdx] || !appState.activeWorkout.exercises[exIdx].sets[setIdx]) return;
     var set = appState.activeWorkout.exercises[exIdx].sets[setIdx];
     set.completed = !set.completed;
 
@@ -613,6 +1012,7 @@
   }
 
   function addExtraSet(exIdx) {
+    if (!appState.activeWorkout || !appState.activeWorkout.exercises[exIdx]) return;
     var ex = appState.activeWorkout.exercises[exIdx];
     var last = ex.sets[ex.sets.length - 1];
     ex.sets.push({
@@ -633,7 +1033,7 @@
   }
 
   function updateWorkoutProgress() {
-    if (!appState.activeWorkout) return;
+    if (!appState.activeWorkout || !Array.isArray(appState.activeWorkout.exercises)) return;
     var total = 0, done = 0;
     var exs = appState.activeWorkout.exercises;
     for (var i = 0; i < exs.length; i++) {
@@ -906,14 +1306,14 @@
       { weight: 1.25, css: 'plate-1_25', label: '1.25' }
     ];
 
-    var remaining = perSide; // Keep as number!
+    var remaining = perSide;
     var platesUsed = [];
 
     for (var i = 0; i < plateTypes.length; i++) {
       var plate = plateTypes[i];
       while (remaining >= plate.weight - 0.001) {
         platesUsed.push(plate);
-        remaining = Math.round((remaining - plate.weight) * 100) / 100; // Avoid float issues
+        remaining = Math.round((remaining - plate.weight) * 100) / 100;
       }
     }
 
@@ -1004,10 +1404,10 @@
   }
 
   // ===========================================================================
-  // EVENT LISTENERS
+  // EVENT LISTENERS GLOBALES
   // ===========================================================================
   function setupEventListeners() {
-    // Navegación
+    // Navegación Bottom Bar
     var navItems = document.querySelectorAll('.nav-item');
     for (var i = 0; i < navItems.length; i++) {
       (function(item) {
@@ -1017,7 +1417,7 @@
       })(navItems[i]);
     }
 
-    // Semanas
+    // Selector de Semanas
     var weekPills = document.querySelectorAll('.week-pill');
     for (var i = 0; i < weekPills.length; i++) {
       (function(pill) {
@@ -1027,13 +1427,13 @@
       })(weekPills[i]);
     }
 
-    // Empezar hoy
+    // Botón empezar hoy
     on($('startTodayWorkoutBtn'), 'click', function() {
       var wId = $('startTodayWorkoutBtn').dataset.workoutId || 'D1';
       startWorkout(wId);
     });
 
-    // Días directos
+    // Días directos (D1, D2, D3, D4)
     var directCards = document.querySelectorAll('.direct-day-card');
     for (var i = 0; i < directCards.length; i++) {
       (function(card) {
@@ -1043,7 +1443,7 @@
       })(directCards[i]);
     }
 
-    // Ir a rutina
+    // Botón ir a rutina
     on($('goToRoutineBtn'), 'click', function() { switchTab('tab-routine'); });
 
     // Finalizar / Descartar
@@ -1089,8 +1489,10 @@
       appState.settings.soundEnabled = !appState.settings.soundEnabled;
       saveAppState();
       var btn = $('soundToggleBtn');
-      btn.classList.toggle('active', appState.settings.soundEnabled);
-      btn.textContent = appState.settings.soundEnabled ? '🔔' : '🔕';
+      if (btn) {
+        btn.classList.toggle('active', appState.settings.soundEnabled);
+        btn.textContent = appState.settings.soundEnabled ? '🔔' : '🔕';
+      }
       var check = $('settingSound');
       if (check) check.checked = appState.settings.soundEnabled;
     });
@@ -1137,12 +1539,12 @@
   }
 
   // ===========================================================================
-  // DATOS EXPORT / IMPORT
+  // GESTIÓN DE DATOS (EXPORTACIÓN & IMPORTACIÓN JSON)
   // ===========================================================================
   function exportUserData() {
     var data = {
       app: 'CGM Performance Workout',
-      version: '1.0',
+      version: '3.0',
       exportDate: new Date().toISOString(),
       history: appState.history,
       prs: appState.prs,
@@ -1167,7 +1569,7 @@
         var data = JSON.parse(event.target.result);
         if (data.history) appState.history = data.history;
         if (data.prs) appState.prs = data.prs;
-        if (data.settings) appState.settings = assign({}, DEFAULT_SETTINGS, data.settings);
+        if (data.settings) appState.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings);
         if (data.currentWeek) appState.currentWeek = data.currentWeek;
         saveAppState();
         renderHistory();
@@ -1189,14 +1591,19 @@
   }
 
   // ===========================================================================
-  // PWA
+  // CONFIGURACIÓN PWA
   // ===========================================================================
   function setupPWA() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(function(reg) {
-        console.log('SW registrado:', reg.scope);
+      navigator.serviceWorker.register('./sw.js?v=3').then(function(reg) {
+        console.log('SW v3 registrado:', reg.scope);
+        // Si hay una actualización esperando, forzar que tome el control
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        reg.update();
       }).catch(function(err) {
-        console.log('SW no disponible:', err);
+        console.warn('SW no disponible:', err);
       });
     }
 

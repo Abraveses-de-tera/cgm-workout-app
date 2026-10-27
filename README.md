@@ -32,7 +32,21 @@ Enlace directo a la aplicación: **[https://abraveses-de-tera.github.io/cgm-work
    - Indicador de marcas anteriores: visualiza en gris tenue el peso y repeticiones que hiciste en la sesión previa para garantizar la sobrecarga progresiva.
    - Casillas de verificación con sonido de confirmación y respuesta táctil (vibración en el móvil).
 
-5. **Cronómetro de Descanso**:
+5. **Ajustes y Notas Personales por Ejercicio**:
+   - Guarda notas fijas para cada máquina (ej. *«Polea en agujero 4, asiento posición 2, agarre neutro»*).
+   - Se guardan automáticamente y aparecen en cada sesión para no tener que recordar las posiciones.
+
+6. **Calculadora de Fuerza Máxima (1RM Estimado)**:
+   - Fórmulas de Epley y Brzycki integradas en la pestaña de Herramientas.
+   - Tabla de porcentajes de entrenamiento recomendados (100%, 95%, 90%, 85%, 80%, 75%, 70%, 65%).
+   - Indicador en vivo de 1RM al completar cada serie en el entreno.
+
+7. **Curva de Sobrecarga Progresiva y Estadísticas Globales**:
+   - Selector interactivo de cualquier ejercicio de la rutina.
+   - Gráfica vectorial que traza la evolución de tus pesos a lo largo de las sesiones y calcula tu ganancia acumulada (+X kg / +X%).
+   - Panel de métricas: total de sesiones, tonelaje acumulado en toneladas y días activos en el último mes.
+
+8. **Cronómetro de Descanso**:
    - Barra flotante con indicador circular regresivo.
    - Botones rápidos de `+15 s`, `-15 s` y `Saltar descanso`.
    - Señal acústica y doble vibración en tu dispositivo al finalizar el tiempo.

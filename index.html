@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
   
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 
@@ -198,18 +198,61 @@
     </section>
 
     <!-- ===================================================================
-         PESTAÑA 3: RÉCORDS Y HISTORIAL
+         PESTAÑA 3: RÉCORDS, PROGRESO Y ESTADÍSTICAS
          =================================================================== -->
     <section id="tab-history" class="tab-view">
       
-      <div class="card-title-row">
-        <h2 class="card-title">📈 Récords Personales</h2>
+      <!-- Panel de Métricas Globales (Inspirado en OpenGym y Hevy) -->
+      <div class="stats-overview-grid">
+        <div class="stat-card-gold">
+          <span class="stat-card-icon">🏋️</span>
+          <div class="stat-card-val" id="statTotalWorkouts">0</div>
+          <div class="stat-card-label">Sesiones</div>
+        </div>
+        <div class="stat-card-gold">
+          <span class="stat-card-icon">⚖️</span>
+          <div class="stat-card-val" id="statTotalTonnage">0 t</div>
+          <div class="stat-card-label">Tonelaje Total</div>
+        </div>
+        <div class="stat-card-gold">
+          <span class="stat-card-icon">🔥</span>
+          <div class="stat-card-val" id="statStreakDays">0</div>
+          <div class="stat-card-label">Días (30d)</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Sobrecarga Progresiva (Inspirado en Gym-Tracker) -->
+      <div class="cgm-card featured" style="margin-top: 14px;">
+        <div class="card-title-row">
+          <h2 class="card-title">📈 Curva de Sobrecarga Progresiva</h2>
+          <span id="chartGainBadge" class="badge-gold">+0 kg</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Evolución del peso máximo levantado a lo largo del tiempo:
+        </p>
+
+        <!-- Selector de Ejercicio para la gráfica -->
+        <div style="margin-bottom: 14px;">
+          <label for="progressionExerciseSelect" style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 700; text-transform: uppercase;">Selecciona el ejercicio:</label>
+          <select id="progressionExerciseSelect" class="cgm-select" style="width: 100%;">
+            <!-- Rellenado dinámicamente con todos los ejercicios -->
+          </select>
+        </div>
+
+        <!-- Contenedor del Gráfico SVG Vectorial -->
+        <div id="progressionChartContainer" class="chart-container-card">
+          <!-- Gráfico SVG generado por app.js -->
+        </div>
+      </div>
+      
+      <div class="card-title-row" style="margin-top: 20px;">
+        <h2 class="card-title">🏆 Récords Personales</h2>
         <span class="badge-gold">Tus Mejores Marcas</span>
       </div>
 
       <div class="cgm-card">
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-          Tus pesos máximos levantados en cada ejercicio:
+          Tus pesos máximos registrados en cada ejercicio:
         </p>
         <div id="prsGrid" class="prs-grid">
           <!-- Generado dinámicamente -->
@@ -294,6 +337,45 @@
             <div id="backOffResult" style="padding: 10px; background: #000; border: 1px solid var(--border-gold); color: var(--gold-primary); font-size: 16px; font-weight: 900; border-radius: 6px; text-align: center;">
               80.0 kg
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculadora de 1RM (Fuerza Máxima Estimada - Inspirado en OpenGym / GitHub-Fitness) -->
+      <div class="cgm-card">
+        <div class="card-title-row">
+          <h2 class="card-title">🎯 Calculadora de Fuerza Máxima (1RM)</h2>
+          <span class="badge-gold">Fórmulas Epley y Brzycki</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Calcula tu repetición máxima teórica y la tabla de porcentajes de entrenamiento:
+        </p>
+        <div class="calc-input-row">
+          <div class="calc-input-field">
+            <label for="onermWeightInput">Peso Levantado (kg)</label>
+            <input type="number" id="onermWeightInput" value="80" step="2.5" min="1">
+          </div>
+          <div class="calc-input-field">
+            <label for="onermRepsInput">Repeticiones Hechas</label>
+            <input type="number" id="onermRepsInput" value="8" step="1" min="1" max="15">
+          </div>
+        </div>
+
+        <div class="onerm-banner">
+          <div>
+            <div class="onerm-label">Tu 1RM Estimado:</div>
+            <div id="onermEstimatedValue" class="onerm-val">101.3 kg</div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); text-align: right;">
+            Peso teórico máximo a 1 repetición
+          </div>
+        </div>
+
+        <!-- Tabla de porcentajes de carga -->
+        <div class="onerm-table-wrap">
+          <div class="onerm-table-title">Porcentajes de Entrenamiento Recomendados:</div>
+          <div class="onerm-table-grid" id="onermPercentagesGrid">
+            <!-- Rellenado dinámicamente -->
           </div>
         </div>
       </div>
@@ -455,14 +537,14 @@
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v4') {
+          if (names[i] !== 'cgm-rendimiento-v5') {
             caches.delete(names[i]);
           }
         }
       });
     }
   </script>
-  <script src="routine-data.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="routine-data.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

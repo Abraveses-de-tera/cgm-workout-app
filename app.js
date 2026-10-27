@@ -331,7 +331,8 @@
     HISTORIAL: 'cgm_historial_v4',
     RECORDS: 'cgm_records_v4',
     AJUSTES: 'cgm_ajustes_v4',
-    INDICE_ROTACION: 'cgm_indice_rotacion_v4'
+    INDICE_ROTACION: 'cgm_indice_rotacion_v4',
+    NOTAS_EJERCICIOS: 'cgm_notas_ejercicios_v4'
   };
 
   var AJUSTES_PREDETERMINADOS = {
@@ -346,6 +347,7 @@
     entrenamientoActivo: null,
     historial: [],
     records: {},
+    notasEjercicios: {},
     ajustes: Object.assign({}, AJUSTES_PREDETERMINADOS),
     cronometroDescanso: {
       duracion: 90,
@@ -446,9 +448,13 @@
     try { mostrarSiguienteEntrenamiento(); } catch (e) { console.error('Error en entrenamiento sugerido:', e); }
     try { dibujarSecuenciaCiclo(); } catch (e) { console.error('Error en secuencia:', e); }
     try { dibujarHistorial(); } catch (e) { console.error('Error en historial:', e); }
+    try { dibujarEstadisticasGlobales(); } catch (e) { console.error('Error en estadísticas:', e); }
     try { dibujarRecords(); } catch (e) { console.error('Error en records:', e); }
+    try { poblarSelectorEjercicios(); } catch (e) { console.error('Error en selector ejercicios:', e); }
+    try { dibujarGraficoProgresion(); } catch (e) { console.error('Error en gráfico progresión:', e); }
     try { actualizarCalculadoraDiscos(); } catch (e) { console.error('Error en discos:', e); }
     try { actualizarCalculadoraDescarga(); } catch (e) { console.error('Error en descarga:', e); }
+    try { actualizarCalculadora1RM(); } catch (e) { console.error('Error en 1RM:', e); }
 
     if (estado.entrenamientoActivo) {
       try { reanudarEntrenamiento(); } catch (e) {
@@ -475,6 +481,9 @@
 
       var a = localStorage.getItem(CLAVES_ALMACENAMIENTO.AJUSTES);
       if (a) estado.ajustes = Object.assign({}, AJUSTES_PREDETERMINADOS, JSON.parse(a));
+
+      var notas = localStorage.getItem(CLAVES_ALMACENAMIENTO.NOTAS_EJERCICIOS);
+      if (notas) estado.notasEjercicios = JSON.parse(notas);
 
       var idx = localStorage.getItem(CLAVES_ALMACENAMIENTO.INDICE_ROTACION);
       if (idx !== null) estado.indiceRotacion = parseInt(idx, 10) || 0;
@@ -508,6 +517,7 @@
     try {
       localStorage.setItem(CLAVES_ALMACENAMIENTO.HISTORIAL, JSON.stringify(estado.historial));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.RECORDS, JSON.stringify(estado.records));
+      localStorage.setItem(CLAVES_ALMACENAMIENTO.NOTAS_EJERCICIOS, JSON.stringify(estado.notasEjercicios));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.AJUSTES, JSON.stringify(estado.ajustes));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.INDICE_ROTACION, String(estado.indiceRotacion));
       if (estado.entrenamientoActivo) {
@@ -535,6 +545,16 @@
 
     var botonActivo = document.querySelector('.nav-item[data-tab="' + idPestana + '"]');
     if (botonActivo) botonActivo.classList.add('active');
+
+    if (idPestana === 'tab-history') {
+      try { dibujarEstadisticasGlobales(); } catch (e) {}
+      try { dibujarRecords(); } catch (e) {}
+      try { dibujarGraficoProgresion(); } catch (e) {}
+    } else if (idPestana === 'tab-tools') {
+      try { actualizarCalculadoraDiscos(); } catch (e) {}
+      try { actualizarCalculadoraDescarga(); } catch (e) {}
+      try { actualizarCalculadora1RM(); } catch (e) {}
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -750,6 +770,18 @@
         html += '<div class="exercise-notes-banner"><span>💡</span><div>' + ex.indicaciones + '</div></div>';
       }
 
+      var exNota = (estado.notasEjercicios && estado.notasEjercicios[ex.id]) ? estado.notasEjercicios[ex.id] : '';
+      html += '<div class="exercise-custom-note-wrap" data-ex-id="' + ex.id + '">';
+      html += '  <div class="custom-note-display"' + (exNota ? ' style="display:flex;"' : ' style="display:none;"') + '>';
+      html += '    <span class="custom-note-pin">📌 Mi ajuste:</span>';
+      html += '    <span class="custom-note-text">' + exNota + '</span>';
+      html += '    <button class="btn-note-edit" data-ex-id="' + ex.id + '" title="Editar ajuste">✎</button>';
+      html += '  </div>';
+      html += '  <div class="custom-note-input-wrap"' + (exNota ? ' style="display:none;"' : ' style="display:block;"') + '>';
+      html += '    <input type="text" class="custom-note-input" data-ex-id="' + ex.id + '" placeholder="+ Añadir ajuste (ej. agujero 4, asiento posición 2...)" value="' + exNota + '">';
+      html += '  </div>';
+      html += '</div>';
+
       html += '<div class="backoff-helper-pill' + (pesoDescarga ? ' visible' : '') + '" data-ex-idx="' + exIdx + '" data-peso="' + (pesoDescarga || '') + '">';
       html += '  <span>📉 Descarga recomendada (−20 %): <strong>' + (pesoDescarga ? pesoDescarga + ' kg' : '') + '</strong></span>';
       html += '  <button class="apply-btn">Poner en Serie 2</button>';
@@ -762,11 +794,22 @@
         var s = ex.series[sIdx];
         var textoAnterior = (s.pesoAnterior !== null && s.repeticionesAnteriores !== null) ? s.pesoAnterior + 'kg × ' + s.repeticionesAnteriores : '—';
 
+        var onermEstHtml = '';
+        if (s.peso && s.repeticiones) {
+          var wVal = parseFloat(s.peso);
+          var rVal = parseInt(s.repeticiones, 10);
+          if (!isNaN(wVal) && wVal > 0 && !isNaN(rVal) && rVal > 0) {
+            var est1rm = Math.round(wVal * (1 + rVal / 30) * 10) / 10;
+            onermEstHtml = '<span class="live-onerm-badge">1RM: ' + est1rm + 'kg</span>';
+          }
+        }
+
         html += '<div class="set-row' + (s.completada ? ' done' : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">';
         html += '  <div class="set-index">' + s.numero + '</div>';
         html += '  <div class="set-badge-col">';
         html += '    <span class="set-tag ' + s.tipo + '">' + s.insignia + '</span>';
         html += '    <span class="previous-hint">Ant: ' + textoAnterior + '</span>';
+        if (onermEstHtml) html += '    ' + onermEstHtml;
         html += '  </div>';
         html += '  <div class="set-input-box"><input type="number" step="0.5" class="set-input weight-input" placeholder="' + (s.pesoAnterior || '0') + '" value="' + (s.peso !== undefined ? s.peso : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
         html += '  <div class="set-input-box"><input type="number" step="1" class="set-input reps-input" placeholder="' + (s.repeticionesObjetivo || '12') + '" value="' + (s.repeticiones !== undefined ? s.repeticiones : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
@@ -885,6 +928,58 @@
           cambiarPestana('tab-tools');
         });
       })(botonesDiscos[i]);
+    }
+
+    // Eventos para notas de ejercicios
+    var inputsNotas = contenedor.querySelectorAll('.custom-note-input');
+    for (var n = 0; n < inputsNotas.length; n++) {
+      (function(input) {
+        var guardarNota = function() {
+          var id = input.dataset.exId;
+          var val = input.value.trim();
+          estado.notasEjercicios[id] = val;
+          guardarDatos();
+          var wrap = input.closest('.exercise-custom-note-wrap');
+          if (wrap) {
+            var display = wrap.querySelector('.custom-note-display');
+            var text = wrap.querySelector('.custom-note-text');
+            var inputWrap = wrap.querySelector('.custom-note-input-wrap');
+            if (val) {
+              if (text) text.textContent = val;
+              if (display) display.style.display = 'flex';
+              if (inputWrap) inputWrap.style.display = 'none';
+            }
+          }
+        };
+        input.addEventListener('change', guardarNota);
+        input.addEventListener('blur', guardarNota);
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            guardarNota();
+            input.blur();
+          }
+        });
+      })(inputsNotas[n]);
+    }
+
+    var botonesEditarNota = contenedor.querySelectorAll('.btn-note-edit');
+    for (var b = 0; b < botonesEditarNota.length; b++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var wrap = btn.closest('.exercise-custom-note-wrap');
+          if (wrap) {
+            var display = wrap.querySelector('.custom-note-display');
+            var inputWrap = wrap.querySelector('.custom-note-input-wrap');
+            var input = wrap.querySelector('.custom-note-input');
+            if (display) display.style.display = 'none';
+            if (inputWrap) inputWrap.style.display = 'block';
+            if (input) {
+              input.focus();
+              input.select();
+            }
+          }
+        });
+      })(botonesEditarNota[b]);
     }
   }
 
@@ -1068,7 +1163,9 @@
     });
 
     dibujarHistorial();
+    dibujarEstadisticasGlobales();
     dibujarRecords();
+    dibujarGraficoProgresion();
     mostrarSiguienteEntrenamiento();
     dibujarSecuenciaCiclo();
 
@@ -1173,6 +1270,216 @@
     grid.innerHTML = html;
   }
 
+  function dibujarEstadisticasGlobales() {
+    var elSesiones = $('statTotalWorkouts');
+    var elTonelaje = $('statTotalTonnage');
+    var elRacha = $('statStreakDays');
+    if (!elSesiones || !elTonelaje || !elRacha) return;
+
+    var sesiones = estado.historial.length;
+    var volumenTotalKg = 0;
+    var diasActivosUltimos30 = 0;
+    var ahora = Date.now();
+    var limite30Dias = ahora - (30 * 24 * 60 * 60 * 1000);
+    var diasRegistrados = {};
+
+    for (var i = 0; i < estado.historial.length; i++) {
+      var item = estado.historial[i];
+      if (item.volumenKg) volumenTotalKg += item.volumenKg;
+      if (item.fecha) {
+        var fechaTime = new Date(item.fecha).getTime();
+        if (fechaTime >= limite30Dias) {
+          var claveFecha = item.fecha.slice(0, 10);
+          if (!diasRegistrados[claveFecha]) {
+            diasRegistrados[claveFecha] = true;
+            diasActivosUltimos30++;
+          }
+        }
+      }
+    }
+
+    elSesiones.textContent = String(sesiones);
+
+    if (volumenTotalKg >= 1000) {
+      elTonelaje.textContent = (volumenTotalKg / 1000).toFixed(1) + ' t';
+    } else {
+      elTonelaje.textContent = Math.round(volumenTotalKg) + ' kg';
+    }
+
+    elRacha.textContent = diasActivosUltimos30 + ' d';
+  }
+
+  function poblarSelectorEjercicios() {
+    var select = $('progressionExerciseSelect');
+    if (!select || select.options.length > 0) return;
+
+    var html = '';
+    var diasClaves = Object.keys(DIAS_ENTRENAMIENTO);
+    for (var d = 0; d < diasClaves.length; d++) {
+      var dia = DIAS_ENTRENAMIENTO[diasClaves[d]];
+      html += '<optgroup label="' + dia.titulo + ': ' + dia.nombre + '">';
+      for (var e = 0; e < dia.ejercicios.length; e++) {
+        var ex = dia.ejercicios[e];
+        html += '<option value="' + ex.id + '">' + ex.nombre + '</option>';
+      }
+      html += '</optgroup>';
+    }
+    select.innerHTML = html;
+  }
+
+  function dibujarGraficoProgresion() {
+    var select = $('progressionExerciseSelect');
+    var contenedor = $('progressionChartContainer');
+    var badgeGanancia = $('chartGainBadge');
+    if (!contenedor) return;
+
+    poblarSelectorEjercicios();
+    var exId = select ? select.value : 'd1_e3';
+    if (!exId && select && select.options.length > 0) {
+      exId = select.options[0].value;
+    }
+
+    // Extraer puntos cronológicos (de más antiguo a más nuevo)
+    var puntos = [];
+    for (var i = estado.historial.length - 1; i >= 0; i--) {
+      var sesion = estado.historial[i];
+      if (!sesion.ejercicios) continue;
+      for (var e = 0; e < sesion.ejercicios.length; e++) {
+        var ex = sesion.ejercicios[e];
+        if (ex.id === exId && Array.isArray(ex.series)) {
+          var pesoMax = 0;
+          var repsMax = 0;
+          for (var s = 0; s < ex.series.length; s++) {
+            var serie = ex.series[s];
+            if (serie.completada && serie.peso) {
+              var w = parseFloat(serie.peso);
+              var r = parseInt(serie.repeticiones, 10) || 0;
+              if (!isNaN(w) && w > pesoMax) {
+                pesoMax = w;
+                repsMax = r;
+              }
+            }
+          }
+          if (pesoMax > 0) {
+            var fechaObj = new Date(sesion.fecha);
+            var fechaCorta = fechaObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+            puntos.push({
+              fecha: fechaCorta,
+              peso: pesoMax,
+              reps: repsMax
+            });
+          }
+        }
+      }
+    }
+
+    if (puntos.length === 0) {
+      if (badgeGanancia) {
+        badgeGanancia.textContent = 'Sin datos';
+        badgeGanancia.style.color = 'var(--text-muted)';
+      }
+      contenedor.innerHTML = '<div class="chart-empty-state"><span style="font-size: 28px; margin-bottom: 8px;">📊</span><strong>Sin registros todavía para este ejercicio</strong><span>Completa tu primer entrenamiento y aquí se dibujará automáticamente tu curva de sobrecarga progresiva.</span></div>';
+      return;
+    }
+
+    // Calcular ganancia
+    var primero = puntos[0].peso;
+    var ultimo = puntos[puntos.length - 1].peso;
+    var diff = Math.round((ultimo - primero) * 10) / 10;
+    if (badgeGanancia) {
+      if (diff > 0) {
+        var pct = primero > 0 ? Math.round((diff / primero) * 100) : 0;
+        badgeGanancia.textContent = '+' + diff + ' kg (+' + pct + '%)';
+        badgeGanancia.style.color = 'var(--gold-light)';
+      } else if (diff === 0) {
+        badgeGanancia.textContent = 'Manteniendo ' + ultimo + ' kg';
+        badgeGanancia.style.color = 'var(--text-main)';
+      } else {
+        badgeGanancia.textContent = diff + ' kg';
+        badgeGanancia.style.color = 'var(--danger)';
+      }
+    }
+
+    if (puntos.length === 1) {
+      contenedor.innerHTML = '<div class="chart-empty-state"><span style="font-size: 28px; margin-bottom: 8px;">🎯</span><strong style="color:var(--gold-light);font-size:16px;">Primera marca: ' + puntos[0].peso + ' kg (' + puntos[0].fecha + ')</strong><span>¡Buen trabajo! En cuanto registres tu siguiente sesión se trazará la línea de evolución.</span></div>';
+      return;
+    }
+
+    // Dibujar SVG
+    var svgWidth = 320;
+    var svgHeight = 150;
+    var padLeft = 38;
+    var padRight = 24;
+    var padTop = 26;
+    var padBottom = 26;
+    var wPlot = svgWidth - padLeft - padRight;
+    var hPlot = svgHeight - padTop - padBottom;
+
+    var minW = Infinity;
+    var maxW = -Infinity;
+    for (var p = 0; p < puntos.length; p++) {
+      if (puntos[p].peso < minW) minW = puntos[p].peso;
+      if (puntos[p].peso > maxW) maxW = puntos[p].peso;
+    }
+
+    if (minW === maxW) {
+      minW = Math.max(0, minW - 5);
+      maxW = maxW + 5;
+    } else {
+      var margen = (maxW - minW) * 0.15;
+      minW = Math.max(0, minW - margen);
+      maxW = maxW + margen;
+    }
+
+    var coordenadas = [];
+    for (var i = 0; i < puntos.length; i++) {
+      var x = padLeft + (i / (puntos.length - 1)) * wPlot;
+      var y = padTop + hPlot - ((puntos[i].peso - minW) / (maxW - minW)) * hPlot;
+      coordenadas.push({ x: x, y: y, peso: puntos[i].peso, fecha: puntos[i].fecha, reps: puntos[i].reps });
+    }
+
+    var pathLine = '';
+    for (var c = 0; c < coordenadas.length; c++) {
+      pathLine += (c === 0 ? 'M ' : 'L ') + coordenadas[c].x.toFixed(1) + ' ' + coordenadas[c].y.toFixed(1) + ' ';
+    }
+
+    var areaLine = pathLine + 'L ' + coordenadas[coordenadas.length - 1].x.toFixed(1) + ' ' + (padTop + hPlot) + ' L ' + coordenadas[0].x.toFixed(1) + ' ' + (padTop + hPlot) + ' Z';
+
+    var svg = '<svg class="progression-svg" viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '">';
+    svg += '<defs>';
+    svg += '  <linearGradient id="goldAreaGrad" x1="0" y1="0" x2="0" y2="1">';
+    svg += '    <stop offset="0%" stop-color="#d4af37" stop-opacity="0.35"/>';
+    svg += '    <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0"/>';
+    svg += '  </linearGradient>';
+    svg += '</defs>';
+
+    // Líneas horizontales de guía (rejilla)
+    var niveles = 3;
+    for (var n = 0; n <= niveles; n++) {
+      var yGrid = padTop + (n / niveles) * hPlot;
+      var valorGrid = Math.round(maxW - (n / niveles) * (maxW - minW));
+      svg += '<line x1="' + padLeft + '" y1="' + yGrid + '" x2="' + (padLeft + wPlot) + '" y2="' + yGrid + '" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 3"/>';
+      svg += '<text x="' + (padLeft - 6) + '" y="' + (yGrid + 3) + '" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="end">' + valorGrid + '</text>';
+    }
+
+    // Relleno sombreado
+    svg += '<path d="' + areaLine + '" fill="url(#goldAreaGrad)"/>';
+
+    // Línea dorada de evolución
+    svg += '<path d="' + pathLine + '" fill="none" stroke="#d4af37" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+
+    // Puntos y etiquetas
+    for (var k = 0; k < coordenadas.length; k++) {
+      var pt = coordenadas[k];
+      svg += '<circle cx="' + pt.x.toFixed(1) + '" cy="' + pt.y.toFixed(1) + '" r="4.5" fill="#f3e5ab" stroke="#0a0c10" stroke-width="2"/>';
+      svg += '<text x="' + pt.x.toFixed(1) + '" y="' + (pt.y - 8).toFixed(1) + '" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">' + pt.peso + '</text>';
+      svg += '<text x="' + pt.x.toFixed(1) + '" y="' + (padTop + hPlot + 16) + '" fill="rgba(255,255,255,0.5)" font-size="9" text-anchor="middle">' + pt.fecha + '</text>';
+    }
+
+    svg += '</svg>';
+    contenedor.innerHTML = svg;
+  }
+
   // ===========================================================================
   // CALCULADORAS (DISCOS Y DESCARGA)
   // ===========================================================================
@@ -1257,6 +1564,53 @@
     var calculo = pesoTop * 0.8;
     var redondeado = Math.round(calculo / 2.5) * 2.5;
     resultado.textContent = redondeado + ' kg (−20 %)';
+  }
+
+  function actualizarCalculadora1RM() {
+    var inputPeso = $('onermWeightInput');
+    var inputReps = $('onermRepsInput');
+    var resultEl = $('onermEstimatedValue');
+    var gridEl = $('onermPercentagesGrid');
+    if (!inputPeso || !inputReps || !resultEl || !gridEl) return;
+
+    var peso = parseFloat(inputPeso.value) || 0;
+    var reps = parseInt(inputReps.value, 10) || 1;
+
+    if (peso <= 0 || reps <= 0) {
+      resultEl.textContent = '0 kg';
+      gridEl.innerHTML = '';
+      return;
+    }
+
+    // Fórmulas estándar de Epley y Brzycki
+    var epley = peso * (1 + reps / 30);
+    var brzycki = reps < 37 ? (peso / (1.0278 - 0.0278 * reps)) : epley;
+    var estimacion = reps === 1 ? peso : ((epley + brzycki) / 2);
+    var onermFinal = Math.round(estimacion * 10) / 10;
+
+    resultEl.textContent = onermFinal.toFixed(1) + ' kg';
+
+    var porcentajes = [
+      { pct: 100, reps: '1 rep', desc: 'Fuerza Máxima (1RM)' },
+      { pct: 95, reps: '2 reps', desc: 'Fuerza Pico' },
+      { pct: 90, reps: '3-4 reps', desc: 'Serie Pesada CGM' },
+      { pct: 85, reps: '5-6 reps', desc: 'Fuerza-Hipertrofia' },
+      { pct: 80, reps: '8-10 reps', desc: 'Serie Descarga (-20%)' },
+      { pct: 75, reps: '10-12 reps', desc: 'Hipertrofia Clásica' },
+      { pct: 70, reps: '12-15 reps', desc: 'Resistencia y Bombeo' },
+      { pct: 65, reps: '15-20 reps', desc: 'Capilarización' }
+    ];
+
+    var html = '';
+    for (var i = 0; i < porcentajes.length; i++) {
+      var item = porcentajes[i];
+      var pesoPct = Math.round((onermFinal * (item.pct / 100)) / 2.5) * 2.5;
+      html += '<div class="onerm-row">';
+      html += '  <div><span class="onerm-row-pct">' + item.pct + '%</span> <span class="onerm-row-target">(' + item.reps + ')</span></div>';
+      html += '  <div class="onerm-row-weight">' + pesoPct + ' kg</div>';
+      html += '</div>';
+    }
+    gridEl.innerHTML = html;
   }
 
   // ===========================================================================
@@ -1402,6 +1756,9 @@
     escuchar($('calcTargetWeight'), 'input', actualizarCalculadoraDiscos);
     escuchar($('calcBarWeight'), 'change', actualizarCalculadoraDiscos);
     escuchar($('topSetInput'), 'input', actualizarCalculadoraDescarga);
+    escuchar($('onermWeightInput'), 'input', actualizarCalculadora1RM);
+    escuchar($('onermRepsInput'), 'input', actualizarCalculadora1RM);
+    escuchar($('progressionExerciseSelect'), 'change', dibujarGraficoProgresion);
 
     // Ajustes
     escuchar($('settingSound'), 'change', function(e) {

@@ -1331,3 +1331,239 @@ body {
   pointer-events: none;
   z-index: 200;
 }
+
+/* ==========================================================================
+   MEJORAS v5: ESTADÍSTICAS, GRÁFICAS DE SOBRECARGA, 1RM Y NOTAS PERSONALES
+   ========================================================================== */
+
+/* Métricas Globales */
+.stats-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.stat-card-gold {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 12px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.stat-card-icon {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+.stat-card-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--gold-light);
+}
+
+.stat-card-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Selectores estilizados CGM */
+.cgm-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.cgm-select:focus {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Gráfico de Sobrecarga Progresiva */
+.chart-container-card {
+  background: #06080b;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: var(--radius-md);
+  padding: 14px 10px 8px 10px;
+  min-height: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progression-svg {
+  width: 100%;
+  height: 170px;
+  overflow: visible;
+  display: block;
+}
+
+.chart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 20px;
+  line-height: 1.5;
+}
+
+.chart-tooltip-text {
+  font-size: 10px;
+  fill: #fff;
+  font-weight: 700;
+}
+
+/* Notas Personalizadas por Ejercicio */
+.exercise-custom-note-wrap {
+  margin: 6px 0 10px 0;
+  padding: 7px 10px;
+  background: rgba(212, 175, 55, 0.05);
+  border: 1px dashed rgba(212, 175, 55, 0.4);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.custom-note-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.custom-note-pin {
+  color: var(--gold-light);
+  font-weight: 700;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.custom-note-text {
+  color: #fff;
+  flex: 1;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.btn-note-edit {
+  background: transparent;
+  border: none;
+  color: var(--gold-primary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+}
+
+.custom-note-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  font-style: italic;
+}
+
+.custom-note-input::placeholder {
+  color: var(--text-dim);
+}
+
+/* Calculadora de 1RM */
+.onerm-banner {
+  background: #000;
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.onerm-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.onerm-val {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--gold-primary);
+  letter-spacing: 0.5px;
+}
+
+.onerm-table-wrap {
+  margin-top: 8px;
+}
+
+.onerm-table-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.onerm-table-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.onerm-row {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.onerm-row-pct {
+  color: var(--gold-light);
+  font-weight: 800;
+}
+
+.onerm-row-target {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.onerm-row-weight {
+  color: #fff;
+  font-weight: 700;
+}
+
+.live-onerm-badge {
+  font-size: 9px;
+  color: var(--gold-light);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 1px 4px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 2px;
+}

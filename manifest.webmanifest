@@ -1,0 +1,19 @@
+{
+  "name": "CGM Performance · Entreno 1.5",
+  "short_name": "CGM Entreno",
+  "description": "App de entrenamiento con rutina de frecuencia 1,5 personalizada de Carlos Graña - CGM Performance",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

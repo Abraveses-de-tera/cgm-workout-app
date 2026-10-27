@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0c10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CGM Entreno">
+  <meta name="description" content="App de entrenamiento con rutina de frecuencia 1,5 personalizada de Carlos Graña - CGM Performance">
+  
+  <title>CGM Performance · Entreno Frecuencia 1,5</title>
+  
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Canvas de confeti para celebración de fin de entreno -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Header Superior -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <img src="icon.svg" alt="CGM Performance Logo" class="brand-logo-img">
+        <div class="brand-info">
+          <h1>CGM PERFORMANCE</h1>
+          <p>Carlos Graña · Frecuencia 1,5</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="wakeLockBtn" class="icon-btn" title="Mantener pantalla encendida" aria-label="Pantalla encendida">
+          ☀️
+        </button>
+        <button id="soundToggleBtn" class="icon-btn active" title="Sonido del cronómetro" aria-label="Sonido">
+          🔔
+        </button>
+        <button id="plateCalcQuickBtn" class="icon-btn" title="Calculadora de discos" aria-label="Calculadora de discos">
+          ⚖️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner de Instalación PWA (Móvil) -->
+  <div class="main-container">
+    <div id="pwaBanner" class="pwa-banner">
+      <div class="pwa-banner-text">
+        <strong>📱 Instalar App en tu Móvil</strong>
+        <span>Úsala en el gym a pantalla completa y 100% offline</span>
+      </div>
+      <button id="pwaInstallBtn" class="pwa-install-btn">Instalar</button>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal de Vistas (Tabs) -->
+  <main class="main-container">
+
+    <!-- ===================================================================
+         TAB 1: RUTINA (CALENDARIO FRECUENCIA 1,5 & PLAN)
+         =================================================================== -->
+    <section id="tab-routine" class="tab-view active">
+      
+      <!-- Hero de la Sesión de Hoy -->
+      <div class="today-hero">
+        <div class="hero-status">
+          <span class="hero-subtitle">⚡ Entreno Programado Hoy</span>
+          <span id="currentDateBadge" class="badge-gold">Hoy</span>
+        </div>
+        <h2 id="todayWorkoutTitle" class="hero-title">Cargando...</h2>
+        <p id="todayWorkoutDesc" class="hero-desc">Rutina adaptada al sistema de frecuencia 1,5 de Carlos Graña.</p>
+        <div class="hero-actions">
+          <button id="startTodayWorkoutBtn" class="btn-primary">
+            <span>▶</span> Empezar Sesión de Hoy
+          </button>
+        </div>
+      </div>
+
+      <!-- Selector de Semanas del Ciclo de 4 Semanas -->
+      <div class="section-heading">
+        <span>Ciclo de 4 Semanas</span>
+        <span class="badge-info">Frecuencia 1,5</span>
+      </div>
+
+      <div class="week-selector-container">
+        <div class="week-pill active" data-week="1">Semana 1</div>
+        <div class="week-pill" data-week="2">Semana 2</div>
+        <div class="week-pill" data-week="3">Semana 3</div>
+        <div class="week-pill" data-week="4">Semana 4</div>
+      </div>
+
+      <!-- Cuadrícula Semanal Dinámica -->
+      <div id="scheduleGrid" class="schedule-grid">
+        <!-- Generado dinámicamente con JS -->
+      </div>
+
+      <!-- Selector Directo de Días (D1, D2, D3, D4) -->
+      <div class="section-heading">
+        <span>O Elige Día Directo</span>
+        <span style="font-size: 11px; color: var(--text-dim);">Por si cambias el orden</span>
+      </div>
+
+      <div class="days-direct-grid">
+        <div class="direct-day-card" data-day="D1">
+          <span class="direct-day-badge">DÍA 1</span>
+          <h3 class="direct-day-title">Espalda y posterior</h3>
+          <p class="direct-day-sub">7 ejercicios · Top set remo</p>
+        </div>
+
+        <div class="direct-day-card" data-day="D2">
+          <span class="direct-day-badge">DÍA 2</span>
+          <h3 class="direct-day-title">Pecho y hombro</h3>
+          <p class="direct-day-sub">7 ejercicios · Inclinado & militar</p>
+        </div>
+
+        <div class="direct-day-card" data-day="D3">
+          <span class="direct-day-badge">DÍA 3</span>
+          <h3 class="direct-day-title">Pierna</h3>
+          <p class="direct-day-sub">6 ejercicios · Cuádriceps, femoral</p>
+        </div>
+
+        <div class="direct-day-card" data-day="D4">
+          <span class="direct-day-badge">DÍA 4</span>
+          <h3 class="direct-day-title">Brazo</h3>
+          <p class="direct-day-sub">6 ejercicios · Bíceps & tríceps</p>
+        </div>
+      </div>
+
+      <!-- Tarjeta Explicativa: Cómo Funciona el Sistema Carlos Graña -->
+      <div class="rules-box">
+        <h4>📋 Cómo funciona el sistema CGM</h4>
+        <p>Entrenas <strong>lunes, martes, miércoles, viernes y sábado</strong> (jueves y domingo descanso).</p>
+        <ul>
+          <li><strong>El sábado</strong> repites el día con el que empezaste el lunes.</li>
+          <li><strong>El lunes siguiente</strong> arrancas con el día que toca a continuación, así cada grupo se entrena unas <strong>1,5 veces por semana</strong>.</li>
+          <li><strong>Top set:</strong> serie pesada al límite de reps con técnica estricta.</li>
+          <li><strong>Back off:</strong> 20 % menos de peso, mismas reps o alguna más.</li>
+        </ul>
+      </div>
+
+    </section>
+
+    <!-- ===================================================================
+         TAB 2: ENTRENO ACTIVO (GYM MODE - TRACKER DE SERIES)
+         =================================================================== -->
+    <section id="tab-workout" class="tab-view">
+      
+      <!-- Estado cuando NO hay entreno iniciado -->
+      <div id="noActiveWorkoutView" class="cgm-card text-center" style="padding: 36px 16px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">🏋️</div>
+        <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">No hay ningún entreno en curso</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+          Selecciona un día en la pestaña "Rutina" para comenzar a registrar tus pesos y repeticiones.
+        </p>
+        <button id="goToRoutineBtn" class="btn-primary" style="max-width: 260px; margin: 0 auto;">
+          Ir a Selección de Rutina
+        </button>
+      </div>
+
+      <!-- Vista del Entreno Activo -->
+      <div id="activeWorkoutContent" style="display: none;">
+        
+        <!-- Header del Entreno Activo -->
+        <div class="active-workout-header">
+          <div class="active-meta">
+            <h2 id="activeWorkoutName">D1 Espalda y posterior</h2>
+            <p id="activeWorkoutSubtitle">CGM Performance · Modo Gym</p>
+          </div>
+          <div class="timer-box">
+            <span>⏱</span>
+            <span id="workoutElapsedTimer">00:00</span>
+          </div>
+        </div>
+
+        <!-- Barra de Progreso de la Sesión -->
+        <div class="progress-strip">
+          <div id="workoutProgressBar" class="progress-fill"></div>
+        </div>
+
+        <!-- Lista Dinámica de Ejercicios -->
+        <div id="exercisesContainer">
+          <!-- Generado dinámicamente con JS -->
+        </div>
+
+        <!-- Botón Finalizar Sesión -->
+        <div class="cgm-card finish-workout-card">
+          <button id="finishWorkoutBtn" class="btn-finish">
+            🏆 FINALIZAR ENTRENAMIENTO
+          </button>
+          <button id="discardWorkoutBtn" class="btn-cancel-workout">
+            Descartar o cancelar entreno
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================================
+         TAB 3: HISTORIAL & RECORDS PERSONALES (PRs)
+         =================================================================== -->
+    <section id="tab-history" class="tab-view">
+      
+      <div class="card-title-row">
+        <h2 class="card-title">📈 Récords Personales (PRs)</h2>
+        <span class="badge-gold">Mejores Marcas</span>
+      </div>
+
+      <div class="cgm-card">
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Tus pesos máximos registrados en ejercicios principales:
+        </p>
+        <div id="prsGrid" class="prs-grid">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+
+      <div class="card-title-row" style="margin-top: 24px;">
+        <h2 class="card-title">📅 Historial de Sesiones</h2>
+        <span id="historyCountBadge" class="badge-info">0 sesiones</span>
+      </div>
+
+      <div id="historyList">
+        <!-- Generado dinámicamente -->
+      </div>
+
+    </section>
+
+    <!-- ===================================================================
+         TAB 4: HERRAMIENTAS & AJUSTES (DISCOS, 1RM, BACKOFF, DATOS)
+         =================================================================== -->
+    <section id="tab-tools" class="tab-view">
+      
+      <!-- Calculadora de Discos (Plate Calculator) -->
+      <div class="cgm-card featured">
+        <div class="card-title-row">
+          <h2 class="card-title">⚖️ Calculadora de Discos</h2>
+          <span class="badge-gold">Por lado de barra</span>
+        </div>
+
+        <div class="plate-calc-container">
+          <div class="calc-input-row">
+            <div class="calc-input-field">
+              <label for="calcTargetWeight">Peso Total Objetivo (kg)</label>
+              <input type="number" id="calcTargetWeight" value="90" step="2.5" min="20">
+            </div>
+            <div class="calc-input-field">
+              <label for="calcBarWeight">Peso Barra (kg)</label>
+              <select id="calcBarWeight">
+                <option value="20" selected>Barra Olímpica (20 kg)</option>
+                <option value="15">Barra Femenina/Técnica (15 kg)</option>
+                <option value="10">Barra Corta / Z (10 kg)</option>
+                <option value="0">Máquina / Multipower (0 kg)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Cargar en cada lado de la barra: <strong id="weightPerSideLabel" style="color: var(--gold-light);">35 kg</strong>
+          </div>
+
+          <!-- Visualización Gráfica de la Barra y Discos -->
+          <div class="barbell-visual">
+            <div class="bar-center"></div>
+            <div id="platesVisual" class="plates-display">
+              <!-- Renderizado visual de discos -->
+            </div>
+            <div class="bar-center"></div>
+          </div>
+
+          <div id="platesTextList" style="font-size: 12px; color: var(--text-main); font-weight: 700;">
+            <!-- Desglose textual -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculadora Rápida de Back-Off (-20%) -->
+      <div class="cgm-card">
+        <div class="card-title-row">
+          <h2 class="card-title">📉 Calculador Rápido Back-Off (−20%)</h2>
+          <span class="badge-gold">CGM Method</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Calcula automáticamente el 80% del Top Set ajustado al disco más cercano.
+        </p>
+        <div class="calc-input-row">
+          <div class="calc-input-field">
+            <label for="topSetInput">Peso Top Set (kg)</label>
+            <input type="number" id="topSetInput" value="100" step="2.5">
+          </div>
+          <div class="calc-input-field">
+            <label>Peso Back-off sugerido</label>
+            <div id="backOffResult" style="padding: 10px; background: #000; border: 1px solid var(--border-gold); color: var(--gold-primary); font-size: 16px; font-weight: 900; border-radius: 6px; text-align: center;">
+              80.0 kg
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ajustes de Experiencia y Sesión -->
+      <div class="cgm-card">
+        <h2 class="card-title mb-12">⚙️ Ajustes de la App</h2>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <span>🔊 Sonido al terminar descanso</span>
+            <input type="checkbox" id="settingSound" checked style="width: 18px; height: 18px; accent-color: var(--gold-primary);">
+          </label>
+
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <span>📳 Vibración táctil en móvil</span>
+            <input type="checkbox" id="settingVibrate" checked style="width: 18px; height: 18px; accent-color: var(--gold-primary);">
+          </label>
+
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <span>⏱️ Tiempo de descanso por defecto</span>
+            <select id="settingDefaultRest" style="background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 4px 8px; border-radius: 4px;">
+              <option value="60">60 segundos</option>
+              <option value="90" selected>90 segundos</option>
+              <option value="120">120 segundos (2 min)</option>
+              <option value="180">180 segundos (3 min)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Respaldo y Gestión de Datos -->
+      <div class="cgm-card">
+        <h2 class="card-title mb-12">💾 Respaldo y Datos</h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+          Tus datos se guardan de forma privada en el almacenamiento local de este dispositivo.
+        </p>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button id="exportDataBtn" class="btn-secondary" style="flex: 1;">
+            📥 Exportar Datos (JSON)
+          </button>
+          <label class="btn-secondary" style="flex: 1; cursor: pointer; text-align: center;">
+            📤 Importar Datos
+            <input type="file" id="importDataInput" accept=".json" style="display: none;">
+          </label>
+        </div>
+
+        <button id="resetDataBtn" style="background: transparent; border: none; color: var(--danger); font-size: 11px; margin-top: 14px; cursor: pointer; text-decoration: underline;">
+          Borrar historial y reiniciar datos
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ===================================================================
+       CRONÓMETRO DE DESCANSO FLOTANTE (REST TIMER)
+       =================================================================== -->
+  <div id="restTimerBar" class="rest-timer-bar">
+    <div class="timer-left">
+      <div class="timer-circular-wrap">
+        <svg class="timer-circular-svg" viewBox="0 0 44 44">
+          <circle class="timer-circle-bg" cx="22" cy="22" r="18" />
+          <circle id="timerProgressCircle" class="timer-circle-fg" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="0" />
+        </svg>
+      </div>
+      <div>
+        <div id="restTimerSeconds" class="timer-number">01:30</div>
+        <div class="timer-label">Descanso</div>
+      </div>
+    </div>
+
+    <div class="timer-controls">
+      <button id="timerSub15Btn" class="timer-btn-sm">-15s</button>
+      <button id="timerAdd15Btn" class="timer-btn-sm">+15s</button>
+      <button id="timerSkipBtn" class="timer-btn-sm" style="color: var(--gold-light);">Saltar</button>
+      <button id="timerCloseBtn" class="timer-close-btn" title="Ocultar cronómetro">×</button>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       BARRA DE NAVEGACIÓN INFERIOR (BOTTOM NAV)
+       =================================================================== -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-tab="tab-routine">
+      <span class="nav-icon">📅</span>
+      <span>Rutina</span>
+    </div>
+
+    <div class="nav-item" data-tab="tab-workout">
+      <span class="nav-icon" id="workoutNavIcon">🏋️</span>
+      <span>Entrenar</span>
+    </div>
+
+    <div class="nav-item" data-tab="tab-history">
+      <span class="nav-icon">📈</span>
+      <span>Historial</span>
+    </div>
+
+    <div class="nav-item" data-tab="tab-tools">
+      <span class="nav-icon">⚖️</span>
+      <span>Herramientas</span>
+    </div>
+  </nav>
+
+  <!-- ===================================================================
+       MODAL DE RESUMEN Y FINALIZACIÓN DE ENTRENO
+       =================================================================== -->
+  <div id="summaryModal" class="modal-overlay">
+    <div class="modal-content text-center">
+      <div style="font-size: 48px; margin-bottom: 8px;">🏆</div>
+      <h3 style="font-size: 20px; font-weight: 900; margin-bottom: 4px; color: var(--gold-light);">
+        ¡ENTRENAMIENTO COMPLETADO!
+      </h3>
+      <p id="summaryWorkoutName" style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        D1 Espalda y posterior · CGM Performance
+      </p>
+
+      <div class="cgm-card" style="background: #000; border-color: var(--border-gold); padding: 14px; margin-bottom: 16px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Tiempo</div>
+            <div id="summaryDuration" style="font-size: 17px; font-weight: 800; color: #fff;">45 min</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Volumen</div>
+            <div id="summaryVolume" style="font-size: 17px; font-weight: 800; color: var(--gold-primary);">8,450 kg</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Series</div>
+            <div id="summarySets" style="font-size: 17px; font-weight: 800; color: #fff;">18</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="summaryPrsSection" style="display: none; margin-bottom: 16px; text-align: left;">
+        <div style="font-size: 12px; font-weight: 800; color: var(--gold-light); margin-bottom: 6px;">
+          🔥 Nuevos Récords Personales (PRs):
+        </div>
+        <div id="summaryPrsList"></div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="shareWhatsAppBtn" class="btn-primary" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #fff;">
+          <span>💬</span> Compartir Resumen por WhatsApp
+        </button>
+
+        <button id="closeSummaryModalBtn" class="btn-secondary">
+          Guardar y Volver a la Rutina
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts (Carga directa compatible con file:// y servidores web) -->
+  <script src="routine-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

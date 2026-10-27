@@ -332,7 +332,8 @@
     RECORDS: 'cgm_records_v4',
     AJUSTES: 'cgm_ajustes_v4',
     INDICE_ROTACION: 'cgm_indice_rotacion_v4',
-    NOTAS_EJERCICIOS: 'cgm_notas_ejercicios_v4'
+    NOTAS_EJERCICIOS: 'cgm_notas_ejercicios_v4',
+    VIDEOS_EJERCICIOS: 'cgm_videos_ejercicios_v4'
   };
 
   var AJUSTES_PREDETERMINADOS = {
@@ -348,6 +349,7 @@
     historial: [],
     records: {},
     notasEjercicios: {},
+    videosEjercicios: {},
     ajustes: Object.assign({}, AJUSTES_PREDETERMINADOS),
     cronometroDescanso: {
       duracion: 90,
@@ -485,6 +487,9 @@
       var notas = localStorage.getItem(CLAVES_ALMACENAMIENTO.NOTAS_EJERCICIOS);
       if (notas) estado.notasEjercicios = JSON.parse(notas);
 
+      var vids = localStorage.getItem(CLAVES_ALMACENAMIENTO.VIDEOS_EJERCICIOS);
+      if (vids) estado.videosEjercicios = JSON.parse(vids);
+
       var idx = localStorage.getItem(CLAVES_ALMACENAMIENTO.INDICE_ROTACION);
       if (idx !== null) estado.indiceRotacion = parseInt(idx, 10) || 0;
 
@@ -518,6 +523,7 @@
       localStorage.setItem(CLAVES_ALMACENAMIENTO.HISTORIAL, JSON.stringify(estado.historial));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.RECORDS, JSON.stringify(estado.records));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.NOTAS_EJERCICIOS, JSON.stringify(estado.notasEjercicios));
+      localStorage.setItem(CLAVES_ALMACENAMIENTO.VIDEOS_EJERCICIOS, JSON.stringify(estado.videosEjercicios));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.AJUSTES, JSON.stringify(estado.ajustes));
       localStorage.setItem(CLAVES_ALMACENAMIENTO.INDICE_ROTACION, String(estado.indiceRotacion));
       if (estado.entrenamientoActivo) {
@@ -763,7 +769,10 @@
       html += '      <span class="exercise-number">EJERCICIO ' + (exIdx + 1) + ' DE ' + exs.length + '</span>';
       html += '      <h3 class="exercise-name">' + ex.nombre + '</h3>';
       html += '    </div>';
-      html += '    <button class="icon-btn plate-modal-trigger" data-ex-idx="' + exIdx + '" title="Calcular discos para este ejercicio">⚖️</button>';
+      html += '    <div style="display:flex;gap:6px;align-items:center;">';
+      html += '      <button class="btn-video-trigger" data-ex-idx="' + exIdx + '" data-ex-id="' + ex.id + '" title="Ver vídeo explicativo de la técnica sin salir de la app">🎬 Vídeo</button>';
+      html += '      <button class="icon-btn plate-modal-trigger" data-ex-idx="' + exIdx + '" title="Calcular discos para este ejercicio">⚖️</button>';
+      html += '    </div>';
       html += '  </div>';
 
       if (ex.indicaciones) {
@@ -928,6 +937,20 @@
           cambiarPestana('tab-tools');
         });
       })(botonesDiscos[i]);
+    }
+
+    // Botones de vídeo explicativo
+    var botonesVideo = contenedor.querySelectorAll('.btn-video-trigger');
+    for (var v = 0; v < botonesVideo.length; v++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var exIdx = parseInt(btn.dataset.exIdx, 10);
+          var ex = estado.entrenamientoActivo.ejercicios[exIdx];
+          if (ex) {
+            abrirModalVideo(ex.id, ex.nombre, ex.indicaciones);
+          }
+        });
+      })(botonesVideo[v]);
     }
 
     // Eventos para notas de ejercicios
@@ -1208,6 +1231,87 @@
     };
 
     $('summaryModal').classList.add('open');
+  }
+
+  // ===========================================================================
+  // VÍDEOS EXPLICATIVOS DE TÉCNICA (GOOGLE DRIVE / YOUTUBE)
+  // ===========================================================================
+  var ejercicioVideoActualId = null;
+
+  function normalizarUrlVideo(url) {
+    if (!url) return '';
+    url = url.trim();
+
+    // 1. Google Drive: /file/d/FILE_ID/view o /open?id=FILE_ID
+    var matchDrive = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (matchDrive && matchDrive[1]) {
+      return 'https://drive.google.com/file/d/' + matchDrive[1] + '/preview';
+    }
+    var matchDriveId = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchDriveId && matchDriveId[1]) {
+      return 'https://drive.google.com/file/d/' + matchDriveId[1] + '/preview';
+    }
+
+    // 2. YouTube
+    var matchYt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]+)/);
+    if (matchYt && matchYt[1]) {
+      return 'https://www.youtube-nocookie.com/embed/' + matchYt[1] + '?autoplay=1&rel=0';
+    }
+
+    return url;
+  }
+
+  function abrirModalVideo(exId, exNombre, exIndicaciones) {
+    ejercicioVideoActualId = exId;
+    var modal = $('videoModal');
+    var titulo = $('videoModalExerciseName');
+    var iframe = $('videoIframe');
+    var fallback = $('videoFallbackBox');
+    var notes = $('videoModalNotes');
+    var inputManual = $('manualVideoUrlInput');
+    if (!modal) return;
+
+    if (titulo) titulo.textContent = exNombre || 'Técnica del Ejercicio';
+    if (notes) notes.textContent = exIndicaciones ? '💡 Indicación técnica de Carlos Graña: ' + exIndicaciones : '';
+    if (inputManual) inputManual.value = '';
+
+    // Buscar si ya tiene URL en memoria o en el objeto de datos
+    var urlGuardada = (estado.videosEjercicios && estado.videosEjercicios[exId]) ? estado.videosEjercicios[exId] : null;
+
+    if (!urlGuardada && estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios) {
+      for (var i = 0; i < estado.entrenamientoActivo.ejercicios.length; i++) {
+        var e = estado.entrenamientoActivo.ejercicios[i];
+        if (e.id === exId && e.videoUrl) {
+          urlGuardada = e.videoUrl;
+          break;
+        }
+      }
+    }
+
+    if (urlGuardada) {
+      var embedUrl = normalizarUrlVideo(urlGuardada);
+      if (iframe) {
+        iframe.src = embedUrl;
+        iframe.style.display = 'block';
+      }
+      if (fallback) fallback.style.display = 'none';
+    } else {
+      if (iframe) {
+        iframe.src = '';
+        iframe.style.display = 'none';
+      }
+      if (fallback) fallback.style.display = 'flex';
+    }
+
+    modal.classList.add('open');
+  }
+
+  function cerrarModalVideo() {
+    var modal = $('videoModal');
+    var iframe = $('videoIframe');
+    if (iframe) iframe.src = '';
+    if (modal) modal.classList.remove('open');
+    ejercicioVideoActualId = null;
   }
 
   // ===========================================================================
@@ -1752,6 +1856,33 @@
       cambiarPestana('tab-routine');
     });
 
+    // Modal de vídeo explicativo
+    escuchar($('closeVideoModalBtn'), 'click', cerrarModalVideo);
+    escuchar($('closeVideoModalFooterBtn'), 'click', cerrarModalVideo);
+    escuchar($('videoModal'), 'click', function(e) {
+      if (e.target === $('videoModal')) cerrarModalVideo();
+    });
+
+    escuchar($('saveManualVideoBtn'), 'click', function() {
+      var input = $('manualVideoUrlInput');
+      if (!input || !ejercicioVideoActualId) return;
+      var val = input.value.trim();
+      if (!val) {
+        alert('Por favor pega un enlace de vídeo válido.');
+        return;
+      }
+      estado.videosEjercicios[ejercicioVideoActualId] = val;
+      guardarDatos();
+      var embedUrl = normalizarUrlVideo(val);
+      var iframe = $('videoIframe');
+      var fallback = $('videoFallbackBox');
+      if (iframe) {
+        iframe.src = embedUrl;
+        iframe.style.display = 'block';
+      }
+      if (fallback) fallback.style.display = 'none';
+    });
+
     // Calculadoras
     escuchar($('calcTargetWeight'), 'input', actualizarCalculadoraDiscos);
     escuchar($('calcBarWeight'), 'change', actualizarCalculadoraDiscos);
@@ -1840,7 +1971,7 @@
 
   function configurarPWA() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=4').then(function(reg) {
+      navigator.serviceWorker.register('./sw.js?v=5').then(function(reg) {
         console.log('SW registrado correctamente:', reg.scope);
         if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         reg.update();

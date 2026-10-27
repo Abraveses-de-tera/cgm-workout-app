@@ -532,6 +532,44 @@
     </div>
   </div>
 
+  <!-- ===================================================================
+       MODAL DE VÍDEO EXPLICATIVO (TÉCNICA EN VIVO SIN SALIR DE LA APLICACIÓN)
+       =================================================================== -->
+  <div id="videoModal" class="modal-overlay">
+    <div class="video-modal-content">
+      <div class="video-modal-header">
+        <div>
+          <span class="video-modal-badge">🎬 Técnica del Ejercicio</span>
+          <h3 id="videoModalExerciseName" class="video-modal-title">Cargando ejercicio...</h3>
+        </div>
+        <button id="closeVideoModalBtn" class="video-modal-close" aria-label="Cerrar vídeo">✕</button>
+      </div>
+
+      <!-- Reproductor incrustado de Google Drive / YouTube -->
+      <div class="video-player-wrapper">
+        <iframe id="videoIframe" class="video-iframe" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+        <div id="videoFallbackBox" class="video-fallback-box" style="display: none;">
+          <span style="font-size: 32px; margin-bottom: 8px;">📹</span>
+          <strong style="color: var(--gold-light); font-size: 14px;">Vídeo aún no vinculado</strong>
+          <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 12px 0;">
+            Pega aquí el enlace de Google Drive del vídeo para vincularlo a este ejercicio:
+          </p>
+          <div style="display: flex; gap: 6px; width: 100%; max-width: 380px;">
+            <input type="url" id="manualVideoUrlInput" placeholder="https://drive.google.com/file/d/..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 11px; outline: none;">
+            <button id="saveManualVideoBtn" class="btn-primary" style="padding: 8px 12px; font-size: 11px; white-space: nowrap;">Guardar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-modal-footer">
+        <p id="videoModalNotes" class="video-modal-notes"></p>
+        <button id="closeVideoModalFooterBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">
+          ✓ Entendido, Volver al Entrenamiento
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts con control de versión y auto-limpieza -->
   <script>
     if ('caches' in window) {

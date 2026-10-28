@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
   
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 
@@ -407,6 +407,46 @@
         </div>
       </div>
 
+      <!-- Base de Datos Maestra de Ejercicios y Vídeos (Carlos Graña) -->
+      <div class="cgm-card featured">
+        <div class="card-title-row">
+          <h2 class="card-title">📚 Base de Datos de Ejercicios (103)</h2>
+          <span class="badge-gold">Catálogo Maestro</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Base de datos maestra de ejercicios y vídeos de Google Drive. Se asocia automáticamente por nombre a esta rutina y a futuras rutinas de otros clientes:
+        </p>
+
+        <!-- Métricas del catálogo -->
+        <div class="db-stats-row">
+          <div class="db-stat-pill"><strong id="dbTotalCount">103</strong> ejercicios</div>
+          <div class="db-stat-pill ok"><strong id="dbReadyCount">77</strong> con vídeo listo</div>
+          <div class="db-stat-pill warn"><strong id="dbPendingCount">26</strong> a rehacer</div>
+        </div>
+
+        <!-- Buscador y filtro por grupo muscular -->
+        <div style="display: flex; gap: 8px; margin: 12px 0;">
+          <input type="text" id="dbSearchInput" placeholder="Buscar ejercicio (ej. dominadas, press...)" class="cgm-select" style="flex: 2; padding: 8px 12px;">
+          <select id="dbGroupFilter" class="cgm-select" style="flex: 1; min-width: 110px; padding: 8px 10px;">
+            <option value="todos">Todos</option>
+            <option value="Espalda">Espalda</option>
+            <option value="Pecho">Pecho</option>
+            <option value="Pierna">Pierna</option>
+            <option value="Hombro">Hombro</option>
+            <option value="Bíceps">Bíceps</option>
+            <option value="Tríceps">Tríceps</option>
+            <option value="Abdomen">Abdomen</option>
+            <option value="Antebrazo">Antebrazo</option>
+            <option value="Trapecio">Trapecio</option>
+          </select>
+        </div>
+
+        <!-- Lista scrolleable de ejercicios de la BD -->
+        <div id="dbExercisesList" class="db-exercises-list">
+          <!-- Renderizado dinámico desde ejercicios-db.js -->
+        </div>
+      </div>
+
       <!-- Copia de Seguridad y Datos -->
       <div class="cgm-card">
         <h2 class="card-title mb-12">💾 Copia de Seguridad</h2>
@@ -539,7 +579,10 @@
     <div class="video-modal-content">
       <div class="video-modal-header">
         <div>
-          <span class="video-modal-badge">🎬 Técnica del Ejercicio</span>
+          <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 2px;">
+            <span id="videoModalGroupBadge" class="video-modal-badge">Espalda</span>
+            <span id="videoModalStatusBadge" class="badge-gold">🟢 Vídeo en Drive</span>
+          </div>
           <h3 id="videoModalExerciseName" class="video-modal-title">Cargando ejercicio...</h3>
         </div>
         <button id="closeVideoModalBtn" class="video-modal-close" aria-label="Cerrar vídeo">✕</button>
@@ -548,15 +591,36 @@
       <!-- Reproductor incrustado de Google Drive / YouTube -->
       <div class="video-player-wrapper">
         <iframe id="videoIframe" class="video-iframe" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+        
+        <!-- Estado cuando está pendiente de rehacer según el Excel de Carlos Graña -->
+        <div id="videoPendingBox" class="video-fallback-box" style="display: none;">
+          <span style="font-size: 36px; margin-bottom: 8px;">⏳</span>
+          <strong style="color: #fbbf24; font-size: 15px;">Vídeo Pendiente de Grabación / Rehacer</strong>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 12px 0; max-width: 380px; line-height: 1.4;">
+            Carlos Graña tiene catalogado este ejercicio como <em>«rehacer»</em> en la base de datos oficial. En cuanto suba la nueva grabación estará disponible aquí automáticamente.
+          </p>
+          <div style="font-size: 11px; color: var(--gold-light); margin-bottom: 8px;">
+            ¿Tienes un enlace temporal de este ejercicio? Puedes pegarlo aquí:
+          </div>
+          <div style="display: flex; gap: 6px; width: 100%; max-width: 380px;">
+            <input type="url" id="manualVideoUrlInputPending" placeholder="https://drive.google.com/file/d/..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 11px; outline: none;">
+            <button id="saveManualVideoPendingBtn" class="btn-primary" style="padding: 8px 12px; font-size: 11px; white-space: nowrap;">Guardar</button>
+          </div>
+        </div>
+
+        <!-- Estado cuando el vídeo está disponible en el Excel pero aún no se le ha pegado el ID de Drive -->
         <div id="videoFallbackBox" class="video-fallback-box" style="display: none;">
-          <span style="font-size: 32px; margin-bottom: 8px;">📹</span>
-          <strong style="color: var(--gold-light); font-size: 14px;">Vídeo aún no vinculado</strong>
-          <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 12px 0;">
-            Pega aquí el enlace de Google Drive del vídeo para vincularlo a este ejercicio:
+          <span style="font-size: 36px; margin-bottom: 8px;">📹</span>
+          <strong id="videoFallbackTitle" style="color: var(--gold-light); font-size: 15px;">Vídeo Catalogado en Google Drive</strong>
+          <p id="videoFallbackSubtitle" style="font-size: 12px; color: var(--text-muted); margin: 6px 0 12px 0; max-width: 380px; line-height: 1.4;">
+            Archivo asociado en Drive: <strong id="videoFileNameLabel" style="color: #fff;">dominadas.mp4</strong>
+          </p>
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; max-width: 380px;">
+            Pega aquí el enlace de Google Drive o enlace web para reproducirlo directamente:
           </p>
           <div style="display: flex; gap: 6px; width: 100%; max-width: 380px;">
             <input type="url" id="manualVideoUrlInput" placeholder="https://drive.google.com/file/d/..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 11px; outline: none;">
-            <button id="saveManualVideoBtn" class="btn-primary" style="padding: 8px 12px; font-size: 11px; white-space: nowrap;">Guardar</button>
+            <button id="saveManualVideoBtn" class="btn-primary" style="padding: 8px 12px; font-size: 11px; white-space: nowrap;">Vincular</button>
           </div>
         </div>
       </div>
@@ -575,14 +639,15 @@
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v5') {
+          if (names[i] !== 'cgm-rendimiento-v6') {
             caches.delete(names[i]);
           }
         }
       });
     }
   </script>
-  <script src="routine-data.js?v=5"></script>
-  <script src="app.js?v=5"></script>
+  <script src="ejercicios-db.js?v=6"></script>
+  <script src="routine-data.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

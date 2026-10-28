@@ -457,6 +457,7 @@
     try { actualizarCalculadoraDiscos(); } catch (e) { console.error('Error en discos:', e); }
     try { actualizarCalculadoraDescarga(); } catch (e) { console.error('Error en descarga:', e); }
     try { actualizarCalculadora1RM(); } catch (e) { console.error('Error en 1RM:', e); }
+    try { renderizarCatalogoBD(); } catch (e) { console.error('Error en catálogo BD:', e); }
 
     if (estado.entrenamientoActivo) {
       try { reanudarEntrenamiento(); } catch (e) {
@@ -560,6 +561,7 @@
       try { actualizarCalculadoraDiscos(); } catch (e) {}
       try { actualizarCalculadoraDescarga(); } catch (e) {}
       try { actualizarCalculadora1RM(); } catch (e) {}
+      try { renderizarCatalogoBD(); } catch (e) {}
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1265,18 +1267,36 @@
     ejercicioVideoActualId = exId;
     var modal = $('videoModal');
     var titulo = $('videoModalExerciseName');
+    var badgeGrupo = $('videoModalGroupBadge');
+    var badgeEstado = $('videoModalStatusBadge');
     var iframe = $('videoIframe');
     var fallback = $('videoFallbackBox');
+    var pendingBox = $('videoPendingBox');
     var notes = $('videoModalNotes');
     var inputManual = $('manualVideoUrlInput');
+    var inputManualPending = $('manualVideoUrlInputPending');
+    var fileNameLabel = $('videoFileNameLabel');
     if (!modal) return;
 
     if (titulo) titulo.textContent = exNombre || 'Técnica del Ejercicio';
-    if (notes) notes.textContent = exIndicaciones ? '💡 Indicación técnica de Carlos Graña: ' + exIndicaciones : '';
+    if (notes) notes.textContent = exIndicaciones ? '💡 Indicación técnica: ' + exIndicaciones : '';
     if (inputManual) inputManual.value = '';
+    if (inputManualPending) inputManualPending.value = '';
 
-    // Buscar si ya tiene URL en memoria o en el objeto de datos
-    var urlGuardada = (estado.videosEjercicios && estado.videosEjercicios[exId]) ? estado.videosEjercicios[exId] : null;
+    // Consultar Base de Datos Maestra de 103 ejercicios
+    var matchBD = (window.CGM_BASE_DATOS_EJERCICIOS && window.CGM_BASE_DATOS_EJERCICIOS.buscar) ?
+      window.CGM_BASE_DATOS_EJERCICIOS.buscar(exNombre) : null;
+
+    var grupo = matchBD ? matchBD.grupo : 'Ejercicio';
+    var estadoVideo = matchBD ? matchBD.estado : 'disponible';
+    var archivoVideo = matchBD ? (matchBD.archivo || (matchBD.video + '.mp4')) : (exNombre + '.mp4');
+
+    if (badgeGrupo) badgeGrupo.textContent = grupo;
+    if (fileNameLabel) fileNameLabel.textContent = archivoVideo;
+
+    // Buscar si ya tiene URL específica en memoria (por ID de serie o ID de BD)
+    var urlGuardada = (estado.videosEjercicios && (estado.videosEjercicios[exId] || (matchBD && estado.videosEjercicios[matchBD.id]))) ?
+      (estado.videosEjercicios[exId] || estado.videosEjercicios[matchBD.id]) : null;
 
     if (!urlGuardada && estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios) {
       for (var i = 0; i < estado.entrenamientoActivo.ejercicios.length; i++) {
@@ -1289,17 +1309,41 @@
     }
 
     if (urlGuardada) {
+      if (badgeEstado) {
+        badgeEstado.textContent = '🟢 Vídeo en Reproducción';
+        badgeEstado.style.background = 'rgba(16, 185, 129, 0.2)';
+        badgeEstado.style.color = '#34d399';
+      }
       var embedUrl = normalizarUrlVideo(urlGuardada);
       if (iframe) {
         iframe.src = embedUrl;
         iframe.style.display = 'block';
       }
       if (fallback) fallback.style.display = 'none';
-    } else {
+      if (pendingBox) pendingBox.style.display = 'none';
+    } else if (estadoVideo === 'rehacer') {
+      if (badgeEstado) {
+        badgeEstado.textContent = '🟡 Pendiente Rehacer';
+        badgeEstado.style.background = 'rgba(245, 158, 11, 0.2)';
+        badgeEstado.style.color = '#fbbf24';
+      }
       if (iframe) {
         iframe.src = '';
         iframe.style.display = 'none';
       }
+      if (fallback) fallback.style.display = 'none';
+      if (pendingBox) pendingBox.style.display = 'flex';
+    } else {
+      if (badgeEstado) {
+        badgeEstado.textContent = '🟢 Archivo: ' + archivoVideo;
+        badgeEstado.style.background = 'rgba(212, 175, 55, 0.2)';
+        badgeEstado.style.color = 'var(--gold-light)';
+      }
+      if (iframe) {
+        iframe.src = '';
+        iframe.style.display = 'none';
+      }
+      if (pendingBox) pendingBox.style.display = 'none';
       if (fallback) fallback.style.display = 'flex';
     }
 
@@ -1312,6 +1356,76 @@
     if (iframe) iframe.src = '';
     if (modal) modal.classList.remove('open');
     ejercicioVideoActualId = null;
+  }
+
+  // ===========================================================================
+  // CATÁLOGO MAESTRO DE EJERCICIOS Y VÍDEOS (HERRAMIENTAS)
+  // ===========================================================================
+  function renderizarCatalogoBD(filtroTexto, filtroGrupo) {
+    var contenedor = $('dbExercisesList');
+    if (!contenedor || !window.CGM_BASE_DATOS_EJERCICIOS) return;
+
+    var lista = window.CGM_BASE_DATOS_EJERCICIOS.lista;
+    var stats = window.CGM_BASE_DATOS_EJERCICIOS.estadisticas();
+
+    var elTotal = $('dbTotalCount');
+    var elReady = $('dbReadyCount');
+    var elPending = $('dbPendingCount');
+    if (elTotal) elTotal.textContent = stats.total;
+    if (elReady) elReady.textContent = stats.disponibles;
+    if (elPending) elPending.textContent = stats.rehacer;
+
+    var busqueda = (filtroTexto || '').toLowerCase().trim();
+    var grupo = filtroGrupo || ($('dbGroupFilter') ? $('dbGroupFilter').value : 'todos');
+
+    var filtrados = lista.filter(function(item) {
+      if (grupo !== 'todos' && item.grupo !== grupo) return false;
+      if (busqueda) {
+        var textoItem = (item.nombre + ' ' + item.grupo + ' ' + item.video).toLowerCase();
+        if (textoItem.indexOf(busqueda) === -1) return false;
+      }
+      return true;
+    });
+
+    if (filtrados.length === 0) {
+      contenedor.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">No se encontraron ejercicios con ese criterio.</div>';
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < filtrados.length; i++) {
+      var ex = filtrados[i];
+      var esRehacer = ex.estado === 'rehacer';
+      var tieneUrl = !!(estado.videosEjercicios && estado.videosEjercicios[ex.id]);
+
+      html += '<div class="db-exercise-item">';
+      html += '  <div class="db-ex-info">';
+      html += '    <div class="db-ex-name">' + ex.nombre + '</div>';
+      html += '    <div class="db-ex-meta">';
+      html += '      <span class="db-ex-group">' + ex.grupo + '</span>';
+      if (tieneUrl) {
+        html += '      <span class="db-ex-status disponible">✓ Vídeo vinculado</span>';
+      } else if (esRehacer) {
+        html += '      <span class="db-ex-status rehacer">⏳ Pendiente rehacer</span>';
+      } else {
+        html += '      <span class="db-ex-status disponible">🟢 ' + ex.video + '</span>';
+      }
+      html += '    </div>';
+      html += '  </div>';
+      html += '  <button class="btn-db-video" data-id="' + ex.id + '" data-name="' + ex.nombre.replace(/"/g, '&quot;') + '">🎬 Vídeo</button>';
+      html += '</div>';
+    }
+
+    contenedor.innerHTML = html;
+
+    var botones = contenedor.querySelectorAll('.btn-db-video');
+    for (var b = 0; b < botones.length; b++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          abrirModalVideo(btn.dataset.id, btn.dataset.name, 'Ejercicio del catálogo maestro');
+        });
+      })(botones[b]);
+    }
   }
 
   // ===========================================================================
@@ -1912,6 +2026,38 @@
       guardarDatos();
     });
 
+    // Catálogo Maestro de Ejercicios
+    escuchar($('dbSearchInput'), 'input', function(e) {
+      var grupo = $('dbGroupFilter') ? $('dbGroupFilter').value : 'todos';
+      renderizarCatalogoBD(e.target.value, grupo);
+    });
+
+    escuchar($('dbGroupFilter'), 'change', function(e) {
+      var txt = $('dbSearchInput') ? $('dbSearchInput').value : '';
+      renderizarCatalogoBD(txt, e.target.value);
+    });
+
+    escuchar($('saveManualVideoPendingBtn'), 'click', function() {
+      var input = $('manualVideoUrlInputPending');
+      if (!input || !ejercicioVideoActualId) return;
+      var val = input.value.trim();
+      if (!val) {
+        alert('Por favor pega un enlace de vídeo válido.');
+        return;
+      }
+      estado.videosEjercicios[ejercicioVideoActualId] = val;
+      guardarDatos();
+      var embedUrl = normalizarUrlVideo(val);
+      var iframe = $('videoIframe');
+      var pending = $('videoPendingBox');
+      if (iframe) {
+        iframe.src = embedUrl;
+        iframe.style.display = 'block';
+      }
+      if (pending) pending.style.display = 'none';
+      renderizarCatalogoBD();
+    });
+
     // Copia de seguridad
     escuchar($('exportDataBtn'), 'click', descargarCopiaSeguridad);
     escuchar($('importDataInput'), 'change', restaurarCopiaSeguridad);
@@ -1971,7 +2117,7 @@
 
   function configurarPWA() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=5').then(function(reg) {
+      navigator.serviceWorker.register('./sw.js?v=6').then(function(reg) {
         console.log('SW registrado correctamente:', reg.scope);
         if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         reg.update();

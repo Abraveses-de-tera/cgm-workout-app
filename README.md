@@ -32,7 +32,14 @@ Enlace directo a la aplicación: **[https://abraveses-de-tera.github.io/cgm-work
    - Indicador de marcas anteriores: visualiza en gris tenue el peso y repeticiones que hiciste en la sesión previa para garantizar la sobrecarga progresiva.
    - Casillas de verificación con sonido de confirmación y respuesta táctil (vibración en el móvil).
 
-5. **Ajustes y Notas Personales por Ejercicio**:
+5. **Vídeos Explicativos In-App y Base de Datos Maestra (103 Ejercicios)**:
+   - Base de datos extraída del Excel oficial de Carlos Graña: clasificada en 9 grupos musculares.
+   - Botón directo **`🎬 Vídeo`** en cada ejercicio: reproduce la técnica en una ventana emergente sin salir de la app ni perder datos o cronómetros.
+   - Detección automática: distingue entre vídeos disponibles en Google Drive y ejercicios pendientes de rehacer/grabar.
+   - Motor de búsqueda y catálogo interactivo en Herramientas para consultar los 103 ejercicios en cualquier momento.
+   - Sistema reutilizable: cualquier ejercicio añadido ahora o en futuras rutinas para otros clientes se asocia automáticamente a su vídeo.
+
+6. **Ajustes y Notas Personales por Ejercicio**:
    - Guarda notas fijas para cada máquina (ej. *«Polea en agujero 4, asiento posición 2, agarre neutro»*).
    - Se guardan automáticamente y aparecen en cada sesión para no tener que recordar las posiciones.
 

@@ -1697,3 +1697,132 @@ body {
   line-height: 1.4;
   margin: 0;
 }
+
+/* ==========================================================================
+   CATÁLOGO / BASE DE DATOS DE EJERCICIOS Y VÍDEOS
+   ========================================================================== */
+.db-stats-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.db-stat-pill {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.db-stat-pill strong {
+  color: #fff;
+  font-weight: 800;
+}
+
+.db-stat-pill.ok {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.db-stat-pill.ok strong {
+  color: #10b981;
+}
+
+.db-stat-pill.warn {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.db-stat-pill.warn strong {
+  color: #fbbf24;
+}
+
+.db-exercises-list {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: #06080b;
+  display: flex;
+  flex-direction: column;
+}
+
+.db-exercise-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 8px;
+}
+
+.db-exercise-item:last-child {
+  border-bottom: none;
+}
+
+.db-exercise-item:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.db-ex-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.db-ex-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-ex-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.db-ex-group {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.db-ex-status {
+  font-size: 10px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-weight: 700;
+}
+
+.db-ex-status.disponible {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.db-ex-status.rehacer {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.btn-db-video {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-light);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-db-video:hover {
+  background: var(--gold-gradient);
+  color: #000;
+}

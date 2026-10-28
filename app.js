@@ -1417,9 +1417,6 @@
     var iframe = $('videoIframe');
     var notes = $('videoModalNotes');
     var notice = $('videoSourceNotice');
-    var inputManual = $('manualVideoUrlInput');
-    var fileNameLabel = $('videoFileNameLabel');
-    var wrapInput = $('customDriveInputWrap');
     var tabDrive = $('btnTabDrive');
     var tabYt = $('btnTabYoutube');
     var btnDirect = $('btnOpenDriveDirect');
@@ -1436,7 +1433,6 @@
     var youtubeId = (matchBD && matchBD.youtubeId) ? matchBD.youtubeId : (VIDEOS_DEMOSTRACION[exId] || 'eGo4IYlbE5g');
     var esRehacer = matchBD ? (matchBD.estado === 'rehacer') : false;
     var tieneDrive = !!(driveId && !esRehacer);
-    var archivoVideo = matchBD ? (matchBD.archivo || (matchBD.nombre + '.mp4')) : (nombreFinal + '.mp4');
 
     videoActualData.exId = exId;
     videoActualData.nombre = nombreFinal;
@@ -1447,10 +1443,7 @@
 
     if (titulo) titulo.textContent = nombreFinal;
     if (badgeGrupo) badgeGrupo.textContent = grupo;
-    if (fileNameLabel) fileNameLabel.textContent = archivoVideo;
     if (notes) notes.textContent = exIndicaciones ? ('💡 Indicación técnica: ' + exIndicaciones) : '';
-    if (inputManual) inputManual.value = '';
-    if (wrapInput) wrapInput.style.display = 'none';
 
     // Botón de enlace directo a Google Drive
     if (btnDirect) {
@@ -1462,25 +1455,7 @@
       }
     }
 
-    // Comprobar si el usuario guardó un enlace propio
-    var urlGuardada = (estado.videosEjercicios && (estado.videosEjercicios[exId] || (matchBD && estado.videosEjercicios[matchBD.id]))) ?
-      (estado.videosEjercicios[exId] || estado.videosEjercicios[matchBD.id]) : null;
-
-    if (urlGuardada) {
-      if (badgeEstado) {
-        badgeEstado.textContent = '🟢 Vídeo Personal Guardado';
-        badgeEstado.style.background = 'rgba(16, 185, 129, 0.2)';
-        badgeEstado.style.color = '#34d399';
-      }
-      if (tabDrive) { tabDrive.classList.remove('active'); tabDrive.classList.remove('disabled'); }
-      if (tabYt) { tabYt.classList.remove('active'); }
-      if (notice) notice.innerHTML = '⭐ Mostrando tu enlace personal guardado para este ejercicio.';
-      if (iframe) {
-        iframe.src = normalizarUrlVideo(urlGuardada);
-        iframe.style.display = 'block';
-      }
-      videoActualData.fuenteActiva = 'custom';
-    } else if (tieneDrive) {
+    if (tieneDrive) {
       // Grabación oficial de Carlos Graña en Google Drive
       if (badgeEstado) {
         badgeEstado.textContent = '🟢 Grabación Carlos Graña';
@@ -1512,7 +1487,7 @@
         tabDrive.title = 'Carlos Graña tiene este ejercicio catalogado como rehacer en la base de datos oficial';
       }
       if (tabYt) { tabYt.classList.add('active'); }
-      if (notice) notice.innerHTML = '⏳ <strong>Carlos Graña:</strong> Pendiente de nueva grabación oficial (<em>«rehacer»</em>). Mostrando demostración técnica de técnica estricta.';
+      if (notice) notice.innerHTML = '⏳ <strong>Carlos Graña:</strong> Pendiente de nueva grabación oficial (<em>«rehacer»</em>). Mostrando demostración técnica de biomecánica estricta.';
       if (iframe) {
         iframe.src = 'https://www.youtube-nocookie.com/embed/' + youtubeId + '?autoplay=1&rel=0&playsinline=1';
         iframe.style.display = 'block';
@@ -1570,16 +1545,13 @@
       var ex = filtrados[i];
       var esRehacer = ex.estado === 'rehacer';
       var tieneDrive = !!(ex.driveId && !esRehacer);
-      var tieneUrlCustom = !!(estado.videosEjercicios && estado.videosEjercicios[ex.id]);
 
       html += '<div class="db-exercise-item">';
       html += '  <div class="db-ex-info">';
       html += '    <div class="db-ex-name">' + ex.nombre + '</div>';
       html += '    <div class="db-ex-meta">';
       html += '      <span class="db-ex-group">' + ex.grupo + '</span>';
-      if (tieneUrlCustom) {
-        html += '      <span class="db-ex-status disponible">✓ Vídeo Personal</span>';
-      } else if (tieneDrive) {
+      if (tieneDrive) {
         html += '      <span class="db-ex-status disponible">🟢 Vídeo Carlos Graña</span>';
       } else {
         html += '      <span class="db-ex-status rehacer">⏳ Pendiente rehacer</span>';
@@ -2183,33 +2155,6 @@
       videoActualData.fuenteActiva = 'youtube';
     });
 
-    escuchar($('toggleCustomDriveLinkBtn'), 'click', function() {
-      var wrap = $('customDriveInputWrap');
-      if (wrap) wrap.style.display = (wrap.style.display === 'none' || !wrap.style.display) ? 'block' : 'none';
-    });
-
-    escuchar($('saveManualVideoBtn'), 'click', function() {
-      var input = $('manualVideoUrlInput');
-      if (!input || !videoActualData.exId) return;
-      var val = input.value.trim();
-      if (!val) {
-        alert('Por favor pega un enlace de vídeo válido.');
-        return;
-      }
-      estado.videosEjercicios[videoActualData.exId] = val;
-      guardarDatos();
-      var embedUrl = normalizarUrlVideo(val);
-      var iframe = $('videoIframe');
-      var notice = $('videoSourceNotice');
-      if (iframe) {
-        iframe.src = embedUrl;
-        iframe.style.display = 'block';
-      }
-      if (notice) notice.innerHTML = '⭐ Mostrando tu enlace personal guardado para este ejercicio.';
-      var wrap = $('customDriveInputWrap');
-      if (wrap) wrap.style.display = 'none';
-    });
-
     // Calculadoras
     escuchar($('calcTargetWeight'), 'input', actualizarCalculadoraDiscos);
     escuchar($('calcBarWeight'), 'change', actualizarCalculadoraDiscos);
@@ -2248,27 +2193,6 @@
     escuchar($('dbGroupFilter'), 'change', function(e) {
       var txt = $('dbSearchInput') ? $('dbSearchInput').value : '';
       renderizarCatalogoBD(txt, e.target.value);
-    });
-
-    escuchar($('saveManualVideoPendingBtn'), 'click', function() {
-      var input = $('manualVideoUrlInputPending');
-      if (!input || !ejercicioVideoActualId) return;
-      var val = input.value.trim();
-      if (!val) {
-        alert('Por favor pega un enlace de vídeo válido.');
-        return;
-      }
-      estado.videosEjercicios[ejercicioVideoActualId] = val;
-      guardarDatos();
-      var embedUrl = normalizarUrlVideo(val);
-      var iframe = $('videoIframe');
-      var pending = $('videoPendingBox');
-      if (iframe) {
-        iframe.src = embedUrl;
-        iframe.style.display = 'block';
-      }
-      if (pending) pending.style.display = 'none';
-      renderizarCatalogoBD();
     });
 
     // Copia de seguridad

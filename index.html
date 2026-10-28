@@ -396,6 +396,14 @@
           </label>
 
           <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div>
+              <span style="display: block; font-weight: 700;">⌨️ Teclado táctil de gimnasio</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Botones grandes (+/-) sin abrir el teclado del teléfono</span>
+            </div>
+            <input type="checkbox" id="settingGymKeypad" checked style="width: 18px; height: 18px; accent-color: var(--gold-primary);">
+          </label>
+
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
             <span>⏱️ Tiempo de descanso predeterminado</span>
             <select id="settingDefaultRest" style="background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 4px 8px; border-radius: 4px;">
               <option value="60">60 segundos (1 minuto)</option>
@@ -618,20 +626,109 @@
     </div>
   </div>
 
+  <!-- ===================================================================
+       TECLADO TÁCTIL DE GIMNASIO (CGM SMART KEYPAD)
+       Ajuste de KG y Repeticiones con botones gigantes táctiles (+/-) sin teclado del móvil
+       =================================================================== -->
+  <div id="gymKeypadSheet" class="gym-keypad-sheet">
+    <div class="gym-keypad-backdrop" id="gymKeypadBackdrop"></div>
+    <div class="gym-keypad-panel">
+      <!-- Barra superior: Ejercicio y selector de serie -->
+      <div class="gym-keypad-header">
+        <div class="gym-keypad-title-wrap">
+          <span id="keypadExName" class="gym-keypad-ex-name">Ejercicio</span>
+          <span id="keypadSetBadge" class="gym-keypad-set-badge">Serie 1</span>
+        </div>
+        <button id="closeKeypadBtn" class="gym-keypad-close" type="button" aria-label="Cerrar teclado">✕</button>
+      </div>
+
+      <!-- Pantalla dual interactiva de valores actuales -->
+      <div class="gym-keypad-display-row">
+        <button id="keypadTabWeight" class="keypad-val-tab active" type="button">
+          <span class="keypad-tab-label">PESO</span>
+          <span class="keypad-tab-value"><strong id="keypadDisplayWeight">0</strong> <small>kg</small></span>
+        </button>
+
+        <button id="keypadTabReps" class="keypad-val-tab" type="button">
+          <span class="keypad-tab-label">REPETICIONES</span>
+          <span class="keypad-tab-value"><strong id="keypadDisplayReps">0</strong> <small>reps</small></span>
+        </button>
+
+        <button id="keypadCopyPrevBtn" class="keypad-copy-btn" type="button" title="Copiar marca de la sesión anterior">
+          <span>📋</span>
+          <small id="keypadPrevHint">Copiar</small>
+        </button>
+      </div>
+
+      <!-- Fila de modificadores rápidos inteligentes (Steppers +/-) -->
+      <div id="keypadWeightSteppers" class="keypad-steppers-row">
+        <button class="keypad-step-btn neg" data-delta="-10">-10</button>
+        <button class="keypad-step-btn neg" data-delta="-5">-5</button>
+        <button class="keypad-step-btn neg" data-delta="-2.5">-2.5</button>
+        <button class="keypad-step-btn neg" data-delta="-1">-1</button>
+        <button class="keypad-step-btn pos" data-delta="+1">+1</button>
+        <button class="keypad-step-btn pos" data-delta="+2.5">+2.5</button>
+        <button class="keypad-step-btn pos" data-delta="+5">+5</button>
+        <button class="keypad-step-btn pos" data-delta="+10">+10</button>
+      </div>
+
+      <div id="keypadRepsSteppers" class="keypad-steppers-row" style="display: none;">
+        <button class="keypad-step-btn neg" data-rep-delta="-2">-2</button>
+        <button class="keypad-step-btn neg" data-rep-delta="-1">-1</button>
+        <button class="keypad-step-btn pos" data-rep-delta="+1">+1</button>
+        <button class="keypad-step-btn pos" data-rep-delta="+2">+2</button>
+        <button class="keypad-preset-rep" data-rep-set="6">6</button>
+        <button class="keypad-preset-rep" data-rep-set="8">8</button>
+        <button class="keypad-preset-rep" data-rep-set="10">10</button>
+        <button class="keypad-preset-rep" data-rep-set="12">12</button>
+        <button class="keypad-preset-rep" data-rep-set="15">15</button>
+      </div>
+
+      <!-- Teclado Numérico Táctil Ergonómico -->
+      <div class="gym-numpad-grid">
+        <button class="numpad-key" data-key="1">1</button>
+        <button class="numpad-key" data-key="2">2</button>
+        <button class="numpad-key" data-key="3">3</button>
+        <button class="numpad-key" data-key="4">4</button>
+        <button class="numpad-key" data-key="5">5</button>
+        <button class="numpad-key" data-key="6">6</button>
+        <button class="numpad-key" data-key="7">7</button>
+        <button class="numpad-key" data-key="8">8</button>
+        <button class="numpad-key" data-key="9">9</button>
+        <button class="numpad-key" data-key=".">.</button>
+        <button class="numpad-key" data-key="0">0</button>
+        <button class="numpad-key del" data-key="backspace">⌫</button>
+      </div>
+
+      <!-- Barra de acciones de navegación rápida -->
+      <div class="gym-keypad-actions">
+        <button id="keypadNativeKeyboardBtn" class="keypad-action-ghost" type="button" title="Abrir teclado normal del móvil">
+          ⌨️ Móvil
+        </button>
+        <button id="keypadNextFieldBtn" class="keypad-action-next" type="button">
+          Siguiente ➔
+        </button>
+        <button id="keypadDoneSetBtn" class="keypad-action-done" type="button">
+          ✓ Marcar Hecha
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts con control de versión y auto-limpieza -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v8') {
+          if (names[i] !== 'cgm-rendimiento-v9') {
             caches.delete(names[i]);
           }
         }
       });
     }
   </script>
-  <script src="ejercicios-db.js?v=8"></script>
-  <script src="routine-data.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="ejercicios-db.js?v=9"></script>
+  <script src="routine-data.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

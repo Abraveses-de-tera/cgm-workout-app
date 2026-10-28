@@ -1890,3 +1890,364 @@ body {
   background: var(--gold-gradient);
   color: #000;
 }
+
+/* ==========================================================================
+   TECLADO TÁCTIL DE GIMNASIO (CGM SMART KEYPAD) Y ATALHOS DE 1 TOQUE
+   ========================================================================== */
+.previous-hint.copyable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+  color: var(--gold-light);
+}
+
+.previous-hint.copyable:hover, .previous-hint.copyable:active {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: var(--gold-primary);
+  color: #fff;
+  transform: scale(1.03);
+}
+
+.set-input.active-gym-focus {
+  border-color: var(--gold-primary) !important;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.5) !important;
+  background: rgba(212, 175, 55, 0.12) !important;
+}
+
+.gym-keypad-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  pointer-events: none;
+}
+
+.gym-keypad-sheet.open {
+  display: block;
+  pointer-events: auto;
+}
+
+.gym-keypad-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+.gym-keypad-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0d0f15;
+  border-top: 2px solid var(--gold-primary);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -8px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(212, 175, 55, 0.25);
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px;
+  max-width: 520px;
+  margin: 0 auto;
+  animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gym-keypad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.gym-keypad-title-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gym-keypad-ex-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gym-keypad-set-badge {
+  font-size: 11px;
+  color: var(--gold-light);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.gym-keypad-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.gym-keypad-close:hover, .gym-keypad-close:active {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.gym-keypad-display-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.keypad-val-tab {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.keypad-val-tab.active {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.35);
+}
+
+.keypad-tab-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.keypad-val-tab.active .keypad-tab-label {
+  color: var(--gold-light);
+}
+
+.keypad-tab-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.keypad-tab-value small {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.keypad-copy-btn {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--gold-light);
+  min-width: 68px;
+  transition: all 0.2s ease;
+}
+
+.keypad-copy-btn:hover, .keypad-copy-btn:active {
+  background: var(--gold-gradient);
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.keypad-copy-btn span {
+  font-size: 16px;
+}
+
+.keypad-copy-btn small {
+  font-size: 9px;
+  font-weight: 800;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.keypad-steppers-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.keypad-steppers-row::-webkit-scrollbar {
+  display: none;
+}
+
+.keypad-step-btn {
+  flex: 1;
+  min-width: 44px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.keypad-step-btn.neg {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.keypad-step-btn.neg:active {
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(0.95);
+}
+
+.keypad-step-btn.pos {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+.keypad-step-btn.pos:active {
+  background: rgba(16, 185, 129, 0.3);
+  transform: scale(0.95);
+}
+
+.keypad-preset-rep {
+  flex: 1;
+  min-width: 42px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.keypad-preset-rep:active {
+  background: var(--gold-gradient);
+  color: #000;
+}
+
+.gym-numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.numpad-key {
+  height: 46px;
+  background: #141720;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.numpad-key:active {
+  background: rgba(212, 175, 55, 0.3);
+  border-color: var(--gold-primary);
+  transform: scale(0.97);
+}
+
+.numpad-key.del {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.gym-keypad-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.keypad-action-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 10px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.keypad-action-next {
+  flex: 1;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-light);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.keypad-action-next:active {
+  background: rgba(212, 175, 55, 0.3);
+  transform: scale(0.98);
+}
+
+.keypad-action-done {
+  flex: 1.2;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.15s ease;
+}
+
+.keypad-action-done:active {
+  transform: scale(0.98);
+}

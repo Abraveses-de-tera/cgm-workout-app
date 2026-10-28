@@ -340,7 +340,8 @@
     sonidoActivado: true,
     vibracionActivada: true,
     segundosDescanso: 90,
-    pantallaEncendida: true
+    pantallaEncendida: true,
+    tecladoTactilGym: true
   };
 
   var estado = {
@@ -360,6 +361,13 @@
     intervaloEntrenamiento: null,
     bloqueoPantalla: null,
     peticionInstalacionPWA: null
+  };
+
+  var keypadActivo = {
+    exIdx: null,
+    sIdx: null,
+    campo: 'peso',
+    buffer: ''
   };
 
   function $(id) {
@@ -507,11 +515,13 @@
 
     var checkSonido = $('settingSound');
     var checkVibrar = $('settingVibrate');
+    var checkKeypad = $('settingGymKeypad');
     var selectDescanso = $('settingDefaultRest');
     var btnSonido = $('soundToggleBtn');
 
     if (checkSonido) checkSonido.checked = estado.ajustes.sonidoActivado;
     if (checkVibrar) checkVibrar.checked = estado.ajustes.vibracionActivada;
+    if (checkKeypad) checkKeypad.checked = estado.ajustes.tecladoTactilGym !== false;
     if (selectDescanso) selectDescanso.value = String(estado.ajustes.segundosDescanso);
     if (btnSonido) {
       btnSonido.classList.toggle('active', estado.ajustes.sonidoActivado);
@@ -815,15 +825,26 @@
           }
         }
 
+        var esCopiable = (s.pesoAnterior !== null && s.repeticionesAnteriores !== null);
+        var copyClass = esCopiable ? 'previous-hint copyable' : 'previous-hint';
+        var copyTitle = esCopiable ? ' title="Toca para copiar peso y repeticiones de la sesión anterior (1 toque)"' : '';
+        var copyBadge = esCopiable ? ' 📋' : '';
+
+        var usarTecladoGym = !!(estado.ajustes && estado.ajustes.tecladoTactilGym !== false);
+        var inputAttr = usarTecladoGym ? ' readonly inputmode="none"' : ' type="number" step="0.5"';
+        var repsAttr = usarTecladoGym ? ' readonly inputmode="none"' : ' type="number" step="1"';
+        var isWeightFocused = (keypadActivo.exIdx === exIdx && keypadActivo.sIdx === sIdx && keypadActivo.campo === 'peso');
+        var isRepsFocused = (keypadActivo.exIdx === exIdx && keypadActivo.sIdx === sIdx && keypadActivo.campo === 'reps');
+
         html += '<div class="set-row' + (s.completada ? ' done' : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">';
         html += '  <div class="set-index">' + s.numero + '</div>';
         html += '  <div class="set-badge-col">';
         html += '    <span class="set-tag ' + s.tipo + '">' + s.insignia + '</span>';
-        html += '    <span class="previous-hint">Ant: ' + textoAnterior + '</span>';
+        html += '    <span class="' + copyClass + '"' + copyTitle + ' data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">Ant: ' + textoAnterior + copyBadge + '</span>';
         if (onermEstHtml) html += '    ' + onermEstHtml;
         html += '  </div>';
-        html += '  <div class="set-input-box"><input type="number" step="0.5" class="set-input weight-input" placeholder="' + (s.pesoAnterior || '0') + '" value="' + (s.peso !== undefined ? s.peso : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
-        html += '  <div class="set-input-box"><input type="number" step="1" class="set-input reps-input" placeholder="' + (s.repeticionesObjetivo || '12') + '" value="' + (s.repeticiones !== undefined ? s.repeticiones : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
+        html += '  <div class="set-input-box"><input type="text" class="set-input weight-input' + (isWeightFocused ? ' active-gym-focus' : '') + '"' + inputAttr + ' placeholder="' + (s.pesoAnterior || '0') + '" value="' + (s.peso !== undefined ? s.peso : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
+        html += '  <div class="set-input-box"><input type="text" class="set-input reps-input' + (isRepsFocused ? ' active-gym-focus' : '') + '"' + repsAttr + ' placeholder="' + (s.repeticionesObjetivo || '12') + '" value="' + (s.repeticiones !== undefined ? s.repeticiones : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '"></div>';
         html += '  <div style="display:flex;justify-content:center"><button class="check-btn toggle-set-btn" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">' + (s.completada ? '✓' : '○') + '</button></div>';
         html += '</div>';
       }
@@ -862,12 +883,33 @@
     var contenedor = $('exercisesContainer');
     if (!contenedor) return;
 
+    // Atajo táctil: Copiar marca anterior con 1 solo toque
+    var copyHints = contenedor.querySelectorAll('.previous-hint.copyable');
+    for (var ch = 0; ch < copyHints.length; ch++) {
+      (function(hint) {
+        hint.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var exIdx = parseInt(hint.dataset.exIdx, 10);
+          var sIdx = parseInt(hint.dataset.setIdx, 10);
+          copiarMarcaAnteriorSerie(exIdx, sIdx);
+        });
+      })(copyHints[ch]);
+    }
+
     var inputsPeso = contenedor.querySelectorAll('.weight-input');
     for (var i = 0; i < inputsPeso.length; i++) {
       (function(input) {
+        var exIdx = parseInt(input.dataset.exIdx, 10);
+        var sIdx = parseInt(input.dataset.setIdx, 10);
+
+        if (estado.ajustes.tecladoTactilGym !== false) {
+          input.addEventListener('click', function(e) {
+            e.preventDefault();
+            abrirTecladoGym(exIdx, sIdx, 'peso');
+          });
+        }
+
         input.addEventListener('input', function() {
-          var exIdx = parseInt(input.dataset.exIdx, 10);
-          var sIdx = parseInt(input.dataset.setIdx, 10);
           if (estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios[exIdx] && estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) {
             estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx].peso = input.value;
             guardarDatos();
@@ -880,17 +922,25 @@
     }
 
     var inputsReps = contenedor.querySelectorAll('.reps-input');
-    for (var i = 0; i < inputsReps.length; i++) {
+    for (var j = 0; j < inputsReps.length; j++) {
       (function(input) {
+        var exIdx = parseInt(input.dataset.exIdx, 10);
+        var sIdx = parseInt(input.dataset.setIdx, 10);
+
+        if (estado.ajustes.tecladoTactilGym !== false) {
+          input.addEventListener('click', function(e) {
+            e.preventDefault();
+            abrirTecladoGym(exIdx, sIdx, 'reps');
+          });
+        }
+
         input.addEventListener('input', function() {
-          var exIdx = parseInt(input.dataset.exIdx, 10);
-          var sIdx = parseInt(input.dataset.setIdx, 10);
           if (estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios[exIdx] && estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) {
             estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx].repeticiones = input.value;
             guardarDatos();
           }
         });
-      })(inputsReps[i]);
+      })(inputsReps[j]);
     }
 
     var botonesCheck = contenedor.querySelectorAll('.toggle-set-btn');
@@ -1005,6 +1055,316 @@
           }
         });
       })(botonesEditarNota[b]);
+    }
+  }
+
+  // ===========================================================================
+  // CONTROLADOR DEL TECLADO TÁCTIL DE GIMNASIO (CGM SMART KEYPAD)
+  // Permite ingresar peso y reps con 1 toque o steppers sin abrir teclado del móvil
+  // ===========================================================================
+
+  function copiarMarcaAnteriorSerie(exIdx, sIdx) {
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[exIdx] || !estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) return;
+    var s = estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx];
+    if (s.pesoAnterior !== null && s.repeticionesAnteriores !== null) {
+      s.peso = String(s.pesoAnterior);
+      s.repeticiones = String(s.repeticionesAnteriores);
+      keypadActivo.buffer = '';
+      guardarDatos();
+      dibujarEjerciciosActivos();
+      vibrar([40, 20, 40]);
+      audio.sonar(587.33, 'sine', 0.1);
+      if (keypadActivo.exIdx === exIdx && keypadActivo.sIdx === sIdx) {
+        actualizarPantallaTeclado();
+      }
+    }
+  }
+
+  function abrirTecladoGym(exIdx, sIdx, campo) {
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[exIdx] || !estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) return;
+    var ex = estado.entrenamientoActivo.ejercicios[exIdx];
+    var s = ex.series[sIdx];
+
+    keypadActivo.exIdx = exIdx;
+    keypadActivo.sIdx = sIdx;
+    keypadActivo.buffer = '';
+
+    var sheet = $('gymKeypadSheet');
+    if (sheet) sheet.classList.add('open');
+
+    var nameEl = $('keypadExName');
+    if (nameEl) nameEl.textContent = ex.nombre;
+
+    var badgeEl = $('keypadSetBadge');
+    if (badgeEl) badgeEl.textContent = 'Serie ' + s.numero + (s.insignia ? ' (' + s.insignia + ')' : '');
+
+    var prevEl = $('keypadPrevHint');
+    if (prevEl) {
+      if (s.pesoAnterior !== null && s.repeticionesAnteriores !== null) {
+        prevEl.textContent = 'Ant: ' + s.pesoAnterior + 'k × ' + s.repeticionesAnteriores;
+      } else {
+        prevEl.textContent = 'Copiar';
+      }
+    }
+
+    seleccionarCampoTeclado(campo || 'peso');
+
+    // Scroll de la fila hacia una posición visible por encima de la barra inferior
+    var setRow = document.querySelector('.set-row[data-ex-idx="' + exIdx + '"][data-set-idx="' + sIdx + '"]');
+    if (setRow && typeof setRow.scrollIntoView === 'function') {
+      try {
+        setRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (err) {}
+    }
+  }
+
+  function cerrarTecladoGym() {
+    confirmarBufferTeclado();
+    keypadActivo.exIdx = null;
+    keypadActivo.sIdx = null;
+    keypadActivo.buffer = '';
+
+    var sheet = $('gymKeypadSheet');
+    if (sheet) sheet.classList.remove('open');
+    removerResalteInputs();
+  }
+
+  function confirmarBufferTeclado() {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx] || !estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx]) return;
+    var s = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx];
+
+    if (keypadActivo.buffer !== '') {
+      if (keypadActivo.campo === 'peso') {
+        s.peso = keypadActivo.buffer;
+      } else {
+        s.repeticiones = keypadActivo.buffer;
+      }
+      keypadActivo.buffer = '';
+      guardarDatos();
+    }
+  }
+
+  function seleccionarCampoTeclado(campo) {
+    confirmarBufferTeclado();
+    keypadActivo.campo = campo;
+    keypadActivo.buffer = '';
+
+    var tabWeight = $('keypadTabWeight');
+    var tabReps = $('keypadTabReps');
+    var steppersW = $('keypadWeightSteppers');
+    var steppersR = $('keypadRepsSteppers');
+
+    if (campo === 'peso') {
+      if (tabWeight) tabWeight.classList.add('active');
+      if (tabReps) tabReps.classList.remove('active');
+      if (steppersW) steppersW.style.display = 'flex';
+      if (steppersR) steppersR.style.display = 'none';
+    } else {
+      if (tabWeight) tabWeight.classList.remove('active');
+      if (tabReps) tabReps.classList.add('active');
+      if (steppersW) steppersW.style.display = 'none';
+      if (steppersR) steppersR.style.display = 'flex';
+    }
+
+    actualizarPantallaTeclado();
+    resaltarInputActivo();
+  }
+
+  function actualizarPantallaTeclado() {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx] || !estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx]) return;
+    var s = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx];
+
+    var pesoAMostrar = '';
+    if (keypadActivo.campo === 'peso' && keypadActivo.buffer !== '') {
+      pesoAMostrar = keypadActivo.buffer;
+    } else if (s.peso !== undefined && s.peso !== '') {
+      pesoAMostrar = s.peso;
+    } else if (s.pesoAnterior !== null && s.pesoAnterior !== undefined) {
+      pesoAMostrar = s.pesoAnterior;
+    } else {
+      pesoAMostrar = '0';
+    }
+
+    var repsAMostrar = '';
+    if (keypadActivo.campo === 'reps' && keypadActivo.buffer !== '') {
+      repsAMostrar = keypadActivo.buffer;
+    } else if (s.repeticiones !== undefined && s.repeticiones !== '') {
+      repsAMostrar = s.repeticiones;
+    } else if (s.repeticionesObjetivo) {
+      repsAMostrar = s.repeticionesObjetivo;
+    } else if (s.repeticionesAnteriores !== null && s.repeticionesAnteriores !== undefined) {
+      repsAMostrar = s.repeticionesAnteriores;
+    } else {
+      repsAMostrar = '10';
+    }
+
+    var dispW = $('keypadDisplayWeight');
+    if (dispW) dispW.textContent = String(pesoAMostrar);
+
+    var dispR = $('keypadDisplayReps');
+    if (dispR) dispR.textContent = String(repsAMostrar);
+
+    // Actualizar visualmente los inputs en la tabla
+    var wInput = document.querySelector('.weight-input[data-ex-idx="' + keypadActivo.exIdx + '"][data-set-idx="' + keypadActivo.sIdx + '"]');
+    if (wInput) wInput.value = (s.peso !== undefined && s.peso !== null) ? s.peso : '';
+
+    var rInput = document.querySelector('.reps-input[data-ex-idx="' + keypadActivo.exIdx + '"][data-set-idx="' + keypadActivo.sIdx + '"]');
+    if (rInput) rInput.value = (s.repeticiones !== undefined && s.repeticiones !== null) ? s.repeticiones : '';
+  }
+
+  function aplicarDeltaPeso(delta) {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    confirmarBufferTeclado();
+    var s = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx];
+
+    var base = parseFloat(s.peso);
+    if (isNaN(base)) {
+      base = parseFloat(s.pesoAnterior);
+      if (isNaN(base)) base = 0;
+    }
+
+    var nuevo = Math.max(0, Math.round((base + delta) * 10) / 10);
+    s.peso = String(nuevo);
+    guardarDatos();
+    actualizarPantallaTeclado();
+    vibrar([25]);
+  }
+
+  function aplicarDeltaReps(delta) {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    confirmarBufferTeclado();
+    var s = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx];
+
+    var base = parseInt(s.repeticiones, 10);
+    if (isNaN(base)) {
+      base = parseInt(s.repeticionesObjetivo, 10) || parseInt(s.repeticionesAnteriores, 10) || 10;
+    }
+
+    var nuevo = Math.max(1, base + delta);
+    s.repeticiones = String(nuevo);
+    guardarDatos();
+    actualizarPantallaTeclado();
+    vibrar([25]);
+  }
+
+  function aplicarPresetReps(val) {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    confirmarBufferTeclado();
+    var s = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx];
+    s.repeticiones = String(val);
+    guardarDatos();
+    actualizarPantallaTeclado();
+    vibrar([30]);
+  }
+
+  function presionarTeclaNumpad(tecla) {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    var s = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx];
+
+    if (tecla === 'backspace') {
+      if (keypadActivo.buffer.length > 0) {
+        keypadActivo.buffer = keypadActivo.buffer.slice(0, -1);
+      } else {
+        if (keypadActivo.campo === 'peso') s.peso = '';
+        else s.repeticiones = '';
+      }
+    } else if (tecla === '.') {
+      if (keypadActivo.campo !== 'peso') return;
+      if (keypadActivo.buffer === '') {
+        keypadActivo.buffer = '0.';
+      } else if (keypadActivo.buffer.indexOf('.') === -1) {
+        keypadActivo.buffer += '.';
+      }
+    } else {
+      if (keypadActivo.buffer === '' || keypadActivo.buffer === '0') {
+        keypadActivo.buffer = String(tecla);
+      } else if (keypadActivo.buffer.length < 5) {
+        keypadActivo.buffer += String(tecla);
+      }
+    }
+
+    if (keypadActivo.buffer !== '') {
+      if (keypadActivo.campo === 'peso') s.peso = keypadActivo.buffer;
+      else s.repeticiones = keypadActivo.buffer;
+    }
+    guardarDatos();
+    actualizarPantallaTeclado();
+    vibrar([15]);
+  }
+
+  function avanzarSiguienteCampoTeclado() {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    confirmarBufferTeclado();
+
+    if (keypadActivo.campo === 'peso') {
+      seleccionarCampoTeclado('reps');
+      return;
+    }
+
+    var ex = estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx];
+    if (keypadActivo.sIdx + 1 < ex.series.length) {
+      abrirTecladoGym(keypadActivo.exIdx, keypadActivo.sIdx + 1, 'peso');
+    } else if (keypadActivo.exIdx + 1 < estado.entrenamientoActivo.ejercicios.length) {
+      abrirTecladoGym(keypadActivo.exIdx + 1, 0, 'peso');
+    } else {
+      cerrarTecladoGym();
+    }
+  }
+
+  function marcarSerieHechaDesdeTeclado() {
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    confirmarBufferTeclado();
+    var exIdx = keypadActivo.exIdx;
+    var sIdx = keypadActivo.sIdx;
+    var s = estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx];
+
+    if (!s.completada) {
+      alternarSerieCompletada(exIdx, sIdx);
+    }
+
+    var ex = estado.entrenamientoActivo.ejercicios[exIdx];
+    if (sIdx + 1 < ex.series.length) {
+      abrirTecladoGym(exIdx, sIdx + 1, 'peso');
+    } else if (exIdx + 1 < estado.entrenamientoActivo.ejercicios.length) {
+      abrirTecladoGym(exIdx + 1, 0, 'peso');
+    } else {
+      cerrarTecladoGym();
+    }
+  }
+
+  function activarTecladoNativo() {
+    var exIdx = keypadActivo.exIdx;
+    var sIdx = keypadActivo.sIdx;
+    var campo = keypadActivo.campo;
+    cerrarTecladoGym();
+
+    if (exIdx === null || sIdx === null) return;
+    var selector = campo === 'peso' ? '.weight-input' : '.reps-input';
+    var input = document.querySelector(selector + '[data-ex-idx="' + exIdx + '"][data-set-idx="' + sIdx + '"]');
+    if (input) {
+      input.removeAttribute('readonly');
+      input.removeAttribute('inputmode');
+      input.type = 'number';
+      input.focus();
+    }
+  }
+
+  function resaltarInputActivo() {
+    removerResalteInputs();
+    if (keypadActivo.exIdx === null || keypadActivo.sIdx === null) return;
+    var selector = keypadActivo.campo === 'peso' ? '.weight-input' : '.reps-input';
+    var input = document.querySelector(selector + '[data-ex-idx="' + keypadActivo.exIdx + '"][data-set-idx="' + keypadActivo.sIdx + '"]');
+    if (input) {
+      input.classList.add('active-gym-focus');
+    }
+  }
+
+  function removerResalteInputs() {
+    var focused = document.querySelectorAll('.active-gym-focus');
+    for (var f = 0; f < focused.length; f++) {
+      focused[f].classList.remove('active-gym-focus');
     }
   }
 
@@ -2183,6 +2543,80 @@
       estado.ajustes.segundosDescanso = parseInt(e.target.value, 10);
       guardarDatos();
     });
+
+    escuchar($('settingGymKeypad'), 'change', function(e) {
+      estado.ajustes.tecladoTactilGym = e.target.checked;
+      guardarDatos();
+      dibujarEjerciciosActivos();
+    });
+
+    // =========================================================================
+    // EVENTOS DEL TECLADO TÁCTIL DE GIMNASIO (SMART KEYPAD)
+    // =========================================================================
+    escuchar($('closeKeypadBtn'), 'click', cerrarTecladoGym);
+    escuchar($('gymKeypadBackdrop'), 'click', cerrarTecladoGym);
+
+    escuchar($('keypadTabWeight'), 'click', function() {
+      seleccionarCampoTeclado('peso');
+    });
+
+    escuchar($('keypadTabReps'), 'click', function() {
+      seleccionarCampoTeclado('reps');
+    });
+
+    escuchar($('keypadCopyPrevBtn'), 'click', function() {
+      if (keypadActivo.exIdx !== null && keypadActivo.sIdx !== null) {
+        copiarMarcaAnteriorSerie(keypadActivo.exIdx, keypadActivo.sIdx);
+      }
+    });
+
+    escuchar($('keypadNextFieldBtn'), 'click', avanzarSiguienteCampoTeclado);
+    escuchar($('keypadDoneSetBtn'), 'click', marcarSerieHechaDesdeTeclado);
+    escuchar($('keypadNativeKeyboardBtn'), 'click', activarTecladoNativo);
+
+    // Steppers de peso (-10, -5, -2.5, -1, +1, +2.5, +5, +10)
+    var weightSteps = document.querySelectorAll('#keypadWeightSteppers .keypad-step-btn');
+    for (var ws = 0; ws < weightSteps.length; ws++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var delta = parseFloat(btn.dataset.delta);
+          if (!isNaN(delta)) aplicarDeltaPeso(delta);
+        });
+      })(weightSteps[ws]);
+    }
+
+    // Steppers de repeticiones (+/-)
+    var repsSteps = document.querySelectorAll('#keypadRepsSteppers .keypad-step-btn');
+    for (var rs = 0; rs < repsSteps.length; rs++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var delta = parseInt(btn.dataset.repDelta, 10);
+          if (!isNaN(delta)) aplicarDeltaReps(delta);
+        });
+      })(repsSteps[rs]);
+    }
+
+    // Presets de repeticiones (6, 8, 10, 12, 15)
+    var repsPresets = document.querySelectorAll('#keypadRepsSteppers .keypad-preset-rep');
+    for (var rp = 0; rp < repsPresets.length; rp++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var val = parseInt(btn.dataset.repSet, 10);
+          if (!isNaN(val)) aplicarPresetReps(val);
+        });
+      })(repsPresets[rp]);
+    }
+
+    // Teclas del numpad (1 a 9, 0, ., ⌫)
+    var numpadKeys = document.querySelectorAll('.gym-numpad-grid .numpad-key');
+    for (var nk = 0; nk < numpadKeys.length; nk++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var k = btn.dataset.key;
+          if (k) presionarTeclaNumpad(k);
+        });
+      })(numpadKeys[nk]);
+    }
 
     // Catálogo Maestro de Ejercicios
     escuchar($('dbSearchInput'), 'input', function(e) {

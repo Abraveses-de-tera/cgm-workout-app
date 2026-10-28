@@ -581,53 +581,56 @@
         <div>
           <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 2px;">
             <span id="videoModalGroupBadge" class="video-modal-badge">Espalda</span>
-            <span id="videoModalStatusBadge" class="badge-gold">🟢 Vídeo en Drive</span>
+            <span id="videoModalStatusBadge" class="badge-gold">🟢 Vídeo Listo</span>
           </div>
           <h3 id="videoModalExerciseName" class="video-modal-title">Cargando ejercicio...</h3>
         </div>
         <button id="closeVideoModalBtn" class="video-modal-close" aria-label="Cerrar vídeo">✕</button>
       </div>
 
-      <!-- Reproductor incrustado de Google Drive / YouTube -->
-      <div class="video-player-wrapper">
-        <iframe id="videoIframe" class="video-iframe" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
-        
-        <!-- Estado cuando está pendiente de rehacer según el Excel de Carlos Graña -->
-        <div id="videoPendingBox" class="video-fallback-box" style="display: none;">
-          <span style="font-size: 36px; margin-bottom: 8px;">⏳</span>
-          <strong style="color: #fbbf24; font-size: 15px;">Vídeo Pendiente de Grabación / Rehacer</strong>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 12px 0; max-width: 380px; line-height: 1.4;">
-            Carlos Graña tiene catalogado este ejercicio como <em>«rehacer»</em> en la base de datos oficial. En cuanto suba la nueva grabación estará disponible aquí automáticamente.
-          </p>
-          <div style="font-size: 11px; color: var(--gold-light); margin-bottom: 8px;">
-            ¿Tienes un enlace temporal de este ejercicio? Puedes pegarlo aquí:
-          </div>
-          <div style="display: flex; gap: 6px; width: 100%; max-width: 380px;">
-            <input type="url" id="manualVideoUrlInputPending" placeholder="https://drive.google.com/file/d/..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 11px; outline: none;">
-            <button id="saveManualVideoPendingBtn" class="btn-primary" style="padding: 8px 12px; font-size: 11px; white-space: nowrap;">Guardar</button>
-          </div>
-        </div>
-
-        <!-- Estado cuando el vídeo está disponible en el Excel pero aún no se le ha pegado el ID de Drive -->
-        <div id="videoFallbackBox" class="video-fallback-box" style="display: none;">
-          <span style="font-size: 36px; margin-bottom: 8px;">📹</span>
-          <strong id="videoFallbackTitle" style="color: var(--gold-light); font-size: 15px;">Vídeo Catalogado en Google Drive</strong>
-          <p id="videoFallbackSubtitle" style="font-size: 12px; color: var(--text-muted); margin: 6px 0 12px 0; max-width: 380px; line-height: 1.4;">
-            Archivo asociado en Drive: <strong id="videoFileNameLabel" style="color: #fff;">dominadas.mp4</strong>
-          </p>
-          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; max-width: 380px;">
-            Pega aquí el enlace de Google Drive o enlace web para reproducirlo directamente:
-          </p>
-          <div style="display: flex; gap: 6px; width: 100%; max-width: 380px;">
-            <input type="url" id="manualVideoUrlInput" placeholder="https://drive.google.com/file/d/..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 10px; border-radius: 4px; font-size: 11px; outline: none;">
-            <button id="saveManualVideoBtn" class="btn-primary" style="padding: 8px 12px; font-size: 11px; white-space: nowrap;">Vincular</button>
-          </div>
-        </div>
+      <!-- Barra selectora de fuente de vídeo (Drive oficial vs Guía YouTube) -->
+      <div class="video-source-switcher">
+        <button id="btnTabDrive" class="video-source-tab active" type="button">
+          🎬 Vídeo Carlos Graña
+        </button>
+        <button id="btnTabYoutube" class="video-source-tab" type="button">
+          📺 Guía Demostrativa
+        </button>
+        <a id="btnOpenDriveDirect" class="video-direct-link-btn" href="#" target="_blank" rel="noopener noreferrer" style="display: none;">
+          ↗️ Abrir en Drive
+        </a>
       </div>
 
+      <!-- Reproductor incrustado (Se reproduce de inmediato) -->
+      <div class="video-player-wrapper">
+        <iframe id="videoIframe" class="video-iframe" src="" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+      </div>
+
+      <!-- Barra de opciones de vídeo y notas de Carlos Graña -->
       <div class="video-modal-footer">
+        <div id="videoSourceNotice" style="font-size: 11px; margin-bottom: 8px; color: var(--gold-light); line-height: 1.4;"></div>
         <p id="videoModalNotes" class="video-modal-notes"></p>
-        <button id="closeVideoModalFooterBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">
+
+        <!-- Opción para conectar vídeo propio de Google Drive -->
+        <div style="margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+            <span id="videoSourceInfo" style="font-size: 11px; color: var(--text-muted);">
+              Archivo en Drive: <strong id="videoFileNameLabel" style="color: var(--gold-light);">dominadas.mp4</strong>
+            </span>
+            <button id="toggleCustomDriveLinkBtn" class="btn-ghost-sm" style="font-size: 10px; padding: 3px 8px; cursor: pointer;">
+              🔗 Cambiar por enlace propio
+            </button>
+          </div>
+
+          <div id="customDriveInputWrap" style="display: none; margin-top: 8px;">
+            <div style="display: flex; gap: 6px;">
+              <input type="url" id="manualVideoUrlInput" placeholder="Pega enlace de Google Drive o YouTube" style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-gold); color: #fff; padding: 7px 10px; border-radius: 4px; font-size: 11px; outline: none;">
+              <button id="saveManualVideoBtn" class="btn-primary" style="padding: 7px 12px; font-size: 11px; white-space: nowrap;">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <button id="closeVideoModalFooterBtn" class="btn-secondary" style="width: 100%; margin-top: 12px;">
           ✓ Entendido, Volver al Entrenamiento
         </button>
       </div>
@@ -639,15 +642,15 @@
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v6') {
+          if (names[i] !== 'cgm-rendimiento-v7') {
             caches.delete(names[i]);
           }
         }
       });
     }
   </script>
-  <script src="ejercicios-db.js?v=6"></script>
-  <script src="routine-data.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="ejercicios-db.js?v=7"></script>
+  <script src="routine-data.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

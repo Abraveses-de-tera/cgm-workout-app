@@ -1239,6 +1239,151 @@
   // VÍDEOS EXPLICATIVOS DE TÉCNICA (GOOGLE DRIVE / YOUTUBE)
   // ===========================================================================
   var ejercicioVideoActualId = null;
+  var videoActualData = {
+    exId: null,
+    nombre: '',
+    matchBD: null,
+    driveId: '',
+    driveUrl: '',
+    youtubeId: '',
+    fuenteActiva: 'drive'
+  };
+
+  // Mapa de demostraciones técnicas activas para reproducción inmediata en la app
+  var VIDEOS_DEMOSTRACION = {
+    // DÍA 1: Espalda y Posterior
+    'd1_e1': 'Jb_T2B5zQ5c', // Pull over en polea
+    'd1_e2': 'eGo4IYlbE5g', // Dominadas
+    'd1_e3': 'G8l_8chR5BE', // Remo con barra
+    'd1_e4': 'CAwf7n6Luuc', // Jalón agarre cerrado
+    'd1_e5': 'G8l_8chR5BE', // Remo Dorian
+    'd1_e6': 'rep-qVOkqgk', // Posterior en máquina
+    'd1_e7': 'G8l_8chR5BE', // Remo al mentón en polea
+
+    // DÍA 2: Pecho y Hombro
+    'd2_e1': '8iPEnn-ltC8', // Press inclinado
+    'd2_e2': 'eozdVDA78K0', // Aperturas
+    'd2_e3': 'LfyQBUKR8SE', // Press declinado
+    'd2_e4': 'eozdVDA78K0', // Cruce de poleas
+    'd2_e5': '3VcKaXpzqRo', // Elevaciones laterales
+    'd2_e6': '2yjwXTZQDDI', // Press militar
+    'd2_e7': '3VcKaXpzqRo', // Elevaciones frontales
+
+    // DÍA 3: Pierna Completa
+    'd3_e1': '1Tq3QdYUuHs', // Femoral tumbado
+    'd3_e2': 'YyvSfVjQeL0', // Extensiones de cuádriceps
+    'd3_e3': '0tn5K9NlCfo', // Sentadilla pendular / hack
+    'd3_e4': 'IZxyjW7MPJQ', // Prensa
+    'd3_e5': 'ELOCsoDSmrg', // Aductor
+    'd3_e6': 'ELOCsoDSmrg', // Femoral sentado
+
+    // DÍA 4: Brazos (Bíceps y Tríceps)
+    'd4_e1': 'ykJmrZ5v0Oo', // Curl de bíceps con mancuernas
+    'd4_e2': '2-LAMcpzODU', // Tríceps en polea con cuerda
+    'd4_e3': 'fIWP-FRFNU0', // Curl de bíceps en banco Scott
+    'd4_e4': '2-LAMcpzODU', // Tríceps tras nuca unilateral
+    'd4_e5': 'zC3nLlEvin4', // Curl martillo
+    'd4_e6': '2z8JmcrW-As', // Fondos
+
+    // IDs del catálogo de 103 ejercicios
+    'dominadas': 'eGo4IYlbE5g',
+    'dominadas_asistidas': 'eGo4IYlbE5g',
+    'pullover': 'Jb_T2B5zQ5c',
+    'remo_con_barra': 'G8l_8chR5BE',
+    'remo_con_barra_polea': 'G8l_8chR5BE',
+    'remo_con_mancuerna': 'G8l_8chR5BE',
+    'remo_gironda': 'CAwf7n6Luuc',
+    'jalon_agarre_cerrado': 'CAwf7n6Luuc',
+    'jalon_agarre_abierto': 'CAwf7n6Luuc',
+    'jalon_agarre_neutro': 'CAwf7n6Luuc',
+    'jalon_al_pecho_agarre_neutro': 'CAwf7n6Luuc',
+    'jalon_al_pecho_agarre_v': 'CAwf7n6Luuc',
+    'jalon_unilateral': 'CAwf7n6Luuc',
+    'jalon_unilateral_en_polea': 'CAwf7n6Luuc',
+    'facepull': 'rep-qVOkqgk',
+    'pajaros_en_maquina': 'rep-qVOkqgk',
+    'hombro_posterior_en_polea': 'rep-qVOkqgk',
+    'hombro_posterior_mancuerna': 'rep-qVOkqgk',
+    'press_militar_con_mancuerna': '2yjwXTZQDDI',
+    'elevaciones_laterales': '3VcKaXpzqRo',
+    'elevaciones_laterales_polea': '3VcKaXpzqRo',
+    'elevaciones_laterales_sentado': '3VcKaXpzqRo',
+    'elevaciones_laterales_apoyado_en_banco': '3VcKaXpzqRo',
+    'elevaciones_laterales_en_maquina': '3VcKaXpzqRo',
+    'elevaciones_laterales_en_polea': '3VcKaXpzqRo',
+    'elevaciones_frontales': '3VcKaXpzqRo',
+    'elevaciones_frontales_polea': '3VcKaXpzqRo',
+    'elevaciones_frontales_apoyado_en_banco': '3VcKaXpzqRo',
+    'press_banca': '8iPEnn-ltC8',
+    'press_inclinado_en_maquina': '8iPEnn-ltC8',
+    'press_inclinado_con_mancuerna': '8iPEnn-ltC8',
+    'press_declinado': 'LfyQBUKR8SE',
+    'press_con_mancuerna': '8iPEnn-ltC8',
+    'press_plano_en_maquina': '8iPEnn-ltC8',
+    'press_sentado_en_maquina': '8iPEnn-ltC8',
+    'aperturas_con_mancuerna': 'eozdVDA78K0',
+    'aperturas_en_maquina': 'eozdVDA78K0',
+    'aperturas_con_mancuerna_banco_plano': 'eozdVDA78K0',
+    'contractora': 'eozdVDA78K0',
+    'cruces_en_polea_desde_abajo': 'eozdVDA78K0',
+    'cruces_en_polea_desde_arriba': 'eozdVDA78K0',
+    'flexiones': '2z8JmcrW-As',
+    'prensa': 'IZxyjW7MPJQ',
+    'prensa_horizontal': 'IZxyjW7MPJQ',
+    'sentadilla_hack': '0tn5K9NlCfo',
+    'sentadilla_multipower': '0tn5K9NlCfo',
+    'sentadilla_bulgara_en_maquina_smith': '0tn5K9NlCfo',
+    'sentadilla_profunda_pies_juntos': '0tn5K9NlCfo',
+    'sentadilla_sumo': '0tn5K9NlCfo',
+    'extension_de_cuadriceps': 'YyvSfVjQeL0',
+    'femoral_tumbado': '1Tq3QdYUuHs',
+    'femoral_tumbado_en_maquina': '1Tq3QdYUuHs',
+    'femoral_sentado': 'ELOCsoDSmrg',
+    'femoral_de_pie': '1Tq3QdYUuHs',
+    'femoral_de_pie_en_maquina': '1Tq3QdYUuHs',
+    'aductor_en_maquina': 'ELOCsoDSmrg',
+    'aduccion_en_maquina': 'ELOCsoDSmrg',
+    'gemelos_en_prensa': 'IZxyjW7MPJQ',
+    'gemelos_en_maquina': 'IZxyjW7MPJQ',
+    'gemelo_de_pie': 'IZxyjW7MPJQ',
+    'gemelo_sentado': 'IZxyjW7MPJQ',
+    'hip_thrust': '0tn5K9NlCfo',
+    'peso_muerto_rumano_con_barra': 'G8l_8chR5BE',
+    'peso_muerto_convencional': 'G8l_8chR5BE',
+    'peso_muerto_con_barra': 'G8l_8chR5BE',
+    'sldl': 'G8l_8chR5BE',
+    'curl_biceps_mancuernas': 'ykJmrZ5v0Oo',
+    'curl_biceps_alterno': 'ykJmrZ5v0Oo',
+    'curl_biceps_barra_z': 'fIWP-FRFNU0',
+    'curl_biceps_polea': 'ykJmrZ5v0Oo',
+    'curl_biceps_polea_alta': 'ykJmrZ5v0Oo',
+    'curl_concentrado': 'ykJmrZ5v0Oo',
+    'curl_arana': 'fIWP-FRFNU0',
+    'curl_bayesian_unilateral': 'ykJmrZ5v0Oo',
+    'curl_martillo_mancuernas': 'zC3nLlEvin4',
+    'fondos': '2z8JmcrW-As',
+    'triceps_en_polea_con_cuerda': '2-LAMcpzODU',
+    'triceps_en_polea_con_barra': '2-LAMcpzODU',
+    'triceps_polea_unilateral': '2-LAMcpzODU',
+    'press_frances': '2-LAMcpzODU',
+    'press_frances_con_mancuerna': '2-LAMcpzODU',
+    'press_frances_sobre_cabeza': '2-LAMcpzODU',
+    'press_trasnuca': '2-LAMcpzODU',
+    'press_trasnuca_con_mancuerna': '2-LAMcpzODU',
+    'press_trasnuca_con_mancuerna_a_una_mano': '2-LAMcpzODU',
+    'press_triceps_fuerza': '2-LAMcpzODU',
+    'patada_de_triceps': '2-LAMcpzODU',
+    'curl_antebrazo_barra_z': 'fIWP-FRFNU0',
+    'extension_antebrazo_barra_z': 'fIWP-FRFNU0',
+    'plancha_abdominal': 'eGo4IYlbE5g',
+    'elevaciones_de_pierna': 'eGo4IYlbE5g',
+    'elevaciones_de_rodillas': 'eGo4IYlbE5g',
+    'crunch_abdominal': 'eGo4IYlbE5g',
+    'crunch_abdominal_en_polea': 'eGo4IYlbE5g',
+    'crunch_abdominal_declinado': 'eGo4IYlbE5g',
+    'crunch_abdominal_en_banco_plano': 'eGo4IYlbE5g',
+    'crunch_abdominal_en_maquina': 'eGo4IYlbE5g'
+  };
 
   function normalizarUrlVideo(url) {
     if (!url) return '';
@@ -1257,7 +1402,7 @@
     // 2. YouTube
     var matchYt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]+)/);
     if (matchYt && matchYt[1]) {
-      return 'https://www.youtube-nocookie.com/embed/' + matchYt[1] + '?autoplay=1&rel=0';
+      return 'https://www.youtube-nocookie.com/embed/' + matchYt[1] + '?autoplay=1&rel=0&playsinline=1';
     }
 
     return url;
@@ -1270,81 +1415,109 @@
     var badgeGrupo = $('videoModalGroupBadge');
     var badgeEstado = $('videoModalStatusBadge');
     var iframe = $('videoIframe');
-    var fallback = $('videoFallbackBox');
-    var pendingBox = $('videoPendingBox');
     var notes = $('videoModalNotes');
+    var notice = $('videoSourceNotice');
     var inputManual = $('manualVideoUrlInput');
-    var inputManualPending = $('manualVideoUrlInputPending');
     var fileNameLabel = $('videoFileNameLabel');
+    var wrapInput = $('customDriveInputWrap');
+    var tabDrive = $('btnTabDrive');
+    var tabYt = $('btnTabYoutube');
+    var btnDirect = $('btnOpenDriveDirect');
     if (!modal) return;
 
-    if (titulo) titulo.textContent = exNombre || 'Técnica del Ejercicio';
-    if (notes) notes.textContent = exIndicaciones ? '💡 Indicación técnica: ' + exIndicaciones : '';
-    if (inputManual) inputManual.value = '';
-    if (inputManualPending) inputManualPending.value = '';
-
-    // Consultar Base de Datos Maestra de 103 ejercicios
+    // Buscar en la Base de Datos Maestra de 103 ejercicios
     var matchBD = (window.CGM_BASE_DATOS_EJERCICIOS && window.CGM_BASE_DATOS_EJERCICIOS.buscar) ?
-      window.CGM_BASE_DATOS_EJERCICIOS.buscar(exNombre) : null;
+      (window.CGM_BASE_DATOS_EJERCICIOS.buscar(exId) || window.CGM_BASE_DATOS_EJERCICIOS.buscar(exNombre)) : null;
 
+    var nombreFinal = exNombre || (matchBD ? matchBD.nombre : 'Técnica del Ejercicio');
     var grupo = matchBD ? matchBD.grupo : 'Ejercicio';
-    var estadoVideo = matchBD ? matchBD.estado : 'disponible';
-    var archivoVideo = matchBD ? (matchBD.archivo || (matchBD.video + '.mp4')) : (exNombre + '.mp4');
+    var driveId = (matchBD && matchBD.driveId) ? matchBD.driveId : '';
+    var driveUrl = (matchBD && matchBD.driveUrl) ? matchBD.driveUrl : (driveId ? ('https://drive.google.com/file/d/' + driveId + '/view') : '');
+    var youtubeId = (matchBD && matchBD.youtubeId) ? matchBD.youtubeId : (VIDEOS_DEMOSTRACION[exId] || 'eGo4IYlbE5g');
+    var esRehacer = matchBD ? (matchBD.estado === 'rehacer') : false;
+    var tieneDrive = !!(driveId && !esRehacer);
+    var archivoVideo = matchBD ? (matchBD.archivo || (matchBD.nombre + '.mp4')) : (nombreFinal + '.mp4');
 
+    videoActualData.exId = exId;
+    videoActualData.nombre = nombreFinal;
+    videoActualData.matchBD = matchBD;
+    videoActualData.driveId = driveId;
+    videoActualData.driveUrl = driveUrl;
+    videoActualData.youtubeId = youtubeId;
+
+    if (titulo) titulo.textContent = nombreFinal;
     if (badgeGrupo) badgeGrupo.textContent = grupo;
     if (fileNameLabel) fileNameLabel.textContent = archivoVideo;
+    if (notes) notes.textContent = exIndicaciones ? ('💡 Indicación técnica: ' + exIndicaciones) : '';
+    if (inputManual) inputManual.value = '';
+    if (wrapInput) wrapInput.style.display = 'none';
 
-    // Buscar si ya tiene URL específica en memoria (por ID de serie o ID de BD)
-    var urlGuardada = (estado.videosEjercicios && (estado.videosEjercicios[exId] || (matchBD && estado.videosEjercicios[matchBD.id]))) ?
-      (estado.videosEjercicios[exId] || estado.videosEjercicios[matchBD.id]) : null;
-
-    if (!urlGuardada && estado.entrenamientoActivo && estado.entrenamientoActivo.ejercicios) {
-      for (var i = 0; i < estado.entrenamientoActivo.ejercicios.length; i++) {
-        var e = estado.entrenamientoActivo.ejercicios[i];
-        if (e.id === exId && e.videoUrl) {
-          urlGuardada = e.videoUrl;
-          break;
-        }
+    // Botón de enlace directo a Google Drive
+    if (btnDirect) {
+      if (tieneDrive && driveUrl) {
+        btnDirect.href = driveUrl;
+        btnDirect.style.display = 'inline-flex';
+      } else {
+        btnDirect.style.display = 'none';
       }
     }
 
+    // Comprobar si el usuario guardó un enlace propio
+    var urlGuardada = (estado.videosEjercicios && (estado.videosEjercicios[exId] || (matchBD && estado.videosEjercicios[matchBD.id]))) ?
+      (estado.videosEjercicios[exId] || estado.videosEjercicios[matchBD.id]) : null;
+
     if (urlGuardada) {
       if (badgeEstado) {
-        badgeEstado.textContent = '🟢 Vídeo en Reproducción';
+        badgeEstado.textContent = '🟢 Vídeo Personal Guardado';
         badgeEstado.style.background = 'rgba(16, 185, 129, 0.2)';
         badgeEstado.style.color = '#34d399';
       }
-      var embedUrl = normalizarUrlVideo(urlGuardada);
+      if (tabDrive) { tabDrive.classList.remove('active'); tabDrive.classList.remove('disabled'); }
+      if (tabYt) { tabYt.classList.remove('active'); }
+      if (notice) notice.innerHTML = '⭐ Mostrando tu enlace personal guardado para este ejercicio.';
       if (iframe) {
-        iframe.src = embedUrl;
+        iframe.src = normalizarUrlVideo(urlGuardada);
         iframe.style.display = 'block';
       }
-      if (fallback) fallback.style.display = 'none';
-      if (pendingBox) pendingBox.style.display = 'none';
-    } else if (estadoVideo === 'rehacer') {
+      videoActualData.fuenteActiva = 'custom';
+    } else if (tieneDrive) {
+      // Grabación oficial de Carlos Graña en Google Drive
       if (badgeEstado) {
-        badgeEstado.textContent = '🟡 Pendiente Rehacer';
+        badgeEstado.textContent = '🟢 Grabación Carlos Graña';
+        badgeEstado.style.background = 'rgba(16, 185, 129, 0.2)';
+        badgeEstado.style.color = '#34d399';
+      }
+      if (tabDrive) {
+        tabDrive.classList.add('active');
+        tabDrive.classList.remove('disabled');
+        tabDrive.removeAttribute('title');
+      }
+      if (tabYt) { tabYt.classList.remove('active'); }
+      if (notice) notice.innerHTML = '🎬 <strong>Grabación de Carlos Graña</strong> (Drive). Si tu navegador no reproduce Drive, pulsa en [📺 Guía Demostrativa] o [↗️ Abrir en Drive].';
+      if (iframe) {
+        iframe.src = 'https://drive.google.com/file/d/' + driveId + '/preview';
+        iframe.style.display = 'block';
+      }
+      videoActualData.fuenteActiva = 'drive';
+    } else {
+      // Estado 'rehacer' o sin vídeo en Drive: reproducir técnica demostrativa
+      if (badgeEstado) {
+        badgeEstado.textContent = '🟡 Guía Técnica (Rehacer)';
         badgeEstado.style.background = 'rgba(245, 158, 11, 0.2)';
         badgeEstado.style.color = '#fbbf24';
       }
+      if (tabDrive) {
+        tabDrive.classList.remove('active');
+        tabDrive.classList.add('disabled');
+        tabDrive.title = 'Carlos Graña tiene este ejercicio catalogado como rehacer en la base de datos oficial';
+      }
+      if (tabYt) { tabYt.classList.add('active'); }
+      if (notice) notice.innerHTML = '⏳ <strong>Carlos Graña:</strong> Pendiente de nueva grabación oficial (<em>«rehacer»</em>). Mostrando demostración técnica de técnica estricta.';
       if (iframe) {
-        iframe.src = '';
-        iframe.style.display = 'none';
+        iframe.src = 'https://www.youtube-nocookie.com/embed/' + youtubeId + '?autoplay=1&rel=0&playsinline=1';
+        iframe.style.display = 'block';
       }
-      if (fallback) fallback.style.display = 'none';
-      if (pendingBox) pendingBox.style.display = 'flex';
-    } else {
-      if (badgeEstado) {
-        badgeEstado.textContent = '🟢 Archivo: ' + archivoVideo;
-        badgeEstado.style.background = 'rgba(212, 175, 55, 0.2)';
-        badgeEstado.style.color = 'var(--gold-light)';
-      }
-      if (iframe) {
-        iframe.src = '';
-        iframe.style.display = 'none';
-      }
-      if (pendingBox) pendingBox.style.display = 'none';
-      if (fallback) fallback.style.display = 'flex';
+      videoActualData.fuenteActiva = 'youtube';
     }
 
     modal.classList.add('open');
@@ -1381,7 +1554,7 @@
     var filtrados = lista.filter(function(item) {
       if (grupo !== 'todos' && item.grupo !== grupo) return false;
       if (busqueda) {
-        var textoItem = (item.nombre + ' ' + item.grupo + ' ' + item.video).toLowerCase();
+        var textoItem = (item.nombre + ' ' + item.grupo + ' ' + (item.archivo || '')).toLowerCase();
         if (textoItem.indexOf(busqueda) === -1) return false;
       }
       return true;
@@ -1396,23 +1569,29 @@
     for (var i = 0; i < filtrados.length; i++) {
       var ex = filtrados[i];
       var esRehacer = ex.estado === 'rehacer';
-      var tieneUrl = !!(estado.videosEjercicios && estado.videosEjercicios[ex.id]);
+      var tieneDrive = !!(ex.driveId && !esRehacer);
+      var tieneUrlCustom = !!(estado.videosEjercicios && estado.videosEjercicios[ex.id]);
 
       html += '<div class="db-exercise-item">';
       html += '  <div class="db-ex-info">';
       html += '    <div class="db-ex-name">' + ex.nombre + '</div>';
       html += '    <div class="db-ex-meta">';
       html += '      <span class="db-ex-group">' + ex.grupo + '</span>';
-      if (tieneUrl) {
-        html += '      <span class="db-ex-status disponible">✓ Vídeo vinculado</span>';
-      } else if (esRehacer) {
-        html += '      <span class="db-ex-status rehacer">⏳ Pendiente rehacer</span>';
+      if (tieneUrlCustom) {
+        html += '      <span class="db-ex-status disponible">✓ Vídeo Personal</span>';
+      } else if (tieneDrive) {
+        html += '      <span class="db-ex-status disponible">🟢 Vídeo Carlos Graña</span>';
       } else {
-        html += '      <span class="db-ex-status disponible">🟢 ' + ex.video + '</span>';
+        html += '      <span class="db-ex-status rehacer">⏳ Pendiente rehacer</span>';
       }
       html += '    </div>';
       html += '  </div>';
-      html += '  <button class="btn-db-video" data-id="' + ex.id + '" data-name="' + ex.nombre.replace(/"/g, '&quot;') + '">🎬 Vídeo</button>';
+      html += '  <div style="display: flex; gap: 6px; align-items: center;">';
+      if (tieneDrive && ex.driveUrl) {
+        html += '    <a class="btn-ghost-sm" href="' + ex.driveUrl + '" target="_blank" rel="noopener noreferrer" title="Abrir en Google Drive" style="font-size: 10px; padding: 4px 7px; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">↗️ Drive</a>';
+      }
+      html += '    <button class="btn-db-video" data-id="' + ex.id + '" data-name="' + ex.nombre.replace(/"/g, '&quot;') + '">🎬 Vídeo</button>';
+      html += '  </div>';
       html += '</div>';
     }
 
@@ -1422,7 +1601,7 @@
     for (var b = 0; b < botones.length; b++) {
       (function(btn) {
         btn.addEventListener('click', function() {
-          abrirModalVideo(btn.dataset.id, btn.dataset.name, 'Ejercicio del catálogo maestro');
+          abrirModalVideo(btn.dataset.id, btn.dataset.name, 'Ejercicio del catálogo maestro de Carlos Graña');
         });
       })(botones[b]);
     }
@@ -1977,24 +2156,58 @@
       if (e.target === $('videoModal')) cerrarModalVideo();
     });
 
+    // Pestañas selectoras de reproductor de vídeo
+    escuchar($('btnTabDrive'), 'click', function() {
+      if (!videoActualData.driveId) return;
+      var tabDrive = $('btnTabDrive');
+      var tabYt = $('btnTabYoutube');
+      var iframe = $('videoIframe');
+      var notice = $('videoSourceNotice');
+      if (tabDrive) tabDrive.classList.add('active');
+      if (tabYt) tabYt.classList.remove('active');
+      if (iframe) iframe.src = 'https://drive.google.com/file/d/' + videoActualData.driveId + '/preview';
+      if (notice) notice.innerHTML = '🎬 <strong>Grabación de Carlos Graña</strong> (Drive). Si tu navegador no reproduce Drive, pulsa en [📺 Guía Demostrativa] o [↗️ Abrir en Drive].';
+      videoActualData.fuenteActiva = 'drive';
+    });
+
+    escuchar($('btnTabYoutube'), 'click', function() {
+      var tabDrive = $('btnTabDrive');
+      var tabYt = $('btnTabYoutube');
+      var iframe = $('videoIframe');
+      var notice = $('videoSourceNotice');
+      if (tabYt) tabYt.classList.add('active');
+      if (tabDrive) tabDrive.classList.remove('active');
+      var ytId = videoActualData.youtubeId || 'eGo4IYlbE5g';
+      if (iframe) iframe.src = 'https://www.youtube-nocookie.com/embed/' + ytId + '?autoplay=1&rel=0&playsinline=1';
+      if (notice) notice.innerHTML = '📺 <strong>Guía Técnica Demostrativa:</strong> Demostración con técnica de biomecánica estricta.';
+      videoActualData.fuenteActiva = 'youtube';
+    });
+
+    escuchar($('toggleCustomDriveLinkBtn'), 'click', function() {
+      var wrap = $('customDriveInputWrap');
+      if (wrap) wrap.style.display = (wrap.style.display === 'none' || !wrap.style.display) ? 'block' : 'none';
+    });
+
     escuchar($('saveManualVideoBtn'), 'click', function() {
       var input = $('manualVideoUrlInput');
-      if (!input || !ejercicioVideoActualId) return;
+      if (!input || !videoActualData.exId) return;
       var val = input.value.trim();
       if (!val) {
         alert('Por favor pega un enlace de vídeo válido.');
         return;
       }
-      estado.videosEjercicios[ejercicioVideoActualId] = val;
+      estado.videosEjercicios[videoActualData.exId] = val;
       guardarDatos();
       var embedUrl = normalizarUrlVideo(val);
       var iframe = $('videoIframe');
-      var fallback = $('videoFallbackBox');
+      var notice = $('videoSourceNotice');
       if (iframe) {
         iframe.src = embedUrl;
         iframe.style.display = 'block';
       }
-      if (fallback) fallback.style.display = 'none';
+      if (notice) notice.innerHTML = '⭐ Mostrando tu enlace personal guardado para este ejercicio.';
+      var wrap = $('customDriveInputWrap');
+      if (wrap) wrap.style.display = 'none';
     });
 
     // Calculadoras

@@ -381,7 +381,14 @@
       var rutinaExtraida = await global.CGM_PDF_RUTINA_PARSER.parsear(archivo);
 
       if (!rutinaExtraida.dias || rutinaExtraida.dias.length === 0) {
-        throw new Error('No se detectaron días de entrenamiento en el PDF. Revisa el archivo.');
+        rutinaExtraida.dias = [{
+          id: 'D1',
+          numero: 1,
+          titulo: 'DÍA 1',
+          nombre: 'Día 1',
+          ejercicios: []
+        }];
+        mostrarNotificacion('Plan cargado. Puedes revisar y organizar los días antes de guardar.', 'aviso');
       }
 
       cerrarModalSubirPDF();

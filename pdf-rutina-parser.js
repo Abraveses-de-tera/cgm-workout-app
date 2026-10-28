@@ -139,7 +139,7 @@
     return { match: null, confianza: 'baja', tipo: 'sin_coincidencia' };
   }
 
-  // Extracción de texto organizada por coordenadas visuales
+  // Extracción de texto organizada por coordenadas visuales con clustering adaptativo
   async function extraerLineasDePDF(arrayBuffer) {
     if (typeof pdfjsLib === 'undefined') {
       throw new Error('La biblioteca PDF.js no está disponible en este momento.');
@@ -151,41 +151,183 @@
     for (var numPagina = 1; numPagina <= pdf.numPages; numPagina++) {
       var pagina = await pdf.getPage(numPagina);
       var contenido = await pagina.getTextContent({ normalizeWhitespace: true });
-      var items = contenido.items;
+      var items = contenido.items || [];
+      if (items.length === 0) continue;
 
-      // Agrupar texto por líneas según coordenada vertical Y
-      var lineasMapa = {};
+      // Agrupación adaptativa de texto por líneas (tolerancia de 6.5px para fuentes y negritas)
+      var lineasAgrupadas = [];
       for (var i = 0; i < items.length; i++) {
         var it = items[i];
-        var str = it.str.trim();
+        var str = (it.str || '').trim();
         if (!str) continue;
 
-        // Redondear Y a intervalos de 4px para tolerancia de alineación
-        var yAprox = Math.round(it.transform[5] / 4) * 4;
-        if (!lineasMapa[yAprox]) lineasMapa[yAprox] = [];
-        lineasMapa[yAprox].push({
-          x: it.transform[4],
-          texto: it.str
-        });
+        var y = it.transform ? it.transform[5] : 0;
+        var x = it.transform ? it.transform[4] : 0;
+
+        var lineaExistente = null;
+        for (var l = 0; l < lineasAgrupadas.length; l++) {
+          if (Math.abs(lineasAgrupadas[l].y - y) <= 6.5) {
+            lineaExistente = lineasAgrupadas[l];
+            break;
+          }
+        }
+
+        if (lineaExistente) {
+          lineaExistente.items.push({ x: x, texto: it.str });
+        } else {
+          lineasAgrupadas.push({ y: y, items: [{ x: x, texto: it.str }] });
+        }
       }
 
-      // Ordenar líneas de arriba hacia abajo (Y descendente en PDF)
-      var clavesY = Object.keys(lineasMapa).map(Number).sort(function(a, b) { return b - a; });
+      // Ordenar líneas de arriba hacia abajo (Y descendente)
+      lineasAgrupadas.sort(function(a, b) { return b.y - a.y; });
 
-      for (var k = 0; k < clavesY.length; k++) {
-        var elementosFila = lineasMapa[clavesY[k]];
-        // Ordenar elementos horizontalmente de izquierda a derecha (X ascendente)
-        elementosFila.sort(function(a, b) { return a.x - b.x; });
-        var lineaTexto = elementosFila.map(function(el) { return el.texto; }).join(' ').replace(/\s+/g, ' ').trim();
+      // Ordenar items dentro de cada línea horizontalmente (X ascendente)
+      for (var k = 0; k < lineasAgrupadas.length; k++) {
+        var itemsFila = lineasAgrupadas[k].items;
+        itemsFila.sort(function(a, b) { return a.x - b.x; });
+        var lineaTexto = itemsFila.map(function(el) { return el.texto; }).join(' ').replace(/\s+/g, ' ').trim();
         if (lineaTexto) lineasTotales.push(lineaTexto);
+      }
+
+      // Si por alguna razón la agrupación por coordenadas falló, añadir el flujo secuencial plano
+      if (lineasAgrupadas.length === 0) {
+        for (var s = 0; s < items.length; s++) {
+          var t = (items[s].str || '').trim();
+          if (t) lineasTotales.push(t);
+        }
       }
     }
 
     return lineasTotales;
   }
 
+  // Mapa de días de la semana (Español e Inglés)
+  var MAPA_DIAS_SEMANA = {
+    'lunes': { num: 1, nom: 'Lunes' },
+    'martes': { num: 2, nom: 'Martes' },
+    'miercoles': { num: 3, nom: 'Miércoles' },
+    'miércoles': { num: 3, nom: 'Miércoles' },
+    'jueves': { num: 4, nom: 'Jueves' },
+    'viernes': { num: 5, nom: 'Viernes' },
+    'sabado': { num: 6, nom: 'Sábado' },
+    'sábado': { num: 6, nom: 'Sábado' },
+    'domingo': { num: 7, nom: 'Domingo' },
+    'monday': { num: 1, nom: 'Lunes' },
+    'tuesday': { num: 2, nom: 'Martes' },
+    'wednesday': { num: 3, nom: 'Miércoles' },
+    'thursday': { num: 4, nom: 'Jueves' },
+    'friday': { num: 5, nom: 'Viernes' },
+    'saturday': { num: 6, nom: 'Sábado' },
+    'sunday': { num: 7, nom: 'Domingo' }
+  };
+
+  // Detector tolerante de encabezados de día (dia 1, dia1, lunes, sesión, letras, splits)
+  function detectarEncabezadoDia(linea, conteoDiasActuales) {
+    if (!linea || typeof linea !== 'string') return null;
+    var l = linea.trim();
+    if (l.length > 85) return null;
+
+    // Ignorar tablas generales de calendario semanal con varios días juntos
+    if (/lunes\s+martes/i.test(l) || /mon\s+tue/i.test(l) || /^ejercicio\s+series/i.test(l)) {
+      return null;
+    }
+
+    // 1. Detección de "DÍA 1", "DIA 1", "dia1", "D1", "D-1", "D.1", "Día 1: Pecho", "DÍA 1 (LUNES)", etc.
+    var matchNum = l.match(/^(?:[•\-\*#📌🗓️📅\d\.\x29]*\s*)?(?:D[IÍ]A|D|SESI[OÓ]N|SESSION|ENTRENO|ENTRENAMIENTO|DAY|RUTINA)\s*[:#\-\.]*\s*([0-9]+)\b[:\s\-\/\.]*(.*)$/i);
+    if (matchNum) {
+      var n = parseInt(matchNum[1], 10);
+      var resto = (matchNum[2] || '').trim();
+      return {
+        esDia: true,
+        numero: n,
+        titulo: 'DÍA ' + n,
+        nombre: resto || ('Día ' + n)
+      };
+    }
+
+    // 2. Detección de días de la semana: "LUNES", "LUNES: Pecho", "Lunes - Pierna", etc.
+    var matchSemana = l.match(/^(?:[•\-\*#📌🗓️📅\d\.\x29]*\s*)?(LUNES|MARTES|MI[EÉ]RCOLES|MIERCOLES|JUEVES|VIERNES|S[AÁ]BADO|SABADO|DOMINGO|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)\b[:\s\-\/\.]*(.*)$/i);
+    if (matchSemana) {
+      var diaSemanaKey = matchSemana[1].toLowerCase();
+      var infoSemana = MAPA_DIAS_SEMANA[diaSemanaKey] || { num: (conteoDiasActuales + 1), nom: matchSemana[1] };
+      var restoSemana = (matchSemana[2] || '').trim();
+      var nroSemana = conteoDiasActuales + 1;
+
+      return {
+        esDia: true,
+        numero: nroSemana,
+        titulo: 'DÍA ' + nroSemana + ' (' + infoSemana.nom + ')',
+        nombre: restoSemana ? (infoSemana.nom + ' · ' + restoSemana) : infoSemana.nom
+      };
+    }
+
+    // 3. Detección de Días por letras: "DÍA A", "DIA B", "DÍA C", "RUTINA A"
+    var matchLetra = l.match(/^(?:[•\-\*#📌🗓️📅\d\.\x29]*\s*)?(?:D[IÍ]A|D|RUTINA)\s*[:#\-\.]*\s*([A-F])\b[:\s\-\/\.]*(.*)$/i);
+    if (matchLetra) {
+      var letra = matchLetra[1].toUpperCase();
+      var numEquiv = letra.charCodeAt(0) - 64;
+      var restoLetra = (matchLetra[2] || '').trim();
+      return {
+        esDia: true,
+        numero: numEquiv,
+        titulo: 'DÍA ' + letra,
+        nombre: restoLetra || ('Día ' + letra)
+      };
+    }
+
+    // 4. Detección de divisiones de entrenamiento cuando están solas en la línea (Split headers)
+    var matchSplit = l.match(/^(?:[•\-\*#📌🗓️📅\d\.\x29]*\s*)?(TORSO|PIERNA|PIERNAS|PUSH|PULL|LEGS|EMPUJE|TRACCI[OÓ]N|TIR[OÓ]N|FULL\s*BODY|FULLBODY|BRAZOS\s*Y\s*HOMBROS?|PECHO\s*Y\s*ESPALDA|PECHO\s*Y\s*B[IÍ]CEPS|ESPALDA\s*Y\s*TR[IÍ]CEPS|TREN\s*SUPERIOR|TREN\s*INFERIOR|UPPER|LOWER)\b[:\s\-]*(.*)$/i);
+    if (matchSplit && l.split(' ').length <= 6) {
+      var nro = conteoDiasActuales + 1;
+      var grupo = matchSplit[1].trim();
+      var detalle = (matchSplit[2] || '').trim();
+      return {
+        esDia: true,
+        numero: nro,
+        titulo: 'DÍA ' + nro,
+        nombre: detalle ? (grupo + ' · ' + detalle) : grupo
+      };
+    }
+
+    return null;
+  }
+
+  // Preprocesar líneas para unir encabezados o números partidos
+  function unificarLineasFragmentadas(lineas) {
+    var resultado = [];
+    for (var i = 0; i < lineas.length; i++) {
+      var actual = lineas[i].trim();
+      if (!actual) continue;
+
+      // Si la línea actual es solo "DÍA", "DIA" o "SESIÓN" y la siguiente empieza con número o nombre
+      if (/^(?:D[IÍ]A|D|SESI[OÓ]N|SESSION)$/i.test(actual) && (i + 1 < lineas.length)) {
+        var siguiente = lineas[i + 1].trim();
+        resultado.push(actual + ' ' + siguiente);
+        i++;
+        continue;
+      }
+
+      // Si la línea actual es solo un número de ejercicio (ej. "1." o "1") y la siguiente es el nombre
+      if (/^[0-9]{1,2}[\.\x29\-]?$/i.test(actual) && (i + 1 < lineas.length)) {
+        var sigEx = lineas[i + 1].trim();
+        // Verificar que la siguiente no sea otro día ni otra cabecera
+        if (sigEx.length > 2 && !/^(?:D[IÍ]A|LUNES|MARTES)/i.test(sigEx)) {
+          resultado.push(actual + ' ' + sigEx);
+          i++;
+          continue;
+        }
+      }
+
+      resultado.push(actual);
+    }
+    return resultado;
+  }
+
   // Parsear texto plano estructurado en objeto de rutina
-  function analizarEstructuraRutina(lineas, nombreArchivo) {
+  function analizarEstructuraRutina(lineasCrudas, nombreArchivo) {
+    var lineas = unificarLineasFragmentadas(lineasCrudas);
+
     var resultado = {
       titulo: 'Rutina Personalizada',
       cliente: '',
@@ -195,14 +337,14 @@
     };
 
     // 1. Detectar título o cliente en los primeros encabezados
-    for (var h = 0; h < Math.min(10, lineas.length); h++) {
+    for (var h = 0; h < Math.min(12, lineas.length); h++) {
       var l = lineas[h];
-      if (/ENTRENO|ENTRENAMIENTO|RUTINA|FRECUENCIA/i.test(l) && !resultado.tituloModificado) {
+      if (/ENTRENO|ENTRENAMIENTO|RUTINA|FRECUENCIA|PLAN/i.test(l) && !resultado.tituloModificado && l.length < 70) {
         resultado.titulo = l;
         resultado.tituloModificado = true;
       }
-      if (/Plan personalizado|Cliente/i.test(l)) {
-        resultado.cliente = l.replace(/.*Plan personalizado\s*:?/i, '').trim();
+      if (/Plan personalizado|Cliente|Atleta/i.test(l)) {
+        resultado.cliente = l.replace(/.*(?:Plan personalizado|Cliente|Atleta)\s*:?/i, '').trim();
       }
     }
     if (!resultado.cliente && nombreArchivo) {
@@ -212,66 +354,91 @@
     // 2. Segmentar días
     var diaActual = null;
     var ejercicioActual = null;
-    var numeroDia = 0;
+    var contadorEjerciciosDia = 0;
 
     for (var i = 0; i < lineas.length; i++) {
       var linea = lineas[i].trim();
       if (!linea) continue;
 
-      // Ignorar encabezados y tablas de calendario general
-      if (/^LUNES\s+MARTES/i.test(linea) || /^SEMANA\s+\d/i.test(linea) || /^EJERCICIO\s+SERIES/i.test(linea)) {
-        continue;
-      }
-
-      // Detección de encabezado de Día: "DÍA 1", "DIA 1", "D1", "Día 2 - Pierna", etc.
-      var matchDia = linea.match(/^(?:D[IÍ]A|D)\s*([0-9]+)\b[:\s-]*(.*)$/i);
-      if (matchDia) {
+      // Comprobar si la línea es un encabezado de día
+      var infoDia = detectarEncabezadoDia(linea, resultado.dias.length + (diaActual ? 1 : 0));
+      if (infoDia) {
         // Guardar día anterior si existe
-        if (diaActual && diaActual.ejercicios.length > 0) {
+        if (diaActual) {
           resultado.dias.push(diaActual);
         }
 
-        numeroDia = parseInt(matchDia[1], 10) || (resultado.dias.length + 1);
-        var nombreDia = matchDia[2] ? matchDia[2].trim() : '';
+        var nombreDia = infoDia.nombre;
 
         // Si el nombre del día viene en la siguiente línea (ej: "DÍA 1" \n "Espalda y posterior")
-        if (!nombreDia && i + 1 < lineas.length) {
+        if ((!nombreDia || nombreDia === infoDia.titulo) && (i + 1 < lineas.length)) {
           var sig = lineas[i + 1].trim();
-          if (!/^(?:D[IÍ]A|EJERCICIO|1\.)/i.test(sig) && sig.length < 50) {
+          var esEncabezadoSig = detectarEncabezadoDia(sig, 0);
+          if (!esEncabezadoSig && !/^(?:[0-9]{1,2}[\.\)]|•|\-)/.test(sig) && sig.length < 50) {
             nombreDia = sig;
             i++;
           }
         }
 
         diaActual = {
-          id: 'D' + numeroDia,
-          numero: numeroDia,
-          titulo: 'DÍA ' + numeroDia,
-          nombre: nombreDia || ('Día ' + numeroDia),
+          id: 'D' + (resultado.dias.length + 1),
+          numero: infoDia.numero || (resultado.dias.length + 1),
+          titulo: infoDia.titulo,
+          nombre: nombreDia || infoDia.titulo,
           ejercicios: []
         };
         ejercicioActual = null;
+        contadorEjerciciosDia = 0;
         continue;
       }
 
-      if (!diaActual) continue;
-
       // Fin de sección de rutina si llegamos a notas generales o instrucciones finales
-      if (/^C[ÓO]MO FUNCIONA|^REGLAS|^NOTAS GENERALES/i.test(linea)) {
+      if (/^C[ÓO]MO FUNCIONA|^REGLAS METODOLOG|^NOTAS GENERALES/i.test(linea)) {
         break;
       }
 
-      // Detección de ejercicio numerado (ej. "1. Pull over en polea 3 × 12")
-      var matchExNum = linea.match(/^([0-9]{1,2})\.\s*([^\d]+?)(?:\s+([0-9]+(?:\s*[x×]\s*[0-9]+|\s*series)))?$/i);
-      if (matchExNum) {
-        var numEx = parseInt(matchExNum[1], 10);
-        var nombreEx = matchExNum[2].trim();
-        var seriesStr = matchExNum[3] ? matchExNum[3].trim() : '';
+      // Si aún no se ha detectado ningún día pero aparecen ejercicios, inicializar Día 1 automáticamente
+      if (!diaActual) {
+        diaActual = {
+          id: 'D1',
+          numero: 1,
+          titulo: 'DÍA 1',
+          nombre: 'Día 1',
+          ejercicios: []
+        };
+        contadorEjerciciosDia = 0;
+      }
 
-        // Si la columna de series/reps está en la misma línea o en la siguiente
+      // Detección de ejercicio
+      // A. Numerado o con viñeta (ej. "1. Pull over 3x12", "1) Press banca", "- Sentadilla", "• Fondos")
+      var matchEx = linea.match(/^(?:([0-9]{1,2})[\.\x29\-:]\s*|[•\-\*>]\s*)([^\d]+?)(?:\s+([0-9]+(?:\s*[x×]\s*[0-9]+|\s*series)))?$/i);
+
+      // B. Ejercicio sin número pero con series explícitas en la misma línea (ej. "Press militar con barra 3 x 10")
+      if (!matchEx) {
+        var matchExConSeries = linea.match(/^([a-záéíóúñA-ZÁÉÍÓÚÑ\s\x28\x29\/\.,\-\+]+?)\s+([0-9]+\s*[x×]\s*[0-9]+(?:\s*-\s*[0-9]+)?|[0-9]+\s*series.*)$/i);
+        if (matchExConSeries && matchExConSeries[1].length > 4 && matchExConSeries[1].length < 60) {
+          matchEx = [linea, null, matchExConSeries[1], matchExConSeries[2]];
+        }
+      }
+
+      // C. Ejercicio sin número que coincide con un ejercicio conocido de la base de datos
+      if (!matchEx && linea.length >= 4 && linea.length <= 60 && !/^(?:series|top set|back off|descanso|rir|rpe|peso)/i.test(linea)) {
+        var busqBD = buscarCoincidenciaEnBD(linea);
+        if (busqBD.confianza === 'alta' || (busqBD.confianza === 'media' && busqBD.match)) {
+          matchEx = [linea, null, linea, ''];
+        }
+      }
+
+      if (matchEx) {
+        contadorEjerciciosDia++;
+        var numEx = matchEx[1] ? parseInt(matchEx[1], 10) : contadorEjerciciosDia;
+        var nombreEx = (matchEx[2] || '').trim();
+        var seriesStr = (matchEx[3] || '').trim();
+
+        // Si la columna de series/reps está en la siguiente línea
         if (!seriesStr && i + 1 < lineas.length) {
           var lineaSig = lineas[i + 1].trim();
-          var matchSeriesSig = lineaSig.match(/^([0-9]+)\s*[x×]\s*([0-9]+)$/i) || lineaSig.match(/^([0-9]+)\s*series$/i);
+          var matchSeriesSig = lineaSig.match(/^([0-9]+)\s*[x×]\s*([0-9]+(?:\s*-\s*[0-9]+)?)$/i) || lineaSig.match(/^([0-9]+)\s*series/i);
           if (matchSeriesSig) {
             seriesStr = lineaSig;
             i++;
@@ -298,31 +465,32 @@
 
       // Si no es un ejercicio nuevo, pero tenemos un ejercicio actual, es una nota técnica o indicación
       if (ejercicioActual) {
-        // Detectar si la línea describe series ("3 x 12", "Top set + back off...", etc.)
         if (/[x×]\s*[0-9]+|series|top set|back off|descendente|lastre|fallo/i.test(linea)) {
           var seriesActualizadas = interpretarSeriesYRepeticiones(linea, ejercicioActual.indicaciones);
           if (seriesActualizadas.series.length > 0) {
             ejercicioActual.series = seriesActualizadas.series;
             ejercicioActual.tieneCalculoDescarga = seriesActualizadas.tieneCalculoDescarga;
           }
-          if (ejercicioActual.indicaciones) {
-            ejercicioActual.indicaciones += ' ' + linea;
-          } else {
-            ejercicioActual.indicaciones = linea;
-          }
+          ejercicioActual.indicaciones = ejercicioActual.indicaciones ? (ejercicioActual.indicaciones + ' ' + linea) : linea;
         } else {
-          // Nota de ajuste o técnica
-          if (ejercicioActual.indicaciones) {
-            ejercicioActual.indicaciones += ' ' + linea;
-          } else {
-            ejercicioActual.indicaciones = linea;
-          }
+          ejercicioActual.indicaciones = ejercicioActual.indicaciones ? (ejercicioActual.indicaciones + ' ' + linea) : linea;
         }
       }
     }
 
-    if (diaActual && diaActual.ejercicios.length > 0) {
+    if (diaActual) {
       resultado.dias.push(diaActual);
+    }
+
+    // Fail-safe garantizado: Si no hay días, crear Día 1 inicial
+    if (resultado.dias.length === 0) {
+      resultado.dias.push({
+        id: 'D1',
+        numero: 1,
+        titulo: 'DÍA 1',
+        nombre: 'Día 1',
+        ejercicios: []
+      });
     }
 
     return resultado;

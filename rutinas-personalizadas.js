@@ -257,6 +257,232 @@
     return mapaDias;
   }
 
+  // ===========================================================================
+  // ENLACE MÁGICO PRIVADO (COMPARTIR POR WHATSAPP SIN ARCHIVOS NI SERVIDORES)
+  // ===========================================================================
+
+  // Compactar rutina para minimizar tamaño de URL
+  function compactarRutina(r) {
+    return {
+      t: r.titulo || 'Plan de Entrenamiento',
+      c: r.cliente || '',
+      d: (r.dias || []).map(function(dia, dIdx) {
+        return {
+          n: dia.nombre || ('Día ' + (dIdx + 1)),
+          e: (dia.ejercicios || []).map(function(ex) {
+            var item = {
+              n: ex.nombre,
+              i: ex.indicaciones || ''
+            };
+            if (ex.dbMatchId || (ex.dbCoincidencia && ex.dbCoincidencia.id)) {
+              item.m = ex.dbMatchId || ex.dbCoincidencia.id;
+            }
+            if (ex.tieneCalculoDescarga) {
+              item.cd = 1;
+            }
+            if (Array.isArray(ex.series) && ex.series.length > 0) {
+              item.s = ex.series.map(function(s) {
+                return {
+                  t: s.tipo || 'normal',
+                  r: s.repeticionesObjetivo || 12,
+                  ins: s.insignia || 'SERIE'
+                };
+              });
+            }
+            return item;
+          })
+        };
+      })
+    };
+  }
+
+  // Descompactar formato comprimido y reconstruir la rutina completa
+  function descompactarRutina(c) {
+    if (!c || !c.t || !Array.isArray(c.d)) {
+      throw new Error('Estructura de rutina comprimida no válida.');
+    }
+
+    var dias = c.d.map(function(d, dIdx) {
+      var diaId = 'D' + (dIdx + 1);
+      return {
+        id: diaId,
+        numero: dIdx + 1,
+        titulo: 'DÍA ' + (dIdx + 1),
+        nombre: d.n || ('Día ' + (dIdx + 1)),
+        categoria: d.n || 'Entrenamiento',
+        descripcion: (d.n || ('Día ' + (dIdx + 1))) + ' · ' + c.t,
+        ejercicios: (d.e || []).map(function(ex, eIdx) {
+          var dbMatch = null;
+          if (ex.m && global.CGM_BASE_DATOS_EJERCICIOS && global.CGM_BASE_DATOS_EJERCICIOS.buscar) {
+            dbMatch = global.CGM_BASE_DATOS_EJERCICIOS.buscar(ex.m);
+          } else if (global.CGM_BASE_DATOS_EJERCICIOS && global.CGM_BASE_DATOS_EJERCICIOS.buscar) {
+            dbMatch = global.CGM_BASE_DATOS_EJERCICIOS.buscar(ex.n);
+          }
+
+          var series = (ex.s || []).map(function(s, sIdx) {
+            return {
+              tipo: s.t || 'normal',
+              insignia: s.ins || 'SERIE',
+              repeticionesObjetivo: s.r || 12
+            };
+          });
+
+          if (series.length === 0) {
+            series = [
+              { tipo: 'normal', insignia: 'SERIE', repeticionesObjetivo: 12 },
+              { tipo: 'normal', insignia: 'SERIE', repeticionesObjetivo: 12 },
+              { tipo: 'normal', insignia: 'SERIE', repeticionesObjetivo: 12 }
+            ];
+          }
+
+          return {
+            id: diaId.toLowerCase() + '_e' + (eIdx + 1),
+            nombre: ex.n,
+            indicaciones: ex.i || '',
+            tieneCalculoDescarga: !!ex.cd,
+            dbMatchId: ex.m || (dbMatch ? dbMatch.id : null),
+            dbCoincidencia: dbMatch,
+            series: series
+          };
+        })
+      };
+    });
+
+    return {
+      id: 'rutina_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      titulo: c.t,
+      cliente: c.c || '',
+      fechaCreacion: new Date().toISOString(),
+      fechaModificacion: new Date().toISOString(),
+      dias: dias
+    };
+  }
+
+  // Codificar cadena UTF-8 a Base64 URL-safe
+  function codificarBase64Url(str) {
+    var bytes = new TextEncoder().encode(str);
+    var binStr = '';
+    for (var i = 0; i < bytes.length; i++) {
+      binStr += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binStr)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  // Decodificar Base64 URL-safe a cadena UTF-8
+  function decodificarBase64Url(str) {
+    var base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    var binStr = atob(base64);
+    var bytes = new Uint8Array(binStr.length);
+    for (var i = 0; i < binStr.length; i++) {
+      bytes[i] = binStr.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+  }
+
+  // Comprimir con Deflate nativo si está disponible, o fallback a Base64 puro
+  async function comprimirYCodificar(jsonStr) {
+    try {
+      if (typeof CompressionStream !== 'undefined') {
+        var stream = new Blob([new TextEncoder().encode(jsonStr)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+        var buffer = await new Response(stream).arrayBuffer();
+        var bytes = new Uint8Array(buffer);
+        var bin = '';
+        for (var i = 0; i < bytes.length; i++) {
+          bin += String.fromCharCode(bytes[i]);
+        }
+        return 'z_' + btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+    } catch (e) {
+      console.warn('Aviso de compresión:', e);
+    }
+    return codificarBase64Url(jsonStr);
+  }
+
+  // Descomprimir Deflate o decodificar Base64
+  async function decodificarYDescomprimir(param) {
+    if (param.indexOf('z_') === 0) {
+      var raw = param.slice(2).replace(/-/g, '+').replace(/_/g, '/');
+      while (raw.length % 4) raw += '=';
+      var bin = atob(raw);
+      var bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) {
+        bytes[i] = bin.charCodeAt(i);
+      }
+      var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return await new Response(stream).text();
+    }
+    return decodificarBase64Url(param);
+  }
+
+  // Generar URL completa del enlace mágico
+  async function generarEnlaceMagico(id) {
+    var r = obtenerRutinaPorId(id);
+    if (!r) throw new Error('Rutina no encontrada.');
+    var compacto = compactarRutina(r);
+    var jsonStr = JSON.stringify(compacto);
+    var encoded = await comprimirYCodificar(jsonStr);
+    
+    // Obtener la URL base limpia
+    var base = global.location.origin + global.location.pathname;
+    return base + '#r=' + encoded;
+  }
+
+  // Comprobar y procesar enlace mágico al entrar a la app
+  async function procesarEnlaceMagico() {
+    try {
+      var hash = global.location.hash || '';
+      var query = global.location.search || '';
+      var param = '';
+
+      if (hash.indexOf('#r=') === 0) {
+        param = hash.substring(3);
+      } else if (hash.indexOf('#rutina=') === 0) {
+        param = hash.substring(8);
+      } else {
+        var match = query.match(/[?&](?:r|rutina)=([^&]+)/);
+        if (match && match[1]) {
+          param = decodeURIComponent(match[1]);
+        }
+      }
+
+      if (!param) return null;
+
+      var jsonStr = await decodificarYDescomprimir(param);
+      var compacto = JSON.parse(jsonStr);
+      var rutina = descompactarRutina(compacto);
+
+      // Comprobar si ya existe una rutina con este título y cliente para no duplicarla
+      var rutinasExistentes = obtenerRutinas();
+      var existente = rutinasExistentes.find(function(it) {
+        return it.titulo === rutina.titulo && it.cliente === rutina.cliente;
+      });
+
+      if (existente) {
+        rutina.id = existente.id; // Actualizar existente
+      }
+
+      // Guardar y activar como rutina principal
+      guardarRutina(rutina);
+      establecerRutinaActiva(rutina.id);
+
+      // Limpiar el hash de la barra de direcciones para no re-procesar al recargar
+      if (global.history && global.history.replaceState) {
+        global.history.replaceState(null, '', global.location.pathname);
+      }
+
+      return rutina;
+    } catch (err) {
+      console.error('Error al procesar enlace mágico:', err);
+      return null;
+    }
+  }
+
   global.CGM_RUTINAS_PERSONALIZADAS = {
     esAdmin: esAdmin,
     autenticarAdmin: autenticarAdmin,
@@ -272,7 +498,9 @@
     eliminarRutina: eliminarRutina,
     exportarRutinaJSON: exportarRutinaJSON,
     importarRutinaJSON: importarRutinaJSON,
-    obtenerPlantillaDiasActiva: obtenerPlantillaDiasActiva
+    obtenerPlantillaDiasActiva: obtenerPlantillaDiasActiva,
+    generarEnlaceMagico: generarEnlaceMagico,
+    procesarEnlaceMagico: procesarEnlaceMagico
   };
 
 })(typeof window !== 'undefined' ? window : this);

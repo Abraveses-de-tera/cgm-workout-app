@@ -190,6 +190,7 @@
       html += '  </div>';
 
       html += '  <div class="admin-routine-actions">';
+      html += '    <button class="btn-sm-action btn-share-magic" data-id="' + r.id + '" title="Compartir con el cliente por WhatsApp" style="background: rgba(37, 211, 102, 0.15); border-color: rgba(37, 211, 102, 0.4); color: #4ade80;">📲 WhatsApp</button>';
       html += '    <button class="btn-sm-action btn-select-routine" data-id="' + r.id + '" title="Entrenar esta rutina">' + (esActiva ? '✓ Seleccionada' : 'Seleccionar') + '</button>';
       html += '    <button class="btn-sm-action btn-edit-routine" data-id="' + r.id + '" title="Revisar y editar">✏️ Editar</button>';
       html += '    <button class="btn-sm-action btn-dup-routine" data-id="' + r.id + '" title="Duplicar">📋</button>';
@@ -202,6 +203,15 @@
     listaContenedor.innerHTML = html;
 
     // Asignar eventos de acciones
+    var btnsMagic = listaContenedor.querySelectorAll('.btn-share-magic');
+    for (var m = 0; m < btnsMagic.length; m++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          abrirModalEnlaceMagico(btn.dataset.id);
+        });
+      })(btnsMagic[m]);
+    }
+
     var btnsSelect = listaContenedor.querySelectorAll('.btn-select-routine');
     for (var s = 0; s < btnsSelect.length; s++) {
       (function(btn) {
@@ -262,6 +272,77 @@
           }
         });
       })(btnsDel[dl]);
+    }
+  }
+
+  // ===========================================================================
+  // ENLACE MÁGICO Y COMPARTIR POR WHATSAPP
+  // ===========================================================================
+  var enlaceMagicoGenerado = '';
+  var mensajeWhatsAppGenerado = '';
+
+  async function abrirModalEnlaceMagico(id) {
+    var r = global.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinaPorId(id);
+    if (!r) return;
+
+    var modal = $('magicLinkModal');
+    if (!modal) return;
+
+    try {
+      enlaceMagicoGenerado = await global.CGM_RUTINAS_PERSONALIZADAS.generarEnlaceMagico(id);
+      var clienteTxt = r.cliente ? (' ' + r.cliente) : '';
+      mensajeWhatsAppGenerado = '¡Hola' + clienteTxt + '! 👋 Aquí tienes tu rutina personalizada (' + r.titulo + ') lista para entrenar en la app con los vídeos explicativos de Carlos Graña y registro de pesos:\n\n' + enlaceMagicoGenerado + '\n\nSolo tienes que tocar el enlace desde tu móvil y se cargará automáticamente. ¡A darle caña! 🏋️🔥';
+
+      var textarea = $('magicLinkMessagePreview');
+      if (textarea) textarea.value = mensajeWhatsAppGenerado;
+
+      var btnWa = $('btnOpenWhatsAppDirect');
+      if (btnWa) {
+        btnWa.href = 'https://wa.me/?text=' + encodeURIComponent(mensajeWhatsAppGenerado);
+      }
+
+      var badgeCopy = $('magicLinkCopiedBadge');
+      if (badgeCopy) badgeCopy.style.display = 'none';
+
+      modal.classList.add('open');
+    } catch (err) {
+      alert('Error al generar enlace mágico: ' + err.message);
+    }
+  }
+
+  function cerrarModalEnlaceMagico() {
+    var modal = $('magicLinkModal');
+    if (modal) modal.classList.remove('open');
+  }
+
+  function abrirModalBienvenidaRutina(rutina) {
+    var modal = $('welcomeRoutineModal');
+    if (!modal) return;
+
+    var titEl = $('welcomeRoutineTitle');
+    var cliEl = $('welcomeRoutineClient');
+
+    if (titEl) titEl.textContent = rutina.titulo;
+    if (cliEl) cliEl.textContent = rutina.cliente ? ('Atleta: ' + rutina.cliente) : '';
+
+    modal.classList.add('open');
+  }
+
+  function cerrarModalBienvenidaRutina() {
+    var modal = $('welcomeRoutineModal');
+    if (modal) modal.classList.remove('open');
+  }
+
+  async function verificarEnlaceMagicoAlEntrar() {
+    if (global.CGM_RUTINAS_PERSONALIZADAS && typeof global.CGM_RUTINAS_PERSONALIZADAS.procesarEnlaceMagico === 'function') {
+      var rutinaImportada = await global.CGM_RUTINAS_PERSONALIZADAS.procesarEnlaceMagico();
+      if (rutinaImportada) {
+        renderizarSelectorRutinas();
+        if (typeof global.cgmRecargarRutinaVisual === 'function') {
+          global.cgmRecargarRutinaVisual();
+        }
+        abrirModalBienvenidaRutina(rutinaImportada);
+      }
     }
   }
 
@@ -779,6 +860,78 @@
         renderizarResultadosBuscadorVideo(e.target.value);
       });
     }
+
+    // Eventos de modal compartir enlace mágico
+    var btnCloseMagic = $('closeMagicLinkBtn');
+    if (btnCloseMagic) btnCloseMagic.addEventListener('click', cerrarModalEnlaceMagico);
+
+    function copiarAlPortapapeles(texto) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function() {
+          mostrarBadgeCopiado();
+        }).catch(function() {
+          fallbackCopiar(texto);
+        });
+      } else {
+        fallbackCopiar(texto);
+      }
+    }
+
+    function fallbackCopiar(texto) {
+      var aux = document.createElement('textarea');
+      aux.value = texto;
+      document.body.appendChild(aux);
+      aux.select();
+      try {
+        document.execCommand('copy');
+        mostrarBadgeCopiado();
+      } catch (e) {
+        prompt('Copia manualmente este texto:', texto);
+      }
+      document.body.removeChild(aux);
+    }
+
+    function mostrarBadgeCopiado() {
+      var badge = $('magicLinkCopiedBadge');
+      if (badge) {
+        badge.style.display = 'inline';
+        setTimeout(function() {
+          badge.style.display = 'none';
+        }, 2500);
+      }
+      mostrarNotificacion('¡Copiado al portapapeles!', 'exito');
+    }
+
+    var btnCopyLink = $('btnCopyMagicLinkOnly');
+    if (btnCopyLink) {
+      btnCopyLink.addEventListener('click', function() {
+        copiarAlPortapapeles(enlaceMagicoGenerado);
+      });
+    }
+
+    var btnCopyMsg = $('btnCopyFullMessage');
+    if (btnCopyMsg) {
+      btnCopyMsg.addEventListener('click', function() {
+        copiarAlPortapapeles(mensajeWhatsAppGenerado);
+      });
+    }
+
+    // Eventos de modal de bienvenida para cliente
+    var btnCloseWelcome = $('btnCloseWelcomeModal');
+    if (btnCloseWelcome) btnCloseWelcome.addEventListener('click', cerrarModalBienvenidaRutina);
+
+    var btnStartWelcome = $('btnStartWelcomeRoutine');
+    if (btnStartWelcome) {
+      btnStartWelcome.addEventListener('click', function() {
+        cerrarModalBienvenidaRutina();
+        if (typeof global.cgmRecargarRutinaVisual === 'function') {
+          global.cgmRecargarRutinaVisual();
+        }
+      });
+    }
+
+    // Comprobar si se abrió la app con un enlace mágico
+    verificarEnlaceMagicoAlEntrar();
   }
 
   if (document.readyState === 'loading') {

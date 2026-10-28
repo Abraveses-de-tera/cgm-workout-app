@@ -2799,3 +2799,20 @@ body {
   border-style: dashed;
   background: rgba(255, 255, 255, 0.02);
 }
+
+/* Enlace Mágico y Compartir por WhatsApp (v13) */
+.btn-share-magic {
+  transition: all 0.15s ease;
+}
+
+.btn-share-magic:hover {
+  background: rgba(37, 211, 102, 0.28) !important;
+  border-color: #22c55e !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}

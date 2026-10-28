@@ -1,0 +1,436 @@
+{
+  "titulo": "Rutina 5 Días CGM Rendimiento",
+  "cliente": "Carlos Graña · CGM Performance",
+  "descripcion": "División de 5 días de alta intensidad y frecuencia adaptada Carlos Graña",
+  "dias": [
+    {
+      "id": "D1",
+      "numero": 1,
+      "titulo": "DÍA 1",
+      "nombre": "Espalda y Deltoides Posterior",
+      "categoria": "Espalda",
+      "descripcion": "7 ejercicios · Amplitud dorsal y densidad",
+      "ejercicios": [
+        {
+          "id": "d1_e1",
+          "nombre": "Pull over en polea",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "pullover",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d1_e2",
+          "nombre": "Dominadas",
+          "indicaciones": "1 serie con lastre a 8 reps + 1 serie sin peso al fallo",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "dominadas",
+          "series": [
+            { "tipo": "pesada", "insignia": "LASTRE", "repeticionesObjetivo": 8 },
+            { "tipo": "normal", "insignia": "FALLO", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d1_e3",
+          "nombre": "Remo con barra",
+          "indicaciones": "Top set + back off (−20 %) + 3.ª serie descendente",
+          "tieneCalculoDescarga": true,
+          "dbMatchId": "remo_con_barra",
+          "series": [
+            { "tipo": "pesada", "insignia": "TOP SET", "repeticionesObjetivo": 6 },
+            { "tipo": "descarga", "insignia": "BACK OFF (−20 %)", "repeticionesObjetivo": 10 },
+            { "tipo": "descendente", "insignia": "DESCENDENTE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d1_e4",
+          "nombre": "Jalón agarre cerrado",
+          "indicaciones": "3 × 12 (la última serie descendente)",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "jalon_agarre_cerrado",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "descendente", "insignia": "DESCENDENTE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d1_e5",
+          "nombre": "Remo con mancuerna",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "remo_con_mancuerna",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d1_e6",
+          "nombre": "Pájaros en máquina",
+          "indicaciones": "3 series de 15 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "pajaros_en_maquina",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 }
+          ]
+        },
+        {
+          "id": "d1_e7",
+          "nombre": "Encogimientos con mancuerna",
+          "indicaciones": "3 series de 15 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "encogimientos_con_mancuerna",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "numero": 2,
+      "titulo": "DÍA 2",
+      "nombre": "Pecho y Hombro",
+      "categoria": "Pecho",
+      "descripcion": "7 ejercicios · Press inclinado y deltoides al completo",
+      "ejercicios": [
+        {
+          "id": "d2_e1",
+          "nombre": "Press inclinado en máquina",
+          "indicaciones": "Top set + back off (−20 %)",
+          "tieneCalculoDescarga": true,
+          "dbMatchId": "press_inclinado_en_maquina",
+          "series": [
+            { "tipo": "pesada", "insignia": "TOP SET", "repeticionesObjetivo": 6 },
+            { "tipo": "descarga", "insignia": "BACK OFF (−20 %)", "repeticionesObjetivo": 10 }
+          ]
+        },
+        {
+          "id": "d2_e2",
+          "nombre": "Press banca",
+          "indicaciones": "3 series de 10 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "press_banca",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 }
+          ]
+        },
+        {
+          "id": "d2_e3",
+          "nombre": "Aperturas con mancuerna",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "aperturas_con_mancuerna",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d2_e4",
+          "nombre": "Cruces en polea desde abajo",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "cruces_en_polea_desde_abajo",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d2_e5",
+          "nombre": "Elevaciones laterales",
+          "indicaciones": "4 × 12 (la última serie descendente)",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "elevaciones_laterales",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "descendente", "insignia": "DESCENDENTE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d2_e6",
+          "nombre": "Press militar con mancuerna",
+          "indicaciones": "2 series pesadas de 8 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "press_militar_con_mancuerna",
+          "series": [
+            { "tipo": "pesada", "insignia": "PESADA", "repeticionesObjetivo": 8 },
+            { "tipo": "pesada", "insignia": "PESADA", "repeticionesObjetivo": 8 }
+          ]
+        },
+        {
+          "id": "d2_e7",
+          "nombre": "Elevaciones frontales",
+          "indicaciones": "2 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "elevaciones_frontales",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D3",
+      "numero": 3,
+      "titulo": "DÍA 3",
+      "nombre": "Pierna - Cuádriceps y Gemelos",
+      "categoria": "Pierna",
+      "descripcion": "6 ejercicios · Sentadilla hack, prensa pesada y aductores",
+      "ejercicios": [
+        {
+          "id": "d3_e1",
+          "nombre": "Extensiones de cuádriceps",
+          "indicaciones": "3 × 15 (la última serie al fallo)",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "extension_de_cuadriceps",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "FALLO", "repeticionesObjetivo": 15 }
+          ]
+        },
+        {
+          "id": "d3_e2",
+          "nombre": "Sentadilla hack",
+          "indicaciones": "3 series de 10 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "sentadilla_hack",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 }
+          ]
+        },
+        {
+          "id": "d3_e3",
+          "nombre": "Prensa",
+          "indicaciones": "Top set + back off (−20 %)",
+          "tieneCalculoDescarga": true,
+          "dbMatchId": "prensa",
+          "series": [
+            { "tipo": "pesada", "insignia": "TOP SET", "repeticionesObjetivo": 8 },
+            { "tipo": "descarga", "insignia": "BACK OFF (−20 %)", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d3_e4",
+          "nombre": "Sentadilla búlgara en máquina smith",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "sentadilla_bulgara_en_maquina_smith",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d3_e5",
+          "nombre": "Aductor en máquina",
+          "indicaciones": "3 series de 15 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "aductor_en_maquina",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 }
+          ]
+        },
+        {
+          "id": "d3_e6",
+          "nombre": "Gemelos en máquina",
+          "indicaciones": "4 series de 15 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "gemelos_en_maquina",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D4",
+      "numero": 4,
+      "titulo": "DÍA 4",
+      "nombre": "Brazo - Bíceps y Tríceps",
+      "categoria": "Brazos",
+      "descripcion": "6 ejercicios · Bíceps y tríceps con alta congestión",
+      "ejercicios": [
+        {
+          "id": "d4_e1",
+          "nombre": "Curl de bíceps con mancuernas",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "curl_biceps_mancuernas",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d4_e2",
+          "nombre": "Tríceps polea unilateral",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "triceps_polea_unilateral",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d4_e3",
+          "nombre": "Curl martillo mancuernas",
+          "indicaciones": "3 series de 10 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "curl_martillo_mancuernas",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 }
+          ]
+        },
+        {
+          "id": "d4_e4",
+          "nombre": "Press francés con mancuerna",
+          "indicaciones": "3 series de 10 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "press_frances_con_mancuerna",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 10 }
+          ]
+        },
+        {
+          "id": "d4_e5",
+          "nombre": "Curl bayesian unilateral",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "curl_bayesian_unilateral",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d4_e6",
+          "nombre": "Fondos",
+          "indicaciones": "2 series al fallo técnico",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "fondos",
+          "series": [
+            { "tipo": "normal", "insignia": "FALLO", "repeticionesObjetivo": 10 },
+            { "tipo": "normal", "insignia": "FALLO", "repeticionesObjetivo": 10 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D5",
+      "numero": 5,
+      "titulo": "DÍA 5",
+      "nombre": "Cadena Posterior y Abdomen",
+      "categoria": "Pierna",
+      "descripcion": "6 ejercicios · Isquios, glúteos y trabajo abdominal",
+      "ejercicios": [
+        {
+          "id": "d5_e1",
+          "nombre": "Femoral tumbado",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "femoral_tumbado",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d5_e2",
+          "nombre": "Peso muerto rumano con barra",
+          "indicaciones": "Top set + back off (−20 %)",
+          "tieneCalculoDescarga": true,
+          "dbMatchId": "peso_muerto_rumano_con_barra",
+          "series": [
+            { "tipo": "pesada", "insignia": "TOP SET", "repeticionesObjetivo": 8 },
+            { "tipo": "descarga", "insignia": "BACK OFF (−20 %)", "repeticionesObjetivo": 10 }
+          ]
+        },
+        {
+          "id": "d5_e3",
+          "nombre": "Femoral sentado",
+          "indicaciones": "3 × 12 (la última serie descendente)",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "femoral_sentado",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "descendente", "insignia": "DESCENDENTE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d5_e4",
+          "nombre": "Hip thrust",
+          "indicaciones": "3 series de 12 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "hip_thrust",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 12 }
+          ]
+        },
+        {
+          "id": "d5_e5",
+          "nombre": "Patada de glúteo",
+          "indicaciones": "3 series de 15 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "patada_de_gluteo",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 }
+          ]
+        },
+        {
+          "id": "d5_e6",
+          "nombre": "Crunch abdominal en máquina",
+          "indicaciones": "3 series de 15 repeticiones",
+          "tieneCalculoDescarga": false,
+          "dbMatchId": "crunch_abdominal_en_maquina",
+          "series": [
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 },
+            { "tipo": "normal", "insignia": "SERIE", "repeticionesObjetivo": 15 }
+          ]
+        }
+      ]
+    }
+  ]
+}

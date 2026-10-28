@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>ENTRENO FRECUENCIA 1,5 (5 DÍAS) · Carlos Graña · CGM Performance</title>
+  <style>
+    @page { size: A4; margin: 12mm 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #0f1117; color: #f8fafc; padding: 24px; max-width: 900px; margin: 0 auto; }
+    .header-card { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #d4af37; padding-bottom: 14px; margin-bottom: 16px; }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-logo { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #d4af37; background: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #d4af37; font-weight: 900; }
+    .header-title h1 { font-size: 24px; color: #fef08a; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+    .header-title p { font-size: 13px; color: #94a3b8; }
+    .header-right { text-align: right; font-size: 12px; color: #d4af37; font-weight: 700; }
+
+    /* Tabla Semanal */
+    .schedule-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; text-align: center; }
+    .schedule-table th, .schedule-table td { border: 1px solid rgba(212, 175, 55, 0.25); padding: 6px 4px; }
+    .schedule-table th { background: #1a1e29; color: #fef08a; font-weight: 800; text-transform: uppercase; }
+    .schedule-table td { background: #13161f; color: #cbd5e1; }
+    .schedule-table .day-tag { font-weight: 800; color: #d4af37; }
+
+    /* Bloques de días */
+    .day-box { background: #13161f; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid; }
+    .day-header { background: rgba(212, 175, 55, 0.12); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(212, 175, 55, 0.25); }
+    .day-header h2 { font-size: 15px; font-weight: 800; color: #fef08a; }
+    .day-badge { background: #d4af37; color: #000; font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: 4px; }
+
+    .exercises-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .exercises-table th { background: #181d29; color: #94a3b8; text-align: left; padding: 6px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .exercises-table td { padding: 7px 12px; border-top: 1px solid rgba(255, 255, 255, 0.04); vertical-align: top; }
+    .ex-name { font-weight: 700; color: #f8fafc; }
+    .ex-notes { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .ex-reps { text-align: right; font-weight: 700; color: #d4af37; white-space: nowrap; }
+
+    .rules-box { background: #161a24; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 11px; color: #94a3b8; }
+    .rules-box h4 { font-size: 12px; font-weight: 800; color: #fef08a; margin-bottom: 6px; }
+    .rules-box ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .rules-box li::before { content: "▪ "; color: #d4af37; }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+      .header-card { border-bottom-color: #000 !important; }
+      .header-title h1 { color: #000 !important; }
+      .day-box { background: #fff !important; border-color: #ccc !important; }
+      .day-header { background: #eee !important; border-bottom-color: #ccc !important; }
+      .day-header h2 { color: #000 !important; }
+      .day-badge { background: #000 !important; color: #fff !important; }
+      .exercises-table th { background: #f5f5f5 !important; color: #333 !important; }
+      .exercises-table td { border-top-color: #eee !important; color: #000 !important; }
+      .ex-name { color: #000 !important; }
+      .ex-reps { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-card">
+    <div class="header-left">
+      <div class="header-logo">CGM</div>
+      <div class="header-title">
+        <h1>ENTRENO FRECUENCIA 1,5 (5 DÍAS)</h1>
+        <p>Carlos Graña · CGM Performance · Plan Personalizado de Prueba</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span>5 DÍAS DE ALTA INTENSIDAD</span>
+      <p style="font-size:11px; color:#94a3b8; font-weight:normal;">Metodología Rotativa CGM</p>
+    </div>
+  </div>
+
+  <!-- Tabla Semanal -->
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>SEMANA</th>
+        <th>LUNES</th>
+        <th>MARTES</th>
+        <th>MIÉRCOLES</th>
+        <th>JUEVES</th>
+        <th>VIERNES</th>
+        <th>SÁBADO</th>
+        <th>DOMINGO</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="day-tag">SEMANA 1</td>
+        <td>D1 Espalda</td>
+        <td>D2 Pecho</td>
+        <td>D3 Cuádriceps</td>
+        <td style="color:#64748b;">Descanso</td>
+        <td>D4 Brazos</td>
+        <td>D5 Cadena Post.</td>
+        <td style="color:#64748b;">Descanso</td>
+      </tr>
+      <tr>
+        <td class="day-tag">SEMANA 2</td>
+        <td>D1 Espalda</td>
+        <td>D2 Pecho</td>
+        <td>D3 Cuádriceps</td>
+        <td style="color:#64748b;">Descanso</td>
+        <td>D4 Brazos</td>
+        <td>D5 Cadena Post.</td>
+        <td style="color:#64748b;">Descanso</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DÍA 1 -->
+  <div class="day-box">
+    <div class="day-header">
+      <h2>DÍA 1: Espalda y Deltoides Posterior</h2>
+      <span class="day-badge">DÍA 1</span>
+    </div>
+    <table class="exercises-table">
+      <thead>
+        <tr>
+          <th>EJERCICIO</th>
+          <th style="text-align: right;">SERIES × REPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="ex-name">1. Pull over en polea</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">2. Dominadas</div>
+            <div class="ex-notes">1 serie con lastre a 8 reps + 1 serie sin peso al fallo</div>
+          </td>
+          <td class="ex-reps">2 series</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">3. Remo con barra</div>
+            <div class="ex-notes">Top set + back off (−20 %) + 3.ª serie con peso del back off descendente</div>
+          </td>
+          <td class="ex-reps">3 series</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">4. Jalón agarre cerrado</div>
+            <div class="ex-notes">La última serie, descendente</div>
+          </td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">5. Remo con mancuerna</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">6. Pájaros en máquina</div></td>
+          <td class="ex-reps">3 × 15</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">7. Encogimientos con mancuerna</div></td>
+          <td class="ex-reps">3 × 15</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DÍA 2 -->
+  <div class="day-box">
+    <div class="day-header">
+      <h2>DÍA 2: Pecho y Hombro</h2>
+      <span class="day-badge">DÍA 2</span>
+    </div>
+    <table class="exercises-table">
+      <thead>
+        <tr>
+          <th>EJERCICIO</th>
+          <th style="text-align: right;">SERIES × REPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="ex-name">1. Press inclinado en máquina</div>
+            <div class="ex-notes">Top set + back off (−20 %)</div>
+          </td>
+          <td class="ex-reps">2 series</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">2. Press banca</div></td>
+          <td class="ex-reps">3 × 10</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">3. Aperturas con mancuerna</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">4. Cruces en polea desde abajo</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">5. Elevaciones laterales</div>
+            <div class="ex-notes">La última serie, descendente</div>
+          </td>
+          <td class="ex-reps">4 × 12</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">6. Press militar con mancuerna</div>
+            <div class="ex-notes">Series pesadas con técnica estricta</div>
+          </td>
+          <td class="ex-reps">2 × 8</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">7. Elevaciones frontales</div></td>
+          <td class="ex-reps">2 × 12</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DÍA 3 -->
+  <div class="day-box">
+    <div class="day-header">
+      <h2>DÍA 3: Pierna - Cuádriceps y Gemelos</h2>
+      <span class="day-badge">DÍA 3</span>
+    </div>
+    <table class="exercises-table">
+      <thead>
+        <tr>
+          <th>EJERCICIO</th>
+          <th style="text-align: right;">SERIES × REPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="ex-name">1. Extensiones de cuádriceps</div>
+            <div class="ex-notes">La última serie al fallo muscular</div>
+          </td>
+          <td class="ex-reps">3 × 15</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">2. Sentadilla hack</div></td>
+          <td class="ex-reps">3 × 10</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">3. Prensa</div>
+            <div class="ex-notes">Top set + back off (−20 %)</div>
+          </td>
+          <td class="ex-reps">2 series</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">4. Sentadilla búlgara en máquina smith</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">5. Aductor en máquina</div></td>
+          <td class="ex-reps">3 × 15</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">6. Gemelos en máquina</div></td>
+          <td class="ex-reps">4 × 15</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DÍA 4 -->
+  <div class="day-box">
+    <div class="day-header">
+      <h2>DÍA 4: Brazo - Bíceps y Tríceps</h2>
+      <span class="day-badge">DÍA 4</span>
+    </div>
+    <table class="exercises-table">
+      <thead>
+        <tr>
+          <th>EJERCICIO</th>
+          <th style="text-align: right;">SERIES × REPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="ex-name">1. Curl de bíceps con mancuernas</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">2. Tríceps polea unilateral</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">3. Curl martillo mancuernas</div></td>
+          <td class="ex-reps">3 × 10</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">4. Press francés con mancuerna</div></td>
+          <td class="ex-reps">3 × 10</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">5. Curl bayesian unilateral</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">6. Fondos</div>
+            <div class="ex-notes">Al fallo técnico</div>
+          </td>
+          <td class="ex-reps">2 × 10</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DÍA 5 -->
+  <div class="day-box">
+    <div class="day-header">
+      <h2>DÍA 5: Cadena Posterior y Abdomen</h2>
+      <span class="day-badge">DÍA 5</span>
+    </div>
+    <table class="exercises-table">
+      <thead>
+        <tr>
+          <th>EJERCICIO</th>
+          <th style="text-align: right;">SERIES × REPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="ex-name">1. Femoral tumbado</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">2. Peso muerto rumano con barra</div>
+            <div class="ex-notes">Top set + back off (−20 %)</div>
+          </td>
+          <td class="ex-reps">2 series</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="ex-name">3. Femoral sentado</div>
+            <div class="ex-notes">La última serie, descendente</div>
+          </td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">4. Hip thrust</div></td>
+          <td class="ex-reps">3 × 12</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">5. Patada de glúteo</div></td>
+          <td class="ex-reps">3 × 15</td>
+        </tr>
+        <tr>
+          <td><div class="ex-name">6. Crunch abdominal en máquina</div></td>
+          <td class="ex-reps">3 × 15</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="rules-box">
+    <h4>📋 CÓMO FUNCIONA LA METODOLOGÍA CARLOS GRAÑA</h4>
+    <ul>
+      <li><strong>Top set:</strong> Serie pesada al límite de repeticiones marcadas con técnica impecable.</li>
+      <li><strong>Back off (−20 %):</strong> Se reduce un 20 % del peso de la serie pesada para exprimir repeticiones adicionales a máxima velocidad.</li>
+      <li><strong>Serie descendente:</strong> Al terminar las repeticiones indicadas, se reduce peso inmediatamente sin descanso y se sigue hasta el límite.</li>
+      <li><strong>Rotación continua:</strong> Si un día no puedes entrenar, no se pierde el día: la rueda continúa en el mismo orden la próxima sesión.</li>
+    </ul>
+  </div>
+
+</body>
+</html>

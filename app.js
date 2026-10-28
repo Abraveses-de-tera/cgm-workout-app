@@ -455,6 +455,7 @@
     try { cargarDatos(); } catch (e) { console.error('Error al cargar datos:', e); }
     try { configurarEventos(); } catch (e) { console.error('Error en eventos:', e); }
     try { configurarPWA(); } catch (e) { console.warn('PWA:', e); }
+    try { dibujarDiasDirectos(); } catch (e) { console.error('Error en días directos:', e); }
     try { mostrarSiguienteEntrenamiento(); } catch (e) { console.error('Error en entrenamiento sugerido:', e); }
     try { dibujarSecuenciaCiclo(); } catch (e) { console.error('Error en secuencia:', e); }
     try { dibujarHistorial(); } catch (e) { console.error('Error en historial:', e); }
@@ -578,12 +579,85 @@
   }
 
   // ===========================================================================
-  // RUTINA Y ROTACIÓN DE DÍAS (SIN DÍAS DE LA SEMANA)
+  // GESTIÓN DE PLANTILLAS Y ROTACIÓN (OFICIAL CGM O RUTINAS PERSONALIZADAS)
   // ===========================================================================
+  function obtenerPlantillaDiasActual() {
+    if (window.CGM_RUTINAS_PERSONALIZADAS && typeof window.CGM_RUTINAS_PERSONALIZADAS.obtenerPlantillaDiasActiva === 'function') {
+      var plantilla = window.CGM_RUTINAS_PERSONALIZADAS.obtenerPlantillaDiasActiva();
+      if (plantilla && Object.keys(plantilla).length > 0) {
+        return plantilla;
+      }
+    }
+    return DIAS_ENTRENAMIENTO;
+  }
+
+  function obtenerSecuenciaActiva() {
+    var rutinaActivaId = (window.CGM_RUTINAS_PERSONALIZADAS && window.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinaActivaId) ?
+      window.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinaActivaId() : 'oficial_cgm';
+
+    if (rutinaActivaId === 'oficial_cgm' || !window.CGM_RUTINAS_PERSONALIZADAS) {
+      return SECUENCIA_ROTATIVA;
+    }
+
+    var plantilla = window.CGM_RUTINAS_PERSONALIZADAS.obtenerPlantillaDiasActiva(rutinaActivaId);
+    if (!plantilla) {
+      return SECUENCIA_ROTATIVA;
+    }
+
+    var keys = Object.keys(plantilla);
+    return keys.map(function(k) {
+      return {
+        id: k,
+        nombre: plantilla[k].nombre,
+        titulo: plantilla[k].titulo,
+        esRepeticion: false
+      };
+    });
+  }
+
+  function dibujarDiasDirectos() {
+    var grid = $('daysDirectGrid');
+    var badge = $('daysDirectBadge');
+    if (!grid) return;
+
+    var plantilla = obtenerPlantillaDiasActual();
+    var claves = Object.keys(plantilla);
+    if (badge) {
+      badge.textContent = claves.length + ' Días';
+    }
+
+    var html = '';
+    for (var i = 0; i < claves.length; i++) {
+      var d = plantilla[claves[i]];
+      var numEx = (d.ejercicios || []).length;
+      html += '<div class="direct-day-card" data-day="' + d.id + '">';
+      html += '  <span class="direct-day-badge">' + d.titulo + '</span>';
+      html += '  <h3 class="direct-day-title">' + d.nombre + '</h3>';
+      html += '  <p class="direct-day-sub">' + numEx + ' ejercicios · ' + (d.descripcion || '') + '</p>';
+      html += '</div>';
+    }
+
+    grid.innerHTML = html;
+
+    var cards = grid.querySelectorAll('.direct-day-card');
+    for (var j = 0; j < cards.length; j++) {
+      (function(card) {
+        card.addEventListener('click', function() {
+          if (card.dataset.day) iniciarEntrenamiento(card.dataset.day);
+        });
+      })(cards[j]);
+    }
+  }
+
   function obtenerSiguienteDia() {
-    // Si la rotación supera la lista, volvemos a empezar
-    var paso = SECUENCIA_ROTATIVA[estado.indiceRotacion % SECUENCIA_ROTATIVA.length];
-    return DIAS_ENTRENAMIENTO[paso.id] || DIAS_ENTRENAMIENTO.D1;
+    var sec = obtenerSecuenciaActiva();
+    var plantilla = obtenerPlantillaDiasActual();
+    if (!sec || sec.length === 0) {
+      var k0 = Object.keys(plantilla)[0];
+      return plantilla[k0] || DIAS_ENTRENAMIENTO.D1;
+    }
+    var paso = sec[estado.indiceRotacion % sec.length];
+    return plantilla[paso.id] || plantilla[Object.keys(plantilla)[0]] || DIAS_ENTRENAMIENTO.D1;
   }
 
   function mostrarSiguienteEntrenamiento() {
@@ -594,7 +668,7 @@
     var badgeFecha = $('currentDateBadge');
 
     if (badgeFecha) {
-      badgeFecha.textContent = 'DÍA ' + dia.numero;
+      badgeFecha.textContent = dia.titulo || ('DÍA ' + dia.numero);
     }
 
     if (tituloEl) {
@@ -613,18 +687,20 @@
     var contenedor = $('cycleStepsList');
     if (!contenedor) return;
 
-    var actualIdx = estado.indiceRotacion % SECUENCIA_ROTATIVA.length;
+    var sec = obtenerSecuenciaActiva();
+    var plantilla = obtenerPlantillaDiasActual();
+    var actualIdx = estado.indiceRotacion % sec.length;
     var html = '';
 
-    for (var i = 0; i < SECUENCIA_ROTATIVA.length; i++) {
-      var item = SECUENCIA_ROTATIVA[i];
+    for (var i = 0; i < sec.length; i++) {
+      var item = sec[i];
       var esSiguiente = (i === actualIdx);
-      var diaObj = DIAS_ENTRENAMIENTO[item.id];
+      var diaObj = plantilla[item.id] || item;
 
       html += '<div class="schedule-day-card' + (esSiguiente ? ' today' : '') + '" data-id-dia="' + item.id + '" data-paso="' + i + '" style="cursor:pointer;">';
       html += '  <div class="schedule-day-left">';
       html += '    <span class="day-tag" style="width:auto;padding-right:8px;">' + (i + 1) + 'º</span>';
-      html += '    <div class="day-routine-name">' + item.nombre;
+      html += '    <div class="day-routine-name">' + (diaObj.nombre || item.nombre);
       if (item.esRepeticion) html += ' <span class="repeat-badge">REPETICIÓN</span>';
       html += '    </div>';
       html += '  </div>';
@@ -656,18 +732,24 @@
   // MODO ENTRENAMIENTO ACTIVO
   // ===========================================================================
   function iniciarEntrenamiento(idDia) {
-    var plantilla = DIAS_ENTRENAMIENTO[idDia];
+    var plantillaDias = obtenerPlantillaDiasActual();
+    var plantilla = plantillaDias[idDia];
     if (!plantilla) return;
 
     if (estado.entrenamientoActivo && estado.entrenamientoActivo.idDia !== idDia) {
       if (!confirm('Tienes una sesión de ' + estado.entrenamientoActivo.titulo + ' en curso. ¿Deseas descartarla y empezar ' + plantilla.titulo + '?')) return;
     }
 
+    var rutinaActivaId = (window.CGM_RUTINAS_PERSONALIZADAS && window.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinaActivaId) ?
+      window.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinaActivaId() : 'oficial_cgm';
+
     // Buscar sesión anterior para autocompletar pesos previos
     var sesionAnterior = null;
     for (var i = 0; i < estado.historial.length; i++) {
-      if (estado.historial[i].idDia === idDia) {
-        sesionAnterior = estado.historial[i];
+      var h = estado.historial[i];
+      var matchRutina = (!h.idRutina && (!rutinaActivaId || rutinaActivaId === 'oficial_cgm')) || (h.idRutina === rutinaActivaId);
+      if (h.idDia === idDia && matchRutina) {
+        sesionAnterior = h;
         break;
       }
     }
@@ -708,12 +790,14 @@
         nombre: ej.nombre,
         indicaciones: ej.indicaciones,
         tieneCalculoDescarga: ej.tieneCalculoDescarga || false,
+        dbId: ej.dbId || null,
         series: series
       });
     }
 
     estado.entrenamientoActivo = {
       idDia: plantilla.id,
+      idRutina: rutinaActivaId,
       titulo: plantilla.titulo + ': ' + plantilla.nombre,
       categoria: plantilla.categoria,
       inicio: Date.now(),
@@ -999,7 +1083,7 @@
           var exIdx = parseInt(btn.dataset.exIdx, 10);
           var ex = estado.entrenamientoActivo.ejercicios[exIdx];
           if (ex) {
-            abrirModalVideo(ex.id, ex.nombre, ex.indicaciones);
+            abrirModalVideo(ex.id, ex.nombre, ex.indicaciones, ex.dbId);
           }
         });
       })(botonesVideo[v]);
@@ -1518,6 +1602,7 @@
     var registro = {
       id: 'sesion_' + Date.now(),
       idDia: estado.entrenamientoActivo.idDia,
+      idRutina: estado.entrenamientoActivo.idRutina || 'oficial_cgm',
       titulo: estado.entrenamientoActivo.titulo,
       fecha: new Date().toISOString(),
       duracionMinutos: duracionMins,
@@ -1528,7 +1613,8 @@
     estado.historial.unshift(registro);
 
     // Avanzar la rotación al siguiente día automáticamente
-    estado.indiceRotacion = (estado.indiceRotacion + 1) % SECUENCIA_ROTATIVA.length;
+    var sec = obtenerSecuenciaActiva();
+    estado.indiceRotacion = (estado.indiceRotacion + 1) % sec.length;
 
     var tituloFinalizado = estado.entrenamientoActivo.titulo;
     estado.entrenamientoActivo = null;
@@ -1768,7 +1854,7 @@
     return url;
   }
 
-  function abrirModalVideo(exId, exNombre, exIndicaciones) {
+  function abrirModalVideo(exId, exNombre, exIndicaciones, dbId) {
     ejercicioVideoActualId = exId;
     var modal = $('videoModal');
     var titulo = $('videoModalExerciseName');
@@ -1779,8 +1865,12 @@
     if (!modal) return;
 
     // Buscar en la Base de Datos Maestra de 103 ejercicios
-    var matchBD = (window.CGM_BASE_DATOS_EJERCICIOS && window.CGM_BASE_DATOS_EJERCICIOS.buscar) ?
-      (window.CGM_BASE_DATOS_EJERCICIOS.buscar(exId) || window.CGM_BASE_DATOS_EJERCICIOS.buscar(exNombre)) : null;
+    var matchBD = null;
+    if (window.CGM_BASE_DATOS_EJERCICIOS && window.CGM_BASE_DATOS_EJERCICIOS.buscar) {
+      if (dbId) matchBD = window.CGM_BASE_DATOS_EJERCICIOS.buscar(dbId);
+      if (!matchBD && exId) matchBD = window.CGM_BASE_DATOS_EJERCICIOS.buscar(exId);
+      if (!matchBD && exNombre) matchBD = window.CGM_BASE_DATOS_EJERCICIOS.buscar(exNombre);
+    }
 
     var nombreFinal = exNombre || (matchBD ? matchBD.nombre : 'Técnica del Ejercicio');
     var driveId = (matchBD && matchBD.driveId) ? matchBD.driveId : '';
@@ -2024,11 +2114,19 @@
     }
 
     var idANombre = {};
+    var plantilla = obtenerPlantillaDiasActual();
+    var pClaves = Object.keys(plantilla);
+    for (var pd = 0; pd < pClaves.length; pd++) {
+      var pExs = plantilla[pClaves[pd]].ejercicios || [];
+      for (var pe = 0; pe < pExs.length; pe++) {
+        idANombre[pExs[pe].id] = pExs[pe].nombre;
+      }
+    }
     var diasClaves = Object.keys(DIAS_ENTRENAMIENTO);
     for (var d = 0; d < diasClaves.length; d++) {
       var exs = DIAS_ENTRENAMIENTO[diasClaves[d]].ejercicios;
       for (var e = 0; e < exs.length; e++) {
-        idANombre[exs[e].id] = exs[e].nombre;
+        if (!idANombre[exs[e].id]) idANombre[exs[e].id] = exs[e].nombre;
       }
     }
 
@@ -2080,20 +2178,25 @@
 
   function poblarSelectorEjercicios() {
     var select = $('progressionExerciseSelect');
-    if (!select || select.options.length > 0) return;
+    if (!select) return;
 
+    var valPrevio = select.value;
     var html = '';
-    var diasClaves = Object.keys(DIAS_ENTRENAMIENTO);
+    var plantilla = obtenerPlantillaDiasActual();
+    var diasClaves = Object.keys(plantilla);
     for (var d = 0; d < diasClaves.length; d++) {
-      var dia = DIAS_ENTRENAMIENTO[diasClaves[d]];
+      var dia = plantilla[diasClaves[d]];
       html += '<optgroup label="' + dia.titulo + ': ' + dia.nombre + '">';
-      for (var e = 0; e < dia.ejercicios.length; e++) {
+      for (var e = 0; e < (dia.ejercicios || []).length; e++) {
         var ex = dia.ejercicios[e];
         html += '<option value="' + ex.id + '">' + ex.nombre + '</option>';
       }
       html += '</optgroup>';
     }
     select.innerHTML = html;
+    if (valPrevio && select.querySelector('option[value="' + valPrevio + '"]')) {
+      select.value = valPrevio;
+    }
   }
 
   function dibujarGraficoProgresion() {
@@ -2763,5 +2866,13 @@
       }
     });
   }
+
+  // Exponer recarga visual cuando cambia la rutina seleccionada
+  window.cgmRecargarRutinaVisual = function() {
+    try { dibujarDiasDirectos(); } catch (e) { console.error(e); }
+    try { mostrarSiguienteEntrenamiento(); } catch (e) { console.error(e); }
+    try { dibujarSecuenciaCiclo(); } catch (e) { console.error(e); }
+    try { poblarSelectorEjercicios(); } catch (e) { console.error(e); }
+  };
 
 })();

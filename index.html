@@ -65,6 +65,9 @@
          =================================================================== -->
     <section id="tab-routine" class="tab-view active">
       
+      <!-- Selector de Rutina Activa y Acceso de Administrador -->
+      <div id="routineSelectorWrap" class="routine-selector-container"></div>
+
       <!-- Tarjeta Principal: Siguiente Entrenamiento Sugerido -->
       <div class="today-hero">
         <div class="hero-status">
@@ -80,13 +83,13 @@
         </div>
       </div>
 
-      <!-- Selector Directo de los 4 Días -->
+      <!-- Selector Directo de Días -->
       <div class="section-heading">
         <span>Elige el Día que Quieras Entrenar</span>
-        <span class="badge-info">4 Días</span>
+        <span id="daysDirectBadge" class="badge-info">4 Días</span>
       </div>
 
-      <div class="days-direct-grid">
+      <div id="daysDirectGrid" class="days-direct-grid">
         <div class="direct-day-card" data-day="D1">
           <span class="direct-day-badge">DÍA 1</span>
           <h3 class="direct-day-title">Espalda y Posterior</h3>
@@ -702,20 +705,151 @@
     </div>
   </div>
 
+  <!-- ===================================================================
+       MODALES DE GESTIÓN DE RUTINAS PERSONALIZADAS Y PDF (v12)
+       =================================================================== -->
+
+  <!-- Modal de Autenticación de Administrador -->
+  <div id="adminLoginModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 380px;">
+      <div class="modal-header">
+        <h3>🔐 Acceso de Administrador</h3>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
+        Introduce la clave de entrenador para gestionar rutinas personalizadas y subir archivos PDF.
+      </p>
+      <div style="margin-bottom: 14px;">
+        <input type="password" id="adminPasswordInput" class="admin-input-text" placeholder="Contraseña de administrador" autocomplete="current-password">
+        <div id="adminLoginError" style="display:none; color: var(--danger); font-size: 12px; margin-top: 6px;"></div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="adminLoginSubmitBtn" class="btn-primary" style="flex: 1;">Entrar</button>
+        <button id="adminLoginCancelBtn" class="btn-secondary" style="flex: 1;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal del Panel de Administrador -->
+  <div id="adminPanelModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 580px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3>👑 Panel de Rutinas Personalizadas</h3>
+        <button id="closeAdminPanelBtn" class="video-modal-close" type="button" aria-label="Cerrar panel">✕</button>
+      </div>
+      <div style="padding: 6px 0 12px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+        <button id="btnAdminNewFromPdf" class="btn-primary" style="flex: 1; min-width: 180px;">
+          <span>📄</span> Crear Rutina desde PDF
+        </button>
+        <button id="btnAdminImportJson" class="btn-secondary" style="min-width: 140px;">
+          <span>📥</span> Importar JSON
+        </button>
+        <input type="file" id="adminImportJsonInput" accept=".json" style="display:none;">
+        <button id="btnAdminLogout" class="btn-sm-action danger" style="padding: 8px 12px; font-size: 12px;" title="Cerrar sesión de administrador">
+          Cerrar Sesión
+        </button>
+      </div>
+      <div class="section-heading" style="margin-top: 6px; margin-bottom: 8px;">
+        <span>Tus Rutinas Creadas</span>
+      </div>
+      <div id="adminRoutinesList" class="admin-routines-scrollable" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+        <!-- Generado dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Subida de Archivo PDF -->
+  <div id="pdfUploadModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3>📄 Subir Rutina en PDF</h3>
+        <button id="closePdfModalBtn" class="video-modal-close" type="button" aria-label="Cerrar subida">✕</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
+        Arrastra aquí el PDF del entrenamiento del cliente o pulsa para seleccionarlo. El archivo se procesa 100% en tu navegador de forma segura y privada.
+      </p>
+      <div id="pdfDropZone" class="pdf-drop-zone">
+        <div style="font-size: 40px; margin-bottom: 8px;">📑</div>
+        <strong>Arrastra tu PDF aquí</strong>
+        <span style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">o pulsa para explorar archivos</span>
+        <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;">
+      </div>
+      <div id="pdfUploadStatus" style="display:none; align-items:center; gap:10px; margin-top:14px; padding:10px 14px; background:rgba(212,175,55,0.1); border-radius:8px; border:1px solid rgba(212,175,55,0.3);">
+        <div class="admin-spinner"></div>
+        <span id="pdfUploadStatusText" style="font-size:13px; color:var(--gold-light);">Analizando PDF y extrayendo ejercicios...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Revisión y Corrección de Rutina Antes de Guardar -->
+  <div id="routineReviewModal" class="modal-overlay">
+    <div class="modal-content review-modal-card">
+      <div class="modal-header">
+        <h3>🔍 Revisión del Plan Extraído</h3>
+      </div>
+      <div class="review-meta-grid">
+        <div>
+          <label class="review-label">Título de la Rutina:</label>
+          <input type="text" id="reviewRoutineTitle" class="admin-input-text" placeholder="Ej. Rutina Frecuencia 1.5 - 4 Días">
+        </div>
+        <div>
+          <label class="review-label">Cliente / Atleta:</label>
+          <input type="text" id="reviewClientName" class="admin-input-text" placeholder="Ej. Carlos Graña o Nombre del cliente">
+        </div>
+      </div>
+      <div class="section-heading" style="margin-top: 10px; margin-bottom: 8px;">
+        <span>Días y Ejercicios Detectados (con asignación de vídeo)</span>
+      </div>
+      <div id="reviewDaysContainer" class="review-days-container">
+        <!-- Generado dinámicamente -->
+      </div>
+      <div class="review-modal-footer">
+        <button id="btnSaveRoutineReview" class="btn-primary" style="flex: 2;">
+          ✓ Guardar y Activar Rutina
+        </button>
+        <button id="btnCancelRoutineReview" class="btn-secondary" style="flex: 1;">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Buscador de Ejercicios en Base de Datos de Carlos Graña -->
+  <div id="videoPickerModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3>🎬 Asociar Vídeo de Carlos Graña</h3>
+        <button id="closeVideoPickerBtn" class="video-modal-close" type="button" aria-label="Cerrar selector">✕</button>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="videoPickerSearchInput" class="admin-input-text" placeholder="Buscar ejercicio o grupo muscular...">
+      </div>
+      <div id="videoPickerResultsList" class="video-picker-scrollable" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+        <!-- Generado dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <div id="adminToast" class="admin-toast"></div>
+
   <!-- Scripts con control de versión y auto-limpieza -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v11') {
+          if (names[i] !== 'cgm-rendimiento-v12') {
             caches.delete(names[i]);
           }
         }
       });
     }
   </script>
-  <script src="ejercicios-db.js?v=11"></script>
-  <script src="routine-data.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+  <script src="lib/pdf.min.js"></script>
+  <script src="lib/pdf.worker.min.js"></script>
+  <script src="ejercicios-db.js?v=12"></script>
+  <script src="routine-data.js?v=12"></script>
+  <script src="pdf-rutina-parser.js?v=12"></script>
+  <script src="rutinas-personalizadas.js?v=12"></script>
+  <script src="rutina-pdf-ui.js?v=12"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

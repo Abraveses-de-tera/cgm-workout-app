@@ -1,6 +1,6 @@
-// Service Worker para CGM Rendimiento (v11)
+// Service Worker para CGM Rendimiento (v12)
 // Estrategia: Red primero con respaldo sin conexión y limpieza de versiones viejas
-const NOMBRE_CACHE = 'cgm-rendimiento-v11';
+const NOMBRE_CACHE = 'cgm-rendimiento-v12';
 const ARCHIVOS_A_GUARDAR = [
   './',
   './index.html',
@@ -8,6 +8,11 @@ const ARCHIVOS_A_GUARDAR = [
   './app.js',
   './ejercicios-db.js',
   './routine-data.js',
+  './pdf-rutina-parser.js',
+  './rutinas-personalizadas.js',
+  './rutina-pdf-ui.js',
+  './lib/pdf.min.js',
+  './lib/pdf.worker.min.js',
   './manifest.webmanifest',
   './icon.png',
   './icon.jpg'

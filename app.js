@@ -1833,6 +1833,7 @@
         iframe.src = 'https://drive.google.com/file/d/' + driveId + '/preview';
         iframe.style.display = 'block';
       }
+      establecerFormatoVideo('portrait');
       videoActualData.fuenteActiva = 'drive';
     } else {
       // Estado 'rehacer' o sin vídeo en Drive: reproducir técnica demostrativa
@@ -1852,10 +1853,35 @@
         iframe.src = 'https://www.youtube-nocookie.com/embed/' + youtubeId + '?autoplay=1&rel=0&playsinline=1';
         iframe.style.display = 'block';
       }
+      establecerFormatoVideo('landscape');
       videoActualData.fuenteActiva = 'youtube';
     }
 
     modal.classList.add('open');
+  }
+
+  function establecerFormatoVideo(formato) {
+    var wrapper = $('videoPlayerWrapper');
+    var btnP = $('btnFormatPortrait');
+    var btnL = $('btnFormatLandscape');
+    var btnE = $('btnFormatExpanded');
+    if (!wrapper) return;
+
+    wrapper.classList.remove('mode-portrait', 'mode-landscape', 'mode-expanded');
+    if (btnP) btnP.classList.remove('active');
+    if (btnL) btnL.classList.remove('active');
+    if (btnE) btnE.classList.remove('active');
+
+    if (formato === 'landscape') {
+      wrapper.classList.add('mode-landscape');
+      if (btnL) btnL.classList.add('active');
+    } else if (formato === 'expanded') {
+      wrapper.classList.add('mode-expanded');
+      if (btnE) btnE.classList.add('active');
+    } else {
+      wrapper.classList.add('mode-portrait');
+      if (btnP) btnP.classList.add('active');
+    }
   }
 
   function cerrarModalVideo() {
@@ -2499,6 +2525,7 @@
       if (tabYt) tabYt.classList.remove('active');
       if (iframe) iframe.src = 'https://drive.google.com/file/d/' + videoActualData.driveId + '/preview';
       if (notice) notice.innerHTML = '🎬 <strong>Grabación de Carlos Graña</strong> (Drive). Si tu navegador no reproduce Drive, pulsa en [📺 Guía Demostrativa] o [↗️ Abrir en Drive].';
+      establecerFormatoVideo('portrait');
       videoActualData.fuenteActiva = 'drive';
     });
 
@@ -2512,7 +2539,21 @@
       var ytId = videoActualData.youtubeId || 'eGo4IYlbE5g';
       if (iframe) iframe.src = 'https://www.youtube-nocookie.com/embed/' + ytId + '?autoplay=1&rel=0&playsinline=1';
       if (notice) notice.innerHTML = '📺 <strong>Guía Técnica Demostrativa:</strong> Demostración con técnica de biomecánica estricta.';
+      establecerFormatoVideo('landscape');
       videoActualData.fuenteActiva = 'youtube';
+    });
+
+    // Selectores de formato de visualización (Vertical móvil / Panorámico / Ampliado)
+    escuchar($('btnFormatPortrait'), 'click', function() {
+      establecerFormatoVideo('portrait');
+    });
+
+    escuchar($('btnFormatLandscape'), 'click', function() {
+      establecerFormatoVideo('landscape');
+    });
+
+    escuchar($('btnFormatExpanded'), 'click', function() {
+      establecerFormatoVideo('expanded');
     });
 
     // Calculadoras

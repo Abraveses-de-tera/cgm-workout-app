@@ -605,13 +605,32 @@
           📺 Guía Demostrativa
         </button>
         <a id="btnOpenDriveDirect" class="video-direct-link-btn" href="#" target="_blank" rel="noopener noreferrer" style="display: none;">
-          ↗️ Abrir en Drive
+          ↗️ Pantalla completa (Drive)
         </a>
       </div>
 
+      <!-- Barra de selector de formato de visualización (Vertical móvil vs Panorámico) -->
+      <div class="video-format-bar">
+        <span class="video-format-label">📐 Formato:</span>
+        <button id="btnFormatPortrait" class="video-format-btn active" type="button" title="Formato vertical para grabaciones en móvil de Carlos Graña">
+          📱 Vertical
+        </button>
+        <button id="btnFormatLandscape" class="video-format-btn" type="button" title="Formato panorámico 16:9 para pantalla ancha">
+          📺 Panorámico
+        </button>
+        <button id="btnFormatExpanded" class="video-format-btn" type="button" title="Ampliar altura al máximo en pantalla">
+          ⛶ Ampliar
+        </button>
+      </div>
+
       <!-- Reproductor incrustado (Se reproduce de inmediato) -->
-      <div class="video-player-wrapper">
+      <div id="videoPlayerWrapper" class="video-player-wrapper mode-portrait">
         <iframe id="videoIframe" class="video-iframe" src="" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+      </div>
+
+      <!-- Consejo interactivo de controles -->
+      <div class="video-player-tip">
+        <span>💡 Toca el vídeo una vez para ocultar o mostrar los botones y la barra de tiempo mientras se reproduce.</span>
       </div>
 
       <!-- Barra de opciones de vídeo y notas de Carlos Graña -->
@@ -720,15 +739,15 @@
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v9') {
+          if (names[i] !== 'cgm-rendimiento-v10') {
             caches.delete(names[i]);
           }
         }
       });
     }
   </script>
-  <script src="ejercicios-db.js?v=9"></script>
-  <script src="routine-data.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="ejercicios-db.js?v=10"></script>
+  <script src="routine-data.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

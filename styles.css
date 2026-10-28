@@ -1594,16 +1594,21 @@ body {
   transform: translateY(-1px);
 }
 
+#videoModal {
+  padding: 8px 6px;
+}
+
 .video-modal-content {
   background: #0d0f14;
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-lg);
   max-width: 580px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 94vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.95), 0 0 30px rgba(212, 175, 55, 0.3);
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1717,12 +1722,85 @@ body {
   border-color: var(--gold-primary);
 }
 
+.video-format-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #080a0e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+}
+
+.video-format-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.video-format-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.video-format-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.video-format-btn.active {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.25);
+}
+
 .video-player-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 aspecto panorámico */
   background: #000;
   overflow: hidden;
+  transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1), padding 0.25s ease;
+}
+
+/* Modo Vertical (por defecto para grabaciones móviles de Carlos Graña) */
+.video-player-wrapper.mode-portrait {
+  padding-top: 0;
+  height: clamp(380px, 58vh, 520px);
+}
+
+/* Modo Panorámico (para guías de YouTube) */
+.video-player-wrapper.mode-landscape {
+  padding-top: 56.25%;
+  height: 0;
+}
+
+/* Modo Ampliado / Pantalla Completa dentro del modal */
+.video-player-wrapper.mode-expanded {
+  padding-top: 0;
+  height: clamp(480px, 72vh, 680px);
+}
+
+.video-player-tip {
+  padding: 6px 12px;
+  background: rgba(212, 175, 55, 0.08);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+  font-size: 11px;
+  color: var(--gold-light);
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .video-iframe {

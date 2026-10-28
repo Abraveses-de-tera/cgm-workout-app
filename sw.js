@@ -1,6 +1,6 @@
-// Service Worker para CGM Rendimiento (v10)
+// Service Worker para CGM Rendimiento (v11)
 // Estrategia: Red primero con respaldo sin conexión y limpieza de versiones viejas
-const NOMBRE_CACHE = 'cgm-rendimiento-v10';
+const NOMBRE_CACHE = 'cgm-rendimiento-v11';
 const ARCHIVOS_A_GUARDAR = [
   './',
   './index.html',

@@ -1772,11 +1772,7 @@
     ejercicioVideoActualId = exId;
     var modal = $('videoModal');
     var titulo = $('videoModalExerciseName');
-    var badgeGrupo = $('videoModalGroupBadge');
-    var badgeEstado = $('videoModalStatusBadge');
-    var iframe = $('videoIframe');
     var notes = $('videoModalNotes');
-    var notice = $('videoSourceNotice');
     var tabDrive = $('btnTabDrive');
     var tabYt = $('btnTabYoutube');
     var btnDirect = $('btnOpenDriveDirect');
@@ -1787,7 +1783,6 @@
       (window.CGM_BASE_DATOS_EJERCICIOS.buscar(exId) || window.CGM_BASE_DATOS_EJERCICIOS.buscar(exNombre)) : null;
 
     var nombreFinal = exNombre || (matchBD ? matchBD.nombre : 'Técnica del Ejercicio');
-    var grupo = matchBD ? matchBD.grupo : 'Ejercicio';
     var driveId = (matchBD && matchBD.driveId) ? matchBD.driveId : '';
     var driveUrl = (matchBD && matchBD.driveUrl) ? matchBD.driveUrl : (driveId ? ('https://drive.google.com/file/d/' + driveId + '/view') : '');
     var youtubeId = (matchBD && matchBD.youtubeId) ? matchBD.youtubeId : (VIDEOS_DEMOSTRACION[exId] || 'eGo4IYlbE5g');
@@ -1802,10 +1797,15 @@
     videoActualData.youtubeId = youtubeId;
 
     if (titulo) titulo.textContent = nombreFinal;
-    if (badgeGrupo) badgeGrupo.textContent = grupo;
-    if (notes) notes.textContent = exIndicaciones ? ('💡 Indicación técnica: ' + exIndicaciones) : '';
+    if (notes) {
+      if (exIndicaciones) {
+        notes.textContent = '💡 ' + exIndicaciones;
+        notes.style.display = 'block';
+      } else {
+        notes.style.display = 'none';
+      }
+    }
 
-    // Botón de enlace directo a Google Drive
     if (btnDirect) {
       if (tieneDrive && driveUrl) {
         btnDirect.href = driveUrl;
@@ -1816,77 +1816,91 @@
     }
 
     if (tieneDrive) {
-      // Grabación oficial de Carlos Graña en Google Drive
-      if (badgeEstado) {
-        badgeEstado.textContent = '🟢 Grabación Carlos Graña';
-        badgeEstado.style.background = 'rgba(16, 185, 129, 0.2)';
-        badgeEstado.style.color = '#34d399';
-      }
       if (tabDrive) {
         tabDrive.classList.add('active');
         tabDrive.classList.remove('disabled');
-        tabDrive.removeAttribute('title');
       }
-      if (tabYt) { tabYt.classList.remove('active'); }
-      if (notice) notice.innerHTML = '🎬 <strong>Grabación de Carlos Graña</strong> (Drive). Si tu navegador no reproduce Drive, pulsa en [📺 Guía Demostrativa] o [↗️ Abrir en Drive].';
-      if (iframe) {
-        iframe.src = 'https://drive.google.com/file/d/' + driveId + '/preview';
-        iframe.style.display = 'block';
-      }
-      establecerFormatoVideo('portrait');
+      if (tabYt) tabYt.classList.remove('active');
+      reproducirVideoNativoDrive(driveId);
       videoActualData.fuenteActiva = 'drive';
     } else {
-      // Estado 'rehacer' o sin vídeo en Drive: reproducir técnica demostrativa
-      if (badgeEstado) {
-        badgeEstado.textContent = '🟡 Guía Técnica (Rehacer)';
-        badgeEstado.style.background = 'rgba(245, 158, 11, 0.2)';
-        badgeEstado.style.color = '#fbbf24';
-      }
       if (tabDrive) {
         tabDrive.classList.remove('active');
         tabDrive.classList.add('disabled');
-        tabDrive.title = 'Carlos Graña tiene este ejercicio catalogado como rehacer en la base de datos oficial';
       }
-      if (tabYt) { tabYt.classList.add('active'); }
-      if (notice) notice.innerHTML = '⏳ <strong>Carlos Graña:</strong> Pendiente de nueva grabación oficial (<em>«rehacer»</em>). Mostrando demostración técnica de biomecánica estricta.';
-      if (iframe) {
-        iframe.src = 'https://www.youtube-nocookie.com/embed/' + youtubeId + '?autoplay=1&rel=0&playsinline=1';
-        iframe.style.display = 'block';
-      }
-      establecerFormatoVideo('landscape');
+      if (tabYt) tabYt.classList.add('active');
+      reproducirVideoYoutube(youtubeId);
       videoActualData.fuenteActiva = 'youtube';
     }
 
     modal.classList.add('open');
   }
 
-  function establecerFormatoVideo(formato) {
-    var wrapper = $('videoPlayerWrapper');
-    var btnP = $('btnFormatPortrait');
-    var btnL = $('btnFormatLandscape');
-    var btnE = $('btnFormatExpanded');
-    if (!wrapper) return;
+  function reproducirVideoNativoDrive(driveId) {
+    var videoNative = $('videoNativePlayer');
+    var iframe = $('videoIframe');
+    if (!driveId) return;
 
-    wrapper.classList.remove('mode-portrait', 'mode-landscape', 'mode-expanded');
-    if (btnP) btnP.classList.remove('active');
-    if (btnL) btnL.classList.remove('active');
-    if (btnE) btnE.classList.remove('active');
+    var urlDirecta = 'https://drive.usercontent.google.com/download?id=' + driveId + '&export=download';
 
-    if (formato === 'landscape') {
-      wrapper.classList.add('mode-landscape');
-      if (btnL) btnL.classList.add('active');
-    } else if (formato === 'expanded') {
-      wrapper.classList.add('mode-expanded');
-      if (btnE) btnE.classList.add('active');
-    } else {
-      wrapper.classList.add('mode-portrait');
-      if (btnP) btnP.classList.add('active');
+    if (videoNative) {
+      videoNative.style.display = 'block';
+      videoNative.src = urlDirecta;
+      videoNative.muted = true;
+      videoNative.loop = true;
+      videoNative.playsInline = true;
+      videoNative.autoplay = true;
+
+      videoNative.onerror = function() {
+        console.warn('Fallback a iframe de Drive');
+        videoNative.style.display = 'none';
+        if (iframe) {
+          iframe.src = 'https://drive.google.com/file/d/' + driveId + '/preview';
+          iframe.style.display = 'block';
+        }
+      };
+
+      try {
+        var prom = videoNative.play();
+        if (prom && typeof prom.catch === 'function') {
+          prom.catch(function(e) {
+            console.log('Autoplay silencioso:', e);
+          });
+        }
+      } catch (err) {}
+    }
+
+    if (iframe) {
+      iframe.style.display = 'none';
+      iframe.src = '';
+    }
+  }
+
+  function reproducirVideoYoutube(youtubeId) {
+    var videoNative = $('videoNativePlayer');
+    var iframe = $('videoIframe');
+
+    if (videoNative) {
+      videoNative.pause();
+      videoNative.src = '';
+      videoNative.style.display = 'none';
+    }
+
+    if (iframe) {
+      iframe.src = 'https://www.youtube-nocookie.com/embed/' + (youtubeId || 'eGo4IYlbE5g') + '?autoplay=1&controls=0&rel=0&playsinline=1&loop=1&playlist=' + (youtubeId || 'eGo4IYlbE5g');
+      iframe.style.display = 'block';
     }
   }
 
   function cerrarModalVideo() {
     var modal = $('videoModal');
     var iframe = $('videoIframe');
+    var videoNative = $('videoNativePlayer');
+
+    if (videoNative) {
+      videoNative.pause();
+      videoNative.src = '';
+    }
     if (iframe) iframe.src = '';
     if (modal) modal.classList.remove('open');
     ejercicioVideoActualId = null;
@@ -2519,42 +2533,33 @@
       if (!videoActualData.driveId) return;
       var tabDrive = $('btnTabDrive');
       var tabYt = $('btnTabYoutube');
-      var iframe = $('videoIframe');
-      var notice = $('videoSourceNotice');
       if (tabDrive) tabDrive.classList.add('active');
       if (tabYt) tabYt.classList.remove('active');
-      if (iframe) iframe.src = 'https://drive.google.com/file/d/' + videoActualData.driveId + '/preview';
-      if (notice) notice.innerHTML = '🎬 <strong>Grabación de Carlos Graña</strong> (Drive). Si tu navegador no reproduce Drive, pulsa en [📺 Guía Demostrativa] o [↗️ Abrir en Drive].';
-      establecerFormatoVideo('portrait');
+      reproducirVideoNativoDrive(videoActualData.driveId);
       videoActualData.fuenteActiva = 'drive';
     });
 
     escuchar($('btnTabYoutube'), 'click', function() {
       var tabDrive = $('btnTabDrive');
       var tabYt = $('btnTabYoutube');
-      var iframe = $('videoIframe');
-      var notice = $('videoSourceNotice');
       if (tabYt) tabYt.classList.add('active');
       if (tabDrive) tabDrive.classList.remove('active');
       var ytId = videoActualData.youtubeId || 'eGo4IYlbE5g';
-      if (iframe) iframe.src = 'https://www.youtube-nocookie.com/embed/' + ytId + '?autoplay=1&rel=0&playsinline=1';
-      if (notice) notice.innerHTML = '📺 <strong>Guía Técnica Demostrativa:</strong> Demostración con técnica de biomecánica estricta.';
-      establecerFormatoVideo('landscape');
+      reproducirVideoYoutube(ytId);
       videoActualData.fuenteActiva = 'youtube';
     });
 
-    // Selectores de formato de visualización (Vertical móvil / Panorámico / Ampliado)
-    escuchar($('btnFormatPortrait'), 'click', function() {
-      establecerFormatoVideo('portrait');
-    });
-
-    escuchar($('btnFormatLandscape'), 'click', function() {
-      establecerFormatoVideo('landscape');
-    });
-
-    escuchar($('btnFormatExpanded'), 'click', function() {
-      establecerFormatoVideo('expanded');
-    });
+    // Toque sobre el vídeo para pausar o continuar sin botones molestos en pantalla
+    var videoNative = $('videoNativePlayer');
+    if (videoNative) {
+      videoNative.addEventListener('click', function() {
+        if (videoNative.paused) {
+          videoNative.play();
+        } else {
+          videoNative.pause();
+        }
+      });
+    }
 
     // Calculadoras
     escuchar($('calcTargetWeight'), 'input', actualizarCalculadoraDiscos);

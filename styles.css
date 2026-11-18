@@ -732,6 +732,21 @@ body {
   text-transform: uppercase;
   background: var(--bg-elevated);
   color: var(--text-muted);
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  user-select: none;
+}
+
+.set-tag:hover {
+  filter: brightness(1.25);
+  transform: scale(1.05);
+}
+
+.set-tag.calentamiento,
+.set-tag.warmup {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
 }
 
 .set-tag.topset,
@@ -2815,4 +2830,139 @@ body {
 @keyframes bounce {
   0% { transform: translateY(0); }
   100% { transform: translateY(-8px); }
+}
+
+/* =============================================================================
+   MEJORAS INSPIRADAS EN REPOSITORIOS TOP DE GITHUB (v15)
+   Hevy, Strong, wger: Historial rápido, calculadora emergente y tipo de serie
+   ============================================================================= */
+
+/* Botón de Historial de Ejercicio en Tarjeta de Entrenamiento */
+.ex-history-trigger {
+  font-size: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--gold-light);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ex-history-trigger:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-primary);
+  transform: scale(1.05);
+}
+
+/* Tarjetas de Historial de Sesiones en Modal */
+.ex-history-session-card {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.ex-history-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
+}
+
+.ex-history-session-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+.ex-history-session-pr {
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(212, 175, 55, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ex-history-set-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ex-history-set-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+
+.ex-history-onerm-badge {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: monospace;
+}
+
+/* Selector de Tipo de Serie */
+.btn-set-type-option {
+  transition: all 0.12s ease;
+}
+
+.btn-set-type-option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--gold-primary) !important;
+  transform: translateX(3px);
+}
+
+/* Pastillas de Discos en Calculadora Emergente */
+.quick-plate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+}
+
+.quick-plate-chip.p25 { border-color: #ef4444; color: #f87171; }
+.quick-plate-chip.p20 { border-color: #3b82f6; color: #60a5fa; }
+.quick-plate-chip.p15 { border-color: #eab308; color: #fde047; }
+.quick-plate-chip.p10 { border-color: #22c55e; color: #4ade80; }
+.quick-plate-chip.p5  { border-color: #a855f7; color: #c084fc; }
+.quick-plate-chip.p25_sm { border-color: #94a3b8; color: #cbd5e1; }
+.quick-plate-chip.p125 { border-color: #64748b; color: #94a3b8; }
+
+.quick-plate-adjust-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.quick-plate-adjust-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
 }

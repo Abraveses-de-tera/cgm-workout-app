@@ -867,6 +867,7 @@
       html += '    </div>';
       html += '    <div style="display:flex;gap:6px;align-items:center;">';
       html += '      <button class="btn-video-trigger" data-ex-idx="' + exIdx + '" data-ex-id="' + ex.id + '" title="Ver vídeo explicativo de la técnica sin salir de la app">🎬 Vídeo</button>';
+      html += '      <button class="icon-btn ex-history-trigger" data-ex-id="' + ex.id + '" data-ex-nombre="' + ex.nombre + '" title="Ver marcas anteriores y progresión">📋</button>';
       html += '      <button class="icon-btn plate-modal-trigger" data-ex-idx="' + exIdx + '" title="Calcular discos para este ejercicio">⚖️</button>';
       html += '    </div>';
       html += '  </div>';
@@ -923,7 +924,7 @@
         html += '<div class="set-row' + (s.completada ? ' done' : '') + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">';
         html += '  <div class="set-index">' + s.numero + '</div>';
         html += '  <div class="set-badge-col">';
-        html += '    <span class="set-tag ' + s.tipo + '">' + s.insignia + '</span>';
+        html += '    <span class="set-tag ' + s.tipo + '" data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '" title="Toca para cambiar tipo de serie (Normal, Calentamiento, Pesada, Descarga, Fallo)">' + s.insignia + '</span>';
         html += '    <span class="' + copyClass + '"' + copyTitle + ' data-ex-idx="' + exIdx + '" data-set-idx="' + sIdx + '">Ant: ' + textoAnterior + copyBadge + '</span>';
         if (onermEstHtml) html += '    ' + onermEstHtml;
         html += '  </div>';
@@ -1067,12 +1068,36 @@
         btn.addEventListener('click', function() {
           var exIdx = parseInt(btn.dataset.exIdx, 10);
           var ex = estado.entrenamientoActivo.ejercicios[exIdx];
-          var peso = (ex.series[0] && ex.series[0].peso) ? ex.series[0].peso : 60;
-          $('calcTargetWeight').value = peso;
-          actualizarCalculadoraDiscos();
-          cambiarPestana('tab-tools');
+          var peso = (ex.series[0] && ex.series[0].peso) ? parseFloat(ex.series[0].peso) : 60;
+          abrirModalCalculadoraDiscosRapida(peso || 60, ex.nombre);
         });
       })(botonesDiscos[i]);
+    }
+
+    // Botones de historial rápido de marcas del ejercicio (📋)
+    var botonesHistorialEx = contenedor.querySelectorAll('.ex-history-trigger');
+    for (var h = 0; h < botonesHistorialEx.length; h++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var exId = btn.dataset.exId;
+          var exNombre = btn.dataset.exNombre;
+          abrirModalHistorialEjercicio(exId, exNombre);
+        });
+      })(botonesHistorialEx[h]);
+    }
+
+    // Etiquetas interactivas de serie para cambiar categoría (Normal, Calentamiento, etc.)
+    var tagsSerie = contenedor.querySelectorAll('.set-tag');
+    for (var t = 0; t < tagsSerie.length; t++) {
+      (function(tag) {
+        tag.addEventListener('click', function() {
+          var exIdx = parseInt(tag.dataset.exIdx, 10);
+          var sIdx = parseInt(tag.dataset.setIdx, 10);
+          if (!isNaN(exIdx) && !isNaN(sIdx)) {
+            abrirSelectorTipoSerie(exIdx, sIdx);
+          }
+        });
+      })(tagsSerie[t]);
     }
 
     // Botones de vídeo explicativo
@@ -1140,6 +1165,204 @@
         });
       })(botonesEditarNota[b]);
     }
+  }
+
+  // ===========================================================================
+  // MODAL RÁPIDO DE HISTORIAL DEL EJERCICIO (Inspirado en Hevy / Strong)
+  // ===========================================================================
+  function abrirModalHistorialEjercicio(exId, exNombre) {
+    var modal = $('exHistoryModal');
+    var titleEl = $('exHistoryModalTitle');
+    var bodyEl = $('exHistoryModalBody');
+    if (!modal || !bodyEl) return;
+
+    if (titleEl) titleEl.textContent = exNombre || 'Historial de Ejercicio';
+
+    var sesionesCoincidentes = [];
+    var recordHist = estado.records[exId] || 0;
+
+    for (var i = 0; i < estado.historial.length; i++) {
+      var sesion = estado.historial[i];
+      if (!sesion.ejercicios) continue;
+      for (var e = 0; e < sesion.ejercicios.length; e++) {
+        var ex = sesion.ejercicios[e];
+        var match = (ex.id === exId) || (ex.nombre && exNombre && ex.nombre.toLowerCase().trim() === exNombre.toLowerCase().trim());
+        if (match && Array.isArray(ex.series)) {
+          var seriesValidas = ex.series.filter(function(s) {
+            return s.completada && s.peso && s.repeticiones;
+          });
+          if (seriesValidas.length > 0) {
+            sesionesCoincidentes.push({
+              fecha: sesion.fecha,
+              nombreDia: sesion.nombreDia || sesion.idDia,
+              series: seriesValidas
+            });
+            break;
+          }
+        }
+      }
+      if (sesionesCoincidentes.length >= 6) break;
+    }
+
+    if (sesionesCoincidentes.length === 0) {
+      bodyEl.innerHTML = '<div style="text-align:center; padding: 26px 14px; color: var(--text-dim);">' +
+        '<div style="font-size:32px; margin-bottom:8px;">📊</div>' +
+        '<p style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:4px;">Sin registros guardados todavía</p>' +
+        '<p style="font-size:12px; line-height:1.5;">Al completar series con peso y finalizar el entrenamiento, el historial de este ejercicio aparecerá aquí con tus marcas y 1RM estimado.</p>' +
+        '</div>';
+    } else {
+      var html = '';
+      if (recordHist > 0) {
+        html += '<div style="background: rgba(212,175,55,0.12); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 9px 12px; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">';
+        html += '  <span style="font-size:12px; color:var(--gold-light); font-weight:700;">🏆 Récord Personal Histórico (PR):</span>';
+        html += '  <span style="font-size:15px; font-weight:900; color:#fbbf24;">' + recordHist + ' kg</span>';
+        html += '</div>';
+      }
+
+      for (var s = 0; s < sesionesCoincidentes.length; s++) {
+        var ses = sesionesCoincidentes[s];
+        var d = new Date(ses.fecha);
+        var fStr = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        html += '<div class="ex-history-session-card">';
+        html += '  <div class="ex-history-session-header">';
+        html += '    <span class="ex-history-session-date">📅 ' + fStr + '</span>';
+        html += '    <span style="font-size:11px; color:var(--text-dim); font-weight:600;">' + (ses.nombreDia || '') + '</span>';
+        html += '  </div>';
+        html += '  <div class="ex-history-set-list">';
+
+        for (var k = 0; k < ses.series.length; k++) {
+          var itemSerie = ses.series[k];
+          var w = parseFloat(itemSerie.peso);
+          var r = parseInt(itemSerie.repeticiones, 10);
+          var est1rm = (!isNaN(w) && !isNaN(r) && w > 0 && r > 0) ? Math.round(w * (1 + r / 30) * 10) / 10 : 0;
+          var esRecordSerie = (recordHist > 0 && w >= recordHist);
+
+          html += '    <div class="ex-history-set-item">';
+          html += '      <span>Serie ' + (k + 1) + ': <strong>' + itemSerie.peso + ' kg × ' + itemSerie.repeticiones + ' reps</strong></span>';
+          html += '      <div style="display:flex; align-items:center; gap:6px;">';
+          if (esRecordSerie) html += '        <span class="ex-history-session-pr">PR</span>';
+          if (est1rm > 0) html += '        <span class="ex-history-onerm-badge">1RM: ' + est1rm + 'k</span>';
+          html += '      </div>';
+          html += '    </div>';
+        }
+
+        html += '  </div>';
+        html += '</div>';
+      }
+      bodyEl.innerHTML = html;
+    }
+
+    modal.classList.add('open');
+  }
+
+  function cerrarModalHistorialEjercicio() {
+    var modal = $('exHistoryModal');
+    if (modal) modal.classList.remove('open');
+  }
+
+  // ===========================================================================
+  // CALCULADORA RÁPIDA DE DISCOS PARA BARRA (Inspirada en OpenWorkout / GitHub-Gym)
+  // ===========================================================================
+  var pesoRapidoDiscosActivo = 60;
+
+  function abrirModalCalculadoraDiscosRapida(peso, exNombre) {
+    var modal = $('quickPlateModal');
+    if (!modal) return;
+    pesoRapidoDiscosActivo = Math.max(20, Math.round((parseFloat(peso) || 60) / 2.5) * 2.5);
+    actualizarVistaDiscosRapida();
+    modal.classList.add('open');
+  }
+
+  function cerrarModalCalculadoraDiscosRapida() {
+    var modal = $('quickPlateModal');
+    if (modal) modal.classList.remove('open');
+  }
+
+  function ajustarPesoDiscosRapido(delta) {
+    pesoRapidoDiscosActivo = Math.max(20, Math.round((pesoRapidoDiscosActivo + delta) / 2.5) * 2.5);
+    actualizarVistaDiscosRapida();
+    vibrar([30]);
+  }
+
+  function actualizarVistaDiscosRapida() {
+    var displayWeight = $('quickPlateWeightDisplay');
+    var displaySide = $('quickPlateSideWeightDisplay');
+    var breakdownEl = $('quickPlateBreakdown');
+    if (!displayWeight || !breakdownEl) return;
+
+    displayWeight.textContent = pesoRapidoDiscosActivo;
+    var pesoBarra = 20;
+    var pesoPorLado = Math.max(0, (pesoRapidoDiscosActivo - pesoBarra) / 2);
+
+    if (displaySide) {
+      displaySide.textContent = 'Barra olímpica de 20 kg · ' + pesoPorLado + ' kg por cada extremo';
+    }
+
+    var discosDisponibles = [25, 20, 15, 10, 5, 2.5, 1.25];
+    var restante = pesoPorLado;
+    var desglose = [];
+
+    for (var i = 0; i < discosDisponibles.length; i++) {
+      var d = discosDisponibles[i];
+      if (restante >= d) {
+        var cant = Math.floor(restante / d);
+        desglose.push({ peso: d, cant: cant });
+        restante = Math.round((restante - (cant * d)) * 100) / 100;
+      }
+    }
+
+    if (desglose.length === 0) {
+      breakdownEl.innerHTML = '<span style="font-size:12px; color:var(--text-dim);">Solo la barra olímpica vacía (20 kg)</span>';
+    } else {
+      var html = '';
+      for (var j = 0; j < desglose.length; j++) {
+        var item = desglose[j];
+        var claseColor = 'p' + String(item.peso).replace('.', '');
+        html += '<span class="quick-plate-chip ' + claseColor + '">' + item.cant + ' × ' + item.peso + ' kg</span>';
+      }
+      breakdownEl.innerHTML = html;
+    }
+  }
+
+  // ===========================================================================
+  // SELECTOR RÁPIDO DE CATEGORÍA DE SERIE (Hevy / Strong)
+  // ===========================================================================
+  var setSeleccionadaParaTipo = { exIdx: null, sIdx: null };
+
+  function abrirSelectorTipoSerie(exIdx, sIdx) {
+    if (!estado.entrenamientoActivo || !estado.entrenamientoActivo.ejercicios[exIdx] || !estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx]) return;
+    setSeleccionadaParaTipo.exIdx = exIdx;
+    setSeleccionadaParaTipo.sIdx = sIdx;
+
+    var s = estado.entrenamientoActivo.ejercicios[exIdx].series[sIdx];
+    var modal = $('setTypePickerModal');
+    var titleEl = $('setTypePickerTitle');
+    if (titleEl) titleEl.textContent = 'Serie ' + s.numero + ' · Categoría de Serie';
+
+    if (modal) modal.classList.add('open');
+  }
+
+  function cerrarSelectorTipoSerie() {
+    var modal = $('setTypePickerModal');
+    if (modal) modal.classList.remove('open');
+    setSeleccionadaParaTipo.exIdx = null;
+    setSeleccionadaParaTipo.sIdx = null;
+  }
+
+  function aplicarTipoSerie(tipo, insignia) {
+    if (setSeleccionadaParaTipo.exIdx === null || setSeleccionadaParaTipo.sIdx === null) return;
+    var ex = estado.entrenamientoActivo.ejercicios[setSeleccionadaParaTipo.exIdx];
+    if (!ex) return;
+    var s = ex.series[setSeleccionadaParaTipo.sIdx];
+    if (!s) return;
+
+    s.tipo = tipo;
+    s.insignia = insignia;
+    guardarDatos();
+    cerrarSelectorTipoSerie();
+    dibujarEjerciciosActivos();
+    vibrar([40]);
   }
 
   // ===========================================================================
@@ -1529,6 +1752,12 @@
         detenerCronometroDescanso();
         alTerminarDescanso();
       } else {
+        if (restanteSegs !== estado.cronometroDescanso.restante) {
+          if (restanteSegs <= 3 && restanteSegs >= 1) {
+            audio.sonar(750, 'sine', 0.08);
+            vibrar([35]);
+          }
+        }
         estado.cronometroDescanso.restante = restanteSegs;
         actualizarPantallaDescanso();
       }
@@ -1561,7 +1790,7 @@
     var numEl = $('restTimerSeconds');
     if (numEl) numEl.textContent = '00:00';
     audio.descansoTerminado();
-    vibrar([200, 100, 200, 100, 300]);
+    vibrar([200, 100, 200, 100, 400]);
     setTimeout(function() {
       var barra = $('restTimerBar');
       if (barra && !estado.cronometroDescanso.activo) barra.classList.remove('visible');
@@ -1587,7 +1816,10 @@
           var w = parseFloat(s.peso);
           var r = parseInt(s.repeticiones, 10);
           if (!isNaN(w) && !isNaN(r)) {
-            volumenTotal += w * r;
+            // Excluir series de calentamiento del tonelaje de trabajo efectivo (estándar Hevy / Strong)
+            if (s.tipo !== 'calentamiento' && s.tipo !== 'warmup') {
+              volumenTotal += w * r;
+            }
             seriesHechas++;
             var recordActual = estado.records[exs[i].id] || 0;
             if (w > recordActual) {
@@ -2722,6 +2954,37 @@
     escuchar($('keypadNextFieldBtn'), 'click', avanzarSiguienteCampoTeclado);
     escuchar($('keypadDoneSetBtn'), 'click', marcarSerieHechaDesdeTeclado);
     escuchar($('keypadNativeKeyboardBtn'), 'click', activarTecladoNativo);
+    escuchar($('keypadQuickPlateBtn'), 'click', function() {
+      var s = (keypadActivo.exIdx !== null && keypadActivo.sIdx !== null && estado.entrenamientoActivo) ?
+        estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].series[keypadActivo.sIdx] : null;
+      var peso = s && s.peso ? parseFloat(s.peso) : 60;
+      var exNom = (keypadActivo.exIdx !== null && estado.entrenamientoActivo) ?
+        estado.entrenamientoActivo.ejercicios[keypadActivo.exIdx].nombre : '';
+      abrirModalCalculadoraDiscosRapida(peso || 60, exNom);
+    });
+
+    // Eventos de modal historial de ejercicio (v15)
+    escuchar($('closeExHistoryModalBtn'), 'click', cerrarModalHistorialEjercicio);
+    escuchar($('btnCloseExHistoryFooter'), 'click', cerrarModalHistorialEjercicio);
+
+    // Eventos de modal calculadora rápida de discos (v15)
+    escuchar($('closeQuickPlateModalBtn'), 'click', cerrarModalCalculadoraDiscosRapida);
+    escuchar($('btnCloseQuickPlateFooter'), 'click', cerrarModalCalculadoraDiscosRapida);
+    escuchar($('btnQuickPlateMinus5'), 'click', function() { ajustarPesoDiscosRapido(-5); });
+    escuchar($('btnQuickPlateMinus25'), 'click', function() { ajustarPesoDiscosRapido(-2.5); });
+    escuchar($('btnQuickPlatePlus25'), 'click', function() { ajustarPesoDiscosRapido(2.5); });
+    escuchar($('btnQuickPlatePlus5'), 'click', function() { ajustarPesoDiscosRapido(5); });
+
+    // Eventos de modal selector de tipo de serie (v15)
+    escuchar($('closeSetTypePickerBtn'), 'click', cerrarSelectorTipoSerie);
+    var opcionesTipoSerie = document.querySelectorAll('.btn-set-type-option');
+    for (var op = 0; op < opcionesTipoSerie.length; op++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          aplicarTipoSerie(btn.dataset.type, btn.dataset.badge);
+        });
+      })(opcionesTipoSerie[op]);
+    }
 
     // Steppers de peso (-10, -5, -2.5, -1, +1, +2.5, +5, +10)
     var weightSteps = document.querySelectorAll('#keypadWeightSteppers .keypad-step-btn');
@@ -2837,7 +3100,7 @@
 
   function configurarPWA() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=6').then(function(reg) {
+      navigator.serviceWorker.register('./sw.js?v=15').then(function(reg) {
         console.log('SW registrado correctamente:', reg.scope);
         if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         reg.update();

@@ -695,6 +695,9 @@
         <button id="keypadNativeKeyboardBtn" class="keypad-action-ghost" type="button" title="Abrir teclado normal del móvil">
           ⌨️ Móvil
         </button>
+        <button id="keypadQuickPlateBtn" class="keypad-action-ghost" type="button" title="Ver discos necesarios para este peso">
+          ⚖️ Discos
+        </button>
         <button id="keypadNextFieldBtn" class="keypad-action-next" type="button">
           Siguiente ➔
         </button>
@@ -888,14 +891,129 @@
     </div>
   </div>
 
+  <!-- Modal de Historial Rápido de Ejercicio (Inspirado en Hevy / Strong) -->
+  <div id="exHistoryModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px; padding: 22px 18px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap: 8px;">
+        <div>
+          <span class="badge-gold" style="font-size:11px;">📋 Marcas Anteriores</span>
+          <h3 id="exHistoryModalTitle" style="font-size:17px; font-weight:800; color:#fff; margin-top:4px; line-height: 1.3;">Historial de Ejercicio</h3>
+        </div>
+        <button id="closeExHistoryModalBtn" class="gym-keypad-close" type="button" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div id="exHistoryModalBody" style="max-height: 58vh; overflow-y: auto; padding-right: 4px;">
+        <!-- Se rellena dinámicamente con las últimas sesiones del ejercicio -->
+      </div>
+      <div style="margin-top: 14px; text-align: center;">
+        <button id="btnCloseExHistoryFooter" class="btn-secondary" style="width: 100%;">Volver al Entrenamiento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Rápido de Discos para Barra (Inspirado en OpenWorkout) -->
+  <div id="quickPlateModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 440px; padding: 22px 18px; text-align: center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="text-align: left;">
+          <span class="badge-gold" style="font-size:11px;">⚖️ Calculadora Rápida</span>
+          <h3 id="quickPlateModalTitle" style="font-size:16px; font-weight:800; color:#fff; margin-top:3px;">Carga de Barra</h3>
+        </div>
+        <button id="closeQuickPlateModalBtn" class="gym-keypad-close" type="button" aria-label="Cerrar modal">✕</button>
+      </div>
+
+      <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px;">
+        <div style="font-size: 32px; font-weight: 900; color: var(--gold-light); letter-spacing: -0.5px;">
+          <span id="quickPlateWeightDisplay">60</span> <small style="font-size: 16px; color: var(--text-dim);">kg</small>
+        </div>
+        <div id="quickPlateSideWeightDisplay" style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">
+          Barra olímpica de 20 kg · 20 kg por cada lado
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px;">
+          <button class="quick-plate-adjust-btn" id="btnQuickPlateMinus5">-5 kg</button>
+          <button class="quick-plate-adjust-btn" id="btnQuickPlateMinus25">-2.5 kg</button>
+          <button class="quick-plate-adjust-btn" id="btnQuickPlatePlus25">+2.5 kg</button>
+          <button class="quick-plate-adjust-btn" id="btnQuickPlatePlus5">+5 kg</button>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 6px; font-weight: 700;">
+        Discos necesarios en cada extremo:
+      </div>
+
+      <div id="quickPlateBreakdown" style="display:flex; justify-content:center; flex-wrap:wrap; gap:6px; min-height: 38px; margin-bottom: 16px;">
+        <!-- Fichas de discos calculados -->
+      </div>
+
+      <button id="btnCloseQuickPlateFooter" class="btn-secondary" style="width: 100%;">
+        Listo · Volver al Entrenamiento
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Selector de Tipo de Serie (Normal, Calentamiento, Pesada, Descarga, Fallo) -->
+  <div id="setTypePickerModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 380px; padding: 20px 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <span class="badge-gold" style="font-size:11px;">Categoría de Serie</span>
+          <h3 id="setTypePickerTitle" style="font-size:16px; font-weight:800; color:#fff; margin-top:2px;">Tipo de Serie</h3>
+        </div>
+        <button id="closeSetTypePickerBtn" class="gym-keypad-close" type="button" aria-label="Cerrar modal">✕</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn-set-type-option" data-type="normal" data-badge="SERIE" style="display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:8px; color:#fff; cursor:pointer; text-align:left;">
+          <div>
+            <div style="font-weight:700; font-size:13px;">Serie Normal</div>
+            <div style="font-size:11px; color:var(--text-dim);">Serie de trabajo estándar</div>
+          </div>
+          <span class="set-tag normal">SERIE</span>
+        </button>
+
+        <button class="btn-set-type-option" data-type="calentamiento" data-badge="CAL" style="display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--bg-input); border:1px solid rgba(245, 158, 11, 0.4); border-radius:8px; color:#fff; cursor:pointer; text-align:left;">
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#f59e0b;">Calentamiento / Aproximación</div>
+            <div style="font-size:11px; color:var(--text-dim);">No suma tonelaje al volumen efectivo</div>
+          </div>
+          <span class="set-tag calentamiento">CAL</span>
+        </button>
+
+        <button class="btn-set-type-option" data-type="pesada" data-badge="PESADA" style="display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--bg-input); border:1px solid rgba(239, 68, 68, 0.4); border-radius:8px; color:#fff; cursor:pointer; text-align:left;">
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#f87171;">Serie Pesada (Top Set)</div>
+            <div style="font-size:11px; color:var(--text-dim);">Máxima carga efectiva de la sesión</div>
+          </div>
+          <span class="set-tag pesada">PESADA</span>
+        </button>
+
+        <button class="btn-set-type-option" data-type="descarga" data-badge="DESCARGA" style="display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--bg-input); border:1px solid rgba(245, 158, 11, 0.4); border-radius:8px; color:#fff; cursor:pointer; text-align:left;">
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#fbbf24;">Descarga (−20 %)</div>
+            <div style="font-size:11px; color:var(--text-dim);">Back-off set para acumular volumen</div>
+          </div>
+          <span class="set-tag descarga">DESCARGA</span>
+        </button>
+
+        <button class="btn-set-type-option" data-type="fallo" data-badge="FALLO" style="display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--bg-input); border:1px solid rgba(244, 63, 94, 0.4); border-radius:8px; color:#fff; cursor:pointer; text-align:left;">
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#fb7185;">Al Fallo Muscular (RIR 0)</div>
+            <div style="font-size:11px; color:var(--text-dim);">Hasta la incapacidad concéntrica</div>
+          </div>
+          <span class="set-tag fallo">FALLO</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="adminToast" class="admin-toast"></div>
 
-  <!-- Scripts con control de versión y auto-limpieza -->
+  <!-- Scripts con control de versión y auto-limpieza (v15) -->
   <script>
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          if (names[i] !== 'cgm-rendimiento-v14') {
+          if (names[i] !== 'cgm-rendimiento-v15') {
             caches.delete(names[i]);
           }
         }
@@ -904,11 +1022,11 @@
   </script>
   <script src="lib/pdf.min.js"></script>
   <script src="lib/pdf.worker.min.js"></script>
-  <script src="ejercicios-db.js?v=14"></script>
-  <script src="routine-data.js?v=14"></script>
-  <script src="pdf-rutina-parser.js?v=14"></script>
-  <script src="rutinas-personalizadas.js?v=14"></script>
-  <script src="rutina-pdf-ui.js?v=14"></script>
-  <script src="app.js?v=14"></script>
+  <script src="ejercicios-db.js?v=15"></script>
+  <script src="routine-data.js?v=15"></script>
+  <script src="pdf-rutina-parser.js?v=15"></script>
+  <script src="rutinas-personalizadas.js?v=15"></script>
+  <script src="rutina-pdf-ui.js?v=15"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

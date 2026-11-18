@@ -3048,12 +3048,24 @@
   }
 
   function descargarCopiaSeguridad() {
+    var rutinasPers = [];
+    try {
+      if (window.CGM_RUTINAS_PERSONALIZADAS && typeof window.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinas === 'function') {
+        rutinasPers = window.CGM_RUTINAS_PERSONALIZADAS.obtenerRutinas();
+      } else {
+        var rStorage = localStorage.getItem('cgm_rutinas_personalizadas');
+        if (rStorage) rutinasPers = JSON.parse(rStorage);
+      }
+    } catch (e) {}
+
     var datos = {
       aplicacion: 'CGM Rendimiento Rutina',
       version: '4.0',
       fechaExportacion: new Date().toISOString(),
       historial: estado.historial,
       records: estado.records,
+      notasEjercicios: estado.notasEjercicios || {},
+      rutinasPersonalizadas: rutinasPers,
       ajustes: estado.ajustes,
       indiceRotacion: estado.indiceRotacion
     };
@@ -3075,17 +3087,28 @@
         var datos = JSON.parse(evento.target.result);
         if (datos.historial) estado.historial = datos.historial;
         if (datos.records) estado.records = datos.records;
+        if (datos.notasEjercicios) estado.notasEjercicios = datos.notasEjercicios;
         if (datos.ajustes) estado.ajustes = Object.assign({}, AJUSTES_PREDETERMINADOS, datos.ajustes);
         if (datos.indiceRotacion !== undefined) estado.indiceRotacion = datos.indiceRotacion;
+
+        if (Array.isArray(datos.rutinasPersonalizadas)) {
+          localStorage.setItem('cgm_rutinas_personalizadas', JSON.stringify(datos.rutinasPersonalizadas));
+          if (window.CGM_RUTINA_PDF_UI && typeof window.CGM_RUTINA_PDF_UI.renderizarSelectorRutinas === 'function') {
+            window.CGM_RUTINA_PDF_UI.renderizarSelectorRutinas();
+          }
+        }
 
         guardarDatos();
         dibujarHistorial();
         dibujarRecords();
         mostrarSiguienteEntrenamiento();
         dibujarSecuenciaCiclo();
-        alert('¡Copia de seguridad restaurada con éxito!');
+        if (typeof window.cgmRecargarRutinaVisual === 'function') {
+          window.cgmRecargarRutinaVisual();
+        }
+        alert('¡Copia de seguridad restaurada con éxito! Se ha recuperado todo tu progreso, marcas, notas y rutinas.');
       } catch (err) {
-        alert('El archivo seleccionado no es válido.');
+        alert('El archivo seleccionado no es válido: ' + err.message);
       }
     };
     lector.readAsText(archivo);
